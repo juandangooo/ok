@@ -55,20 +55,20 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ITEM-01 | TBD | Pending |
-| ITEM-02 | TBD | Pending |
-| ITEM-03 | TBD | Pending |
-| LIST-01 | TBD | Pending |
-| LIST-02 | TBD | Pending |
-| STOR-01 | TBD | Pending |
-| STOR-02 | TBD | Pending |
-| PLAT-01 | TBD | Pending |
+| ITEM-01 | Phase 1 | Pending |
+| ITEM-02 | Phase 2 | Pending |
+| ITEM-03 | Phase 2 | Pending |
+| LIST-01 | Phase 2 | Pending |
+| LIST-02 | Phase 2 | Pending |
+| STOR-01 | Phase 1 | Pending |
+| STOR-02 | Phase 1 | Pending |
+| PLAT-01 | Phase 1 | Pending |
 
 **Coverage:**
 - v1 requirements: 8 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 8 ⚠️
+- Mapped to phases: 8 (Phase 1: 4, Phase 2: 4)
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-09-02*
-*Last updated: 2026-09-02 after initial definition*
+*Last updated: 2026-09-02 after roadmap creation (traceability mapped)*
