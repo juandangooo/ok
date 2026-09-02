@@ -55,7 +55,20 @@
 - **Entry point** — single `#!/usr/bin/env node` script, invokable as `todo`; exact exposure mechanism left to planner; no npm dependencies.
 - **JSON formatting** — pretty-printed, 2-space indent.
 
+## Follow-up Discussion (2026-09-02)
+
+Re-ran `/gsd-discuss-phase 1` and chose "Update it". User raised three points via free-text:
+
+| Point | Outcome |
+|-------|---------|
+| How to store done items — mark in place vs move | **Mark in place** with a `done` flag → confirms locked D-01; no change. |
+| Should `todo list` show completed items by default? User proposed: hide unless `--all` | **Deferred (option B).** This is Phase 2 behavior and would revise locked LIST-01 (list shows all, done marked). Kept LIST-01 as-is; `--all` recorded as an optional Phase 2 refinement in Deferred Ideas. |
+| First-run: no `todos.json` yet | **Create silently on first add** → confirms locked STOR-02; no change. |
+
+**Net effect on Phase 1:** no decisions changed. Two existing decisions re-confirmed; one Phase 2 idea captured as deferred.
+
 ## Deferred Ideas
 
+- **`todo list` hides completed by default with `--all` to reveal** — Phase 2 refinement; would revise LIST-01. Kept LIST-01 as-is for now (option B).
 - `remove` / `edit` / `clear-done` commands — v2 (ITEM-04/05/06).
 - Per-project files, due dates, priorities, tags — out of scope per PROJECT.md.

@@ -1,6 +1,7 @@
 # Phase 1: Foundation & Add - Context
 
 **Gathered:** 2026-09-02
+**Updated:** 2026-09-02 (follow-up discussion — re-confirmed schema & first-run behavior; added a Phase 2 deferred idea)
 **Status:** Ready for planning
 
 <domain>
@@ -65,12 +66,14 @@ No external specs or ADRs — requirements are fully captured in the decisions a
 
 - Invocation shape is fixed by PROJECT.md: `todo add "buy milk"`, `todo list`, `todo done 1`.
 - Item numbering in later phases is by list position, not stored IDs — so no `id` field is needed in the schema.
+- Follow-up discussion re-confirmed two already-locked choices: completed items are marked **in place** via the `done` boolean flag (D-01, no move-to-archive), and a missing `~/.todos.json` is **created silently on first add** (STOR-02) — the only output on add is the `Added: "…"` confirmation.
 
 </specifics>
 
 <deferred>
 ## Deferred Ideas
 
+- **Hide completed items in `todo list` by default, with an `--all` flag to reveal them** — raised in the follow-up discussion. This is a **Phase 2** behavior and would *revise the locked v1 requirement* (LIST-01 / PROJECT.md / ROADMAP all currently specify that `todo list` shows *all* items with done ones marked). Decision (option B): **keep LIST-01 as-is for now** — `list` shows everything, done ones marked — and revisit `--all` as an optional Phase 2 refinement. Not in Phase 1 scope; does not affect this phase.
 - `remove`, `edit`, `clear-done` commands — v2 (ITEM-04/05/06), out of v1 scope.
 - Per-project todo files, due dates, priorities, tags — out of scope per PROJECT.md.
 
