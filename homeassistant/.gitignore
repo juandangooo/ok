@@ -1,0 +1,17 @@
+# Home Assistant runtime state and secrets — never commit these.
+# .storage/ in particular holds your Apple TV pairing credentials/tokens.
+venv/
+.venv/
+config/.storage/
+config/.cloud/
+config/*.db
+config/*.db-*
+config/*.log
+config/*.log.*
+config/secrets.yaml
+config/known_devices.yaml
+config/.HA_VERSION
+config/deps/
+config/tts/
+config/image/
+config/tmp/

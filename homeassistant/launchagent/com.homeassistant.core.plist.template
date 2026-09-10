@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.homeassistant.core</string>
+
+	<!-- Replace __VENV_PATH__ with wherever you created the venv, e.g.
+	     /Users/yourname/homeassistant-venv -->
+	<!-- Replace __REPO_CONFIG_PATH__ with the path to this repo's
+	     homeassistant/config folder, e.g.
+	     /Users/yourname/ok/homeassistant/config -->
+	<key>ProgramArguments</key>
+	<array>
+		<string>__VENV_PATH__/bin/hass</string>
+		<string>-c</string>
+		<string>__REPO_CONFIG_PATH__</string>
+	</array>
+
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<true/>
+
+	<key>StandardOutPath</key>
+	<string>/tmp/homeassistant.stdout.log</string>
+	<key>StandardErrorPath</key>
+	<string>/tmp/homeassistant.stderr.log</string>
+</dict>
+</plist>

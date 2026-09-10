@@ -1,0 +1,37 @@
+# Shop Apple TV schedule.
+#
+# IMPORTANT: `remote.shop_apple_tv` below is a placeholder. After you pair the
+# Apple TV in Home Assistant (see ../README.md Part D), go to
+# Settings > Devices & Services > Apple TV > and note the real entity ID
+# (Settings > Devices & Services > Entities, filter by "remote"). Replace the
+# placeholder in both automations below with that entity ID, then either
+# restart Home Assistant or run Developer Tools > YAML > "Automations" reload.
+
+- id: shop_apple_tv_sleep_6pm
+  alias: "Shop: Sleep Apple TV at close (6:00 PM)"
+  description: >
+    Sends the Apple TV to sleep at close. If "Control TVs and Receivers"
+    (HDMI-CEC) is on in the Apple TV's Video and Audio settings, and CEC is
+    on for the shop TV too, this also puts the TV itself into standby.
+  triggers:
+    - trigger: time
+      at: "18:00:00"
+  actions:
+    - action: remote.turn_off
+      target:
+        entity_id: remote.shop_apple_tv
+  mode: single
+
+- id: shop_apple_tv_wake_840am
+  alias: "Shop: Wake Apple TV before open (8:40 AM)"
+  description: >
+    Wakes the Apple TV ~5 minutes before the shop opens at 8:45, giving it
+    time to boot and (via HDMI-CEC, if enabled) wake the TV too.
+  triggers:
+    - trigger: time
+      at: "08:40:00"
+  actions:
+    - action: remote.turn_on
+      target:
+        entity_id: remote.shop_apple_tv
+  mode: single

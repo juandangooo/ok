@@ -1,0 +1,9 @@
+# Optional reference snippet for the dashboard card described in
+# ../README.md Part F. You'll normally add this through the UI (Settings >
+# Dashboards > Edit > Add Card > Media Control > pick your Apple TV entity),
+# but if you prefer pasting YAML directly: when adding a card, click the
+# three-dot menu in the "Add Card" dialog and choose "Edit in YAML", then
+# paste this in and swap the entity for your real one.
+
+type: media-control
+entity: media_player.shop_apple_tv
