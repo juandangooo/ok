@@ -6,8 +6,9 @@ discovery Apple TV control depends on). Home Assistant then:
 
 - Sleeps the Apple TV at 6:00 PM and wakes it at 8:40 AM, every day,
   independent of any phone.
-- Gives you a browser dashboard on this laptop to control the Apple TV
-  directly, for the "iOS remote can't find it" situations.
+- Gives you a browser dashboard on this laptop, and a native app on your
+  iPhone, to control the Apple TV directly, for the "iOS remote can't find
+  it" situations.
 
 **Reliability note:** this only keeps working while this Mac is powered on,
 plugged in, and not asleep, sitting on the shop's network. If it ever
@@ -135,11 +136,53 @@ Edit Dashboard > Add Card > search **Media Control** > pick your Apple TV's
 of this card is in `config/dashboard-apple-tv-card.yaml` if you'd rather
 paste it via the card's "Edit in YAML" option.)
 
+## Part G — Control it from your iPhone
+
+No custom app to build — Home Assistant has an official one. It talks to
+the same instance running on the Mac; the Mac is still what's actually
+running the schedule and pairing either way, the phone is just another
+window into it, same as the browser dashboard in Part F.
+
+1. Install **Home Assistant** from the App Store (free, published by Open
+   Home Foundation / Nabu Casa — the project itself, not a third party).
+2. Make sure the Mac allows incoming connections on port 8123: the first
+   time a device connects, macOS may prompt "Allow incoming connections
+   for python3/hass" — click **Allow**. If you don't get prompted and the
+   app can't connect, check System Settings > Network > Firewall >
+   Options for a `python3` or `hass` entry blocked there.
+3. On the iPhone, join the **shop's Wi-Fi** (this only works on the same
+   network as the Mac, unless you set up remote access — see below), open
+   the Home Assistant app, and let it auto-discover the instance. If it
+   doesn't show up, enter it manually:
+   - Find the Mac's local address: Terminal > `ipconfig getifaddr en0`
+     (or check System Settings > Wi-Fi > Details > IP Address), or just
+     try the Mac's Bonjour name — System Settings > General > Sharing
+     shows it at the top, then use `http://<that-name>.local:8123`.
+   - Enter `http://<ip-or-name>:8123` as the server, port `8123`.
+4. Log in with the admin account you created in Part B.
+5. You'll land on the same dashboard from Part F, including the Apple TV
+   media control card — now native on the phone. Optional: long-press the
+   Home Screen > Add Widget > Home Assistant, to control the Apple TV
+   without even opening the app.
+
+**Only works on the shop's Wi-Fi by default** — walk out the door and the
+app can't reach it. That's consistent with how you described using this
+(control it while you're there), so it's the default here. If you also
+want it reachable from anywhere, the supported path is Home Assistant
+Cloud (Nabu Casa, ~$6.50/mo, no port-forwarding or certificates to manage)
+via Settings > Home Assistant Cloud in the HA UI — tell me and I'll add
+those steps, since it's a real recurring cost and a slightly bigger
+security surface, not something to turn on silently by default.
+
 ## Day to day
 
-Bookmark `http://localhost:8123` on this laptop — that's your dashboard
-with the Apple TV media/remote controls, any time you want to control it
-manually instead of waiting on the schedule.
+- **On the shop Wi-Fi:** open the Home Assistant app on your iPhone (Part
+  G) for the native experience, including any widgets you add.
+- **On this laptop:** bookmark `http://localhost:8123` for the same
+  dashboard in a browser.
+
+Either one lets you control the Apple TV manually any time, on top of the
+automatic 6 PM / 8:40 AM schedule.
 
 ## Security note
 
