@@ -71,9 +71,18 @@ botanical construction, and the grain filter.
 
 Deliver as an inline-SVG HTML page with Google Fonts and publish it as an
 Artifact when the user wants to look at it; as a standalone `.svg` when they
-want the file. `examples/conservas-cortes.html` is a complete worked example in
-archetype C — start from it rather than from a blank canvas, and
-`examples/conservas-cortes.jpg` is what it renders to.
+want the file. Two complete worked examples — start from one rather than from a blank canvas:
+`examples/conservas-cortes.html` (archetype C, Art Nouveau) and
+`examples/hellhound-tin.html` (archetype A, Nordic spot-colour, built around an
+existing brand's logo). The matching `.jpg` beside each is what it renders to.
+
+**Putting a real logo on a tin:** rebuild the mark's geometry rather than
+placing the supplied file — a flat logo dropped onto a tin reads as a sticker.
+Work out what the mark's construction actually is first. The Hellhound example
+turned on noticing that its hexagon splits into two *trapezoids*, so the H on
+each half is tapered (stems vertical, growing taller toward the centre seam),
+not skewed; a skew put the outer corners outside the hexagon. Then recolour it
+into the tin's palette — the brand's own colours become the field and the inks.
 
 Always render and look at the result before delivering; type/illustration
 collisions and text overflowing a `textPath` arc are invisible in the source.
