@@ -1,6 +1,8 @@
 # SVG Recipes
 
-Copy-paste building blocks. All tested; coordinates assume a 1000×740 canvas
+Copy-paste building blocks. Read `style-guide.md` Part 1 first — several of
+these are the wrong default if you have not chosen a density register and an
+ink count. All tested; coordinates assume a 1000×740 canvas
 with the tin occupying roughly `x 60..940, y 70..670`.
 
 ---
@@ -80,50 +82,88 @@ Sits on the lid, top-left by convention, and the artwork is drawn *around* it.
 
 ---
 
-## 3. Engraving hatch (archetype B)
+## 3. Engraving, drawn mark by mark
 
-Three densities + a cross-hatch gives four tonal steps. Never use grey fill.
+**Do not reach for `<pattern>` here.** A pattern tiles exactly; the eye catches
+the grid and the drawing collapses into vector art. Engraving is individual
+lines, each slightly off its neighbour. `../scripts/handdrawn.py` emits them:
 
-```xml
-<defs>
-  <pattern id="h1" width="7" height="7" patternUnits="userSpaceOnUse"
-           patternTransform="rotate(38)">
-    <line x1="0" y1="0" x2="0" y2="7" stroke="#141414" stroke-width="1.1"/>
-  </pattern>
-  <pattern id="h2" width="4.4" height="4.4" patternUnits="userSpaceOnUse"
-           patternTransform="rotate(38)">
-    <line x1="0" y1="0" x2="0" y2="4.4" stroke="#141414" stroke-width="1.2"/>
-  </pattern>
-  <pattern id="h3" width="2.9" height="2.9" patternUnits="userSpaceOnUse"
-           patternTransform="rotate(38)">
-    <line x1="0" y1="0" x2="0" y2="2.9" stroke="#141414" stroke-width="1.3"/>
-  </pattern>
-  <pattern id="xh" width="5" height="5" patternUnits="userSpaceOnUse"
-           patternTransform="rotate(20)">
-    <line x1="0" y1="0" x2="0" y2="5" stroke="#141414" stroke-width="1.2"/>
-    <line x1="0" y1="0" x2="5" y2="0" stroke="#141414" stroke-width="1.2"/>
-  </pattern>
-  <!-- stipple: skin, faces, soft forms -->
-  <pattern id="stip" width="6" height="6" patternUnits="userSpaceOnUse">
-    <circle cx="1.6" cy="1.6" r="1.05" fill="#141414"/>
-    <circle cx="4.6" cy="4.4" r="0.8"  fill="#141414"/>
-  </pattern>
-</defs>
+```python
+import sys; sys.path.insert(0, '.claude/skills/sardine-tin/scripts')
+from handdrawn import hatch, scatter, taper, stroke_weights, ellipse_mask, paths
 
-<path d="..." fill="url(#h2)"/>          <!-- mid tone -->
-<path d="..." fill="url(#xh)"/>          <!-- darkest -->
-<path d="..." fill="url(#stip)"/>        <!-- skin -->
-<path d="..." fill="none" stroke="#141414" stroke-width="2.4"/>  <!-- keyline -->
+body = ellipse_mask(300, 170, 210, 62)          # the shape being shaded
+
+# three tonal steps = three spacings, not three greys
+t1 = hatch(90, 108, 420, 124, spacing=9.0, angle=34, seed=1, inside=body, bow=7)
+t2 = hatch(90, 108, 420, 124, spacing=5.5, angle=34, seed=2, inside=body, bow=7)
+t3 = hatch(90, 108, 420, 124, spacing=5.5, angle=-52, seed=3, inside=body)  # cross
+
+# scales: hundreds of separate ticks, never a pattern
+sc = scatter(120, 130, 360, 84, n=420, seed=7, length=7, angle=-18,
+             spread=22, inside=body)
+
+print(paths(t2, fill="none", stroke="#2E4A4C", stroke_width="1.5",
+            stroke_linecap="round"))
+print(paths(sc, fill="none", stroke="#2E4A4C", stroke_width="1.1",
+            stroke_linecap="round", opacity=".85"))
 ```
 
-**Contour hatching** (hatch that follows a form, the real engraver's move) can't
-come from a flat pattern. Draw 8–14 individual `<path>` strokes as parallel
-curves that bend with the surface, varying `stroke-width` 0.8→2.0 across the
-form. Reserve this for the one or two focal shapes; use patterns everywhere else.
+`bow` bends each line so it follows the form's curvature — the engraver's move
+that flat hatching cannot fake. Reserve it for the one or two focal shapes.
 
----
+`paths()` joins hundreds of marks into a single `<path>` element, so the page
+stays light.
 
-## 4. Tone-on-tone ground (archetype C)
+Patterns are still right for **flat background tone**, where regularity is not
+read as drawing — the tone-on-tone ground in §4 is the case.
+
+## 3b. Line that swells and thins
+
+A uniform `stroke-width` is the machine tell. Draw important contours as filled
+shapes instead:
+
+```python
+from handdrawn import smooth, taper, stroke_weights, jitter
+
+back = [(96,168),(150,128),(230,110),(320,112),(400,132),(462,166)]
+w = [x * 5.2 for x in stroke_weights(len(back), ends=0.35, belly=1.0, peak=0.4)]
+print(f'<path fill="#2E4A4C" d="{taper(jitter(back, 1.2, seed=4), w)}"/>')
+```
+
+Keep uniform strokes for rules, keylines and the ruled origin box, where
+mechanical regularity is honest.
+
+## 3c. Misregistration and overprint
+
+The two cheapest, most convincing old-print cues.
+
+```xml
+<!-- flat colour sits a hair off the linework that describes it -->
+<g transform="translate(3.5,-2.5)">
+  <path fill="#F2C230" d="…the jacket…"/>
+</g>
+<g id="linework"> … </g>          <!-- drawn after, in register -->
+
+<!-- ink goes darker where it crosses the second colour, as on press -->
+<g style="mix-blend-mode:multiply"> …all the drawing ink… </g>
+```
+
+Let the colour spill past its outline in exactly one place. Two or three places
+reads as a mistake; one reads as a press.
+
+## 3d. Frames that are not machine-made
+
+```python
+from handdrawn import wobble_rect
+print(f'<path fill="none" stroke="#2E4A4C" stroke-width="7" '
+      f'd="{wobble_rect(128, 150, 744, 440, r=56, amp=1.8, seed=11)}"/>')
+```
+
+Each corner gets its own radius and every point is nudged. At 1000px wide keep
+`amp` around 1.5–2.5; past that it reads as a gimmick rather than a hand.
+
+## 4. Tone-on-tone ground (archetype H, Art Nouveau)
 
 The subliminal tendril field. Keep the contrast under 10%.
 
@@ -141,6 +181,25 @@ The subliminal tendril field. Keep the contrast under 10%.
 ```
 
 ---
+
+## 4b. Ageing a palette
+
+An eighty-year-old tin is not a saturated one. To pitch a palette at the
+Peacock's end rather than the Belle-Iloise end, pull every ink toward a warm
+grey before you start — do not try to fix it afterwards with an overlay.
+
+```python
+def aged(hex_colour, amount=0.22, toward=(214, 206, 178)):
+    """Mix a colour toward old-paper cream. amount 0.15-0.35."""
+    r, g, b = (int(hex_colour[i:i+2], 16) for i in (1, 3, 5))
+    return "#%02X%02X%02X" % tuple(
+        round(c + (t - c) * amount) for c, t in zip((r, g, b), toward))
+
+aged("#2F5B3A")   # -> a green that has sat in a cupboard since 1936
+```
+
+Then finish with grain at 3–6% and a warm vignette. The Portuguese and Pinhais
+cans are the opposite case — modern print, full strength, no ageing at all.
 
 ## 5. Arched display type
 
@@ -222,7 +281,7 @@ darker by ~18%, before drawing the band.
 
 ---
 
-## 9. Flat botanicals (archetype C)
+## 9. Flat botanicals (archetype H, Art Nouveau)
 
 Three elements per object, in this order. No shading, no gradients.
 
