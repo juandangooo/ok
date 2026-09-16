@@ -51,10 +51,23 @@ mark → sparse two-ink.
 split) → subject → type → pyramid copy → tally → sheen → vignette → grain.
 
 **4. Draw by hand, not by pattern.** `scripts/handdrawn.py` gives you
-`taper()` for swelling line weight, `scatter()` and `hatch()` for texture made
-of individual marks, `wobble_rect()` for frames whose corners do not match, and
+`taper()` for swelling line weight (pass `straight=True` for anything with
+corners that must stay corners), `scatter()` and `hatch()` for texture made of
+individual marks, `wobble_rect()` for frames whose corners do not match, and
 `smooth()` for organic contours. Import it and emit paths; do not reach for
 `<pattern>` on anything that is meant to look drawn.
+
+**4b. Letter the display words, don't set them.** `scripts/lettering.py`
+carries a monoline squared grotesque as centrelines, so weight is just the
+stroke and every letter can be cut slightly differently. Redraw `GLYPHS` to
+match a brand's own skeleton. Small legal copy is the exception — real tins
+typeset it. `svg-recipes.md` §13.
+
+**4c. Wear it in.** A clean tin looks like a mockup. Blotchy paint under the
+ink, a small displacement on the ink's edges, several hundred field-coloured
+abrasion specks that punch holes only where they land on ink, two kinds of
+scratch, and a lot code stamped after the fact and a degree out of true.
+`svg-recipes.md` §14.
 
 **5. Render and look at it.** Type/illustration collisions and text overflowing
 a `textPath` are invisible in source. `svg-recipes.md` §12 has the
@@ -90,9 +103,11 @@ Deliver as an inline-SVG HTML page with Google Fonts, published as an Artifact
 when the user wants to look at it; a standalone `.svg` when they want the file.
 Worked examples to start from rather than a blank canvas:
 
-- `examples/hellhound-two-ink.html` — archetype A, sparse, two inks, one
-  subject drawn mark by mark. The principles at their most exposed, and the
-  example to read first.
+- `examples/hellhound-salt.html` — archetype A at full strength: two inks,
+  hand-cut lettering, a brand mark as its own subject, and the whole wear
+  stack. Read this one first.
+- `examples/hellhound-two-ink.html` — archetype A with an engraved subject
+  drawn mark by mark.
 - `examples/conservas-cortes.html` — archetype H, packed, Art Nouveau
 - `examples/hellhound-tin.html` — archetype D, the same brand at the packed
   end of the density register, with its logo rebuilt

@@ -52,9 +52,13 @@ def jitter(points, amp=1.8, seed=0):
 
 # ——————————————————————————————————————————————— variable-weight line
 
-def taper(points, widths, closed=False):
+def taper(points, widths, closed=False, straight=False):
     """A stroke drawn as a FILLED shape so its weight can swell and thin the
     way a nib does. `widths` is one width per point (or a single number).
+
+    Pass `straight=True` for anything with corners that must stay corners — a
+    hexagon, a frame, a letterform. The default smooths through the points,
+    which will quietly dissolve a polygon into a blob.
 
     This is the difference between a drawn line and a plotted one. A uniform
     `stroke-width` is the machine tell — use it for rules and keylines, and
@@ -77,7 +81,10 @@ def taper(points, widths, closed=False):
         w = widths[i] / 2.0
         left.append((x + nx * w, y + ny * w))
         right.append((x - nx * w, y - ny * w))
-    return smooth(left + right[::-1], closed=True)
+    pts = left + right[::-1]
+    if straight:
+        return "M" + " L".join(f"{a:.2f} {b:.2f}" for a, b in pts) + " Z"
+    return smooth(pts, closed=True)
 
 
 def stroke_weights(n, ends=0.5, belly=1.0, peak=0.45):

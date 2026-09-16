@@ -377,3 +377,93 @@ illustration; text overflowing the end of a `textPath` arc (it silently
 disappears); elements clipped at the lid edge that read as blobs rather than as
 deliberate bleeds; a display face too light for the archetype; and empty yellow
 where the coverage rule says there should be ornament.
+
+---
+
+## 13. Lettering a brand's own words
+
+When the brand's letterforms matter, substituting a Google Font is wrong twice
+over: it loses the shapes, and a typeset word is mechanically perfect in a way
+nothing else on the can is. Draw the skeleton instead.
+
+`../scripts/lettering.py` carries a monoline squared grotesque of the
+Eurostile / Microgramma cast — flat terminals, square corners, superelliptical
+O and D, extended proportions. Glyphs are **centrelines** on a 100-unit cap
+height, so weight is just the stroke:
+
+```python
+import sys; sys.path.insert(0, '.claude/skills/sardine-tin/scripts')
+from lettering import word, measure
+
+w = measure("HELLHOUND", cap=66, tracking=16)
+paths, _ = word("HELLHOUND", x=500 - w/2, y=214, cap=66, tracking=16, seed=3)
+print(f'<g stroke="#A83620" fill="none">{"".join(paths)}</g>')
+```
+
+Every stroke gets its own jitter and its own slightly different weight, and
+each letter sits a hair off its baseline with a fraction of a degree of lean —
+so no two letters are cut quite alike. That is the whole reason to draw them.
+
+To match a different brand, redraw `GLYPHS`: each entry is
+`(advance_width, [polyline, ...])` in the same 100-unit box. **Split diagonals
+onto their own polyline** — a mitred join between a diagonal and a stem spikes
+badly at these weights, which is what turns an N into a K.
+
+Small legal copy is the exception. Real tins typeset it, and a hand-lettered
+six-point line is historically wrong. Set it in a font and let the wear layer
+below do the ageing.
+
+## 14. Wear, and making it a real object
+
+A clean tin looks like a mockup. A worn one looks like something that has been
+in a pocket. Four layers, in this order, and the order matters:
+
+**1. Paint before print.** Put the blotching in the field itself, under
+everything, so the ink sits *on* uneven paint rather than over a flat plane.
+
+```xml
+<filter id="patina">
+  <feTurbulence type="fractalNoise" baseFrequency="0.006 0.011" numOctaves="4" seed="17"/>
+  <feColorMatrix type="saturate" values="0"/>
+</filter>
+<rect …  filter="url(#patina)" opacity=".055" style="mix-blend-mode:multiply"/>
+```
+
+Add a sun-fade: a linear gradient across the field, one corner a couple of
+shades lighter, as though it has had eighty summers more than the other.
+
+**2. Eaten edges.** A small displacement on the ink group only:
+
+```xml
+<filter id="rough" x="-6%" y="-6%" width="112%" height="112%">
+  <feTurbulence type="fractalNoise" baseFrequency="0.075" numOctaves="3" seed="9" result="n"/>
+  <feDisplacementMap in="SourceGraphic" in2="n" scale="1.55"
+                     xChannelSelector="R" yChannelSelector="G"/>
+</filter>
+```
+
+Keep `scale` between 1.2 and 2.0 at 1000px wide. At 2.6 it starts dissolving
+letterforms; much past that and everything becomes a grunge font.
+
+**3. Abrasion, in the field colour.** Scatter several hundred specks of the
+*field* colour over the whole lid. They are invisible where they fall on bare
+field and punch holes where they fall on ink — which is exactly how real wear
+behaves, and why this beats any overlay texture.
+
+```python
+sp  = scatter(LX, LY, LW, LH, 520, seed=61, length=4.2, spread=90, inside=edge_zone)
+sp += scatter(LX, LY, LW, LH, 260, seed=62, length=3.6, spread=90, inside=rub_band)
+sp += scatter(LX, LY, LW, LH, 190, seed=63, length=2.8, spread=90)
+```
+
+Concentrate them where a tin is actually handled: a band ~70px in from the
+edge, and a diagonal wipe across the middle for thumb and pocket.
+
+**4. Two kinds of scratch.** Paint off the ink (field-coloured, over
+everything) and bare metal out of the paint (grey, low opacity). Both, or it
+reads as one effect rather than as history. Curve them slightly; a straight
+scratch looks drawn.
+
+Finish with grain at 3–6%, a warm vignette at ~0.2, and a stamped lot code
+printed *after* everything else, a degree or two out of true — the Pinhais
+move, and the single cheapest thing on this list.
