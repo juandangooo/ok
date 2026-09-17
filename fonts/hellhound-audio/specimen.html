@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hellhound Audio</title>
+<style>
+  @font-face { font-family: "Hellhound Audio";         src: url("dist/HellhoundAudio.woff2") format("woff2");        font-weight: 800; font-display: swap; }
+  @font-face { font-family: "Hellhound Audio Inline";  src: url("dist/HellhoundAudioInline.woff2") format("woff2");  font-weight: 800; font-display: swap; }
+  @font-face { font-family: "Hellhound Audio Outline"; src: url("dist/HellhoundAudioOutline.woff2") format("woff2"); font-weight: 800; font-display: swap; }
+  @font-face { font-family: "Hellhound Audio Shadow";  src: url("dist/HellhoundAudioShadow.woff2") format("woff2");  font-weight: 800; font-display: swap; }
+
+  :root {
+    --bg: #0d0d0f; --panel: #151518; --line: #2a2a30;
+    --ink: #f4f1ea; --dim: #8b8b96; --hot: #d93a1e;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.6 ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    padding: 48px 16px 96px;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  h2 { font-size: 12px; letter-spacing: .18em; text-transform: uppercase;
+       color: var(--dim); font-weight: 600; margin: 56px 0 16px;
+       border-top: 1px solid var(--line); padding-top: 16px; }
+  p { color: var(--dim); max-width: 62ch; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em;
+         background: var(--panel); padding: 2px 6px; border-radius: 4px; color: var(--ink); }
+
+  .hh   { font-family: "Hellhound Audio", system-ui; }
+  .hhi  { font-family: "Hellhound Audio Inline", system-ui; }
+  .hho  { font-family: "Hellhound Audio Outline", system-ui; }
+  .hhs  { font-family: "Hellhound Audio Shadow", system-ui; }
+
+  /* Stack Shadow behind another layer to get the full 3-D treatment. */
+  .stack { position: relative; display: block; line-height: 1.12; }
+  .stack span { display: block; }
+  .stack .under { position: absolute; inset: 0; z-index: 0; }
+  .stack .over  { position: relative; z-index: 1; }
+
+  .hero { font-size: clamp(44px, 11vw, 132px); margin: 0 0 8px; }
+  .hero .under { color: var(--hot); }
+  .hero .over  { color: var(--ink); }
+
+  .row { font-size: clamp(30px, 6.4vw, 62px); line-height: 1.18; margin: 0 0 6px;
+         word-break: break-word; }
+  .label { font: 600 11px/1 ui-sans-serif, sans-serif; letter-spacing: .16em;
+           text-transform: uppercase; color: var(--dim); margin: 22px 0 6px; }
+
+  .chars { font-size: 34px; line-height: 1.5; word-spacing: .12em;
+           background: var(--panel); border: 1px solid var(--line);
+           border-radius: 10px; padding: 22px 24px; }
+  .ramp div { margin: 0 0 4px; white-space: nowrap; overflow: hidden; text-overflow: clip; }
+
+  .cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+          padding: 18px 20px; }
+  .card .t { font-size: 40px; margin-bottom: 10px; }
+  .card .n { font: 600 11px/1 ui-sans-serif, sans-serif; letter-spacing: .14em;
+             text-transform: uppercase; color: var(--dim); }
+  .card .d { font-size: 13px; color: var(--dim); margin-top: 6px; }
+  .poster { background: var(--hot); color: #140b08; border-radius: 10px;
+            padding: 40px 28px; text-align: center; }
+  .poster .stack .under { color: #140b08; opacity: .35; }
+  .poster .stack .over  { color: #fff4ec; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero stack hh">
+    <span class="under hhs" aria-hidden="true">HELLHOUND</span>
+    <span class="over">HELLHOUND</span>
+  </div>
+  <div class="hero stack hh" style="font-size:clamp(28px,7vw,84px)">
+    <span class="under hhs" aria-hidden="true">AUDIO</span>
+    <span class="over">AUDIO</span>
+  </div>
+  <p style="margin-top:22px">A chiselled, caps-only display family in four layerable
+  styles. Built for sleeves, posters, merch and anything that needs to shout.</p>
+
+  <h2>The four cuts</h2>
+  <div class="cards">
+    <div class="card"><div class="t hh">RAHWAY</div><div class="n">Regular</div>
+      <div class="d">The solid cut. Start here.</div></div>
+    <div class="card"><div class="t hhi">RAHWAY</div><div class="n">Inline</div>
+      <div class="d">Keyline channel cut inside the edge.</div></div>
+    <div class="card"><div class="t hho">RAHWAY</div><div class="n">Outline</div>
+      <div class="d">Hollow — perimeter only.</div></div>
+    <div class="card"><div class="t hhs">RAHWAY</div><div class="n">Shadow</div>
+      <div class="d">The extrude. Always goes behind.</div></div>
+  </div>
+
+  <h2>Layering</h2>
+  <p>Set the same words twice: <strong>Shadow</strong> underneath in one colour,
+  <strong>Regular</strong>, <strong>Inline</strong> or <strong>Outline</strong> on top in
+  another. Same size, same position, same tracking.</p>
+
+  <div class="label">Shadow + Regular</div>
+  <div class="row stack hh">
+    <span class="under hhs" style="color:var(--hot)" aria-hidden="true">SIDE ONE</span>
+    <span class="over">SIDE ONE</span>
+  </div>
+
+  <div class="label">Shadow + Outline</div>
+  <div class="row stack hho">
+    <span class="under hhs" style="color:var(--hot)" aria-hidden="true">SIDE TWO</span>
+    <span class="over">SIDE TWO</span>
+  </div>
+
+  <div class="label">Shadow + Inline</div>
+  <div class="row stack hhi">
+    <span class="under hhs" style="color:#3b3b45" aria-hidden="true">LIVE 2026</span>
+    <span class="over">LIVE 2026</span>
+  </div>
+
+  <h2>On colour</h2>
+  <div class="poster">
+    <div class="row stack hho" style="margin:0">
+      <span class="under hhs" aria-hidden="true">TOUR DATES</span>
+      <span class="over">TOUR DATES</span>
+    </div>
+  </div>
+
+  <h2>Character set</h2>
+  <div class="chars hh">
+    A B C D E F G H I J K L M<br>
+    N O P Q R S T U V W X Y Z<br>
+    0 1 2 3 4 5 6 7 8 9<br>
+    &amp; @ # $ % ! ? . , : ; ' " ( ) [ ] - – — / \ + = * _ &bull;
+  </div>
+  <p>Caps only — lowercase keys type the capitals, so you never get a mixed-case
+  accident. Kerning is built in for the usual troublemakers (AV, LT, WA, Y.).</p>
+
+  <h2>Size ramp</h2>
+  <div class="ramp hh">
+    <div style="font-size:64px">HELLHOUND AUDIO</div>
+    <div style="font-size:44px">HELLHOUND AUDIO RECORDS</div>
+    <div style="font-size:30px">HELLHOUND AUDIO — RAHWAY, NEW JERSEY</div>
+    <div style="font-size:21px">HELLHOUND AUDIO — MASTERING &amp; MIXING SINCE 2026</div>
+    <div style="font-size:15px">HELLHOUND AUDIO — 100% ANALOGUE, SIDE A / SIDE B, 33 1/3 RPM</div>
+  </div>
+
+  <h2>Using it on the web</h2>
+  <p>Copy the <code>.woff2</code> files next to your CSS and declare each cut as its
+  own family — they are separate families, not weights of one.</p>
+
+</div>
+</body>
+</html>
