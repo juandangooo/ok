@@ -1,0 +1,279 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>off the ground</title>
+<style>
+  body{margin:0;background:#111;color:#ccc;font:13px/1.4 ui-monospace,Menlo,monospace;display:flex;flex-direction:column;align-items:center;gap:10px;padding:12px}
+  canvas#c{width:auto;height:min(86vh,900px);background:#000;box-shadow:0 0 0 1px #333}
+  .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center}
+  button{background:#222;color:#ddd;border:1px solid #444;padding:4px 10px;cursor:pointer;font:inherit}
+  input[type=range]{width:320px}
+</style>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script src="core.js"></script>
+<script src="roto.js"></script>
+<script src="clips.js"></script>
+<script>
+'use strict';
+// ============================================================
+// BRIEF
+// Subject: how far four animals get off the ground, measured from Muybridge's own poses.
+//          The elephant never leaves it, the horse leaves it for one pose in twelve
+//          (Muybridge's 1878 question), the pigeon lives off it.
+// Format: 9:16, short side 1080 logical units (1080x1920), drawn 12 fps, output 24 fps, 22.25 s
+// Look: ink (paperInk) with one blueprint interlude. Engine: found motion (roto.js + clips.js)
+// Palette: paperInk; blueprint interlude on PAL.night in chalk
+// Anchor: THE GROUND LINE. One wobbly horizontal rule, in every single shot, ink or chalk.
+// Clips: horse, elephant, pigeons, kangaroo - Eadweard Muybridge, Descriptive Zoopraxography
+//        (1893), public domain, traced by scripts/roto.py. Credits in clips.js.
+// Measured from the traced poses (max gap as % of figure height):
+//        elephant 1.7 (4 poses at or below the line) | kangaroo 3.8 | horse 9.3 | pigeons 30.8
+//
+// BEAT SHEET
+// t      dur   scene      camera        what changes                                  kit                        sound
+// 0.00   1.25  ground     static        the line draws itself, ticks, height scale    selfDraw construction      plucks
+// 1.25   3.0   horse      slow push-in  horse gallops in on the line, 12 fps poses    roto grain surface         arpeggio
+// 4.25   3.0   measure    zoom 1.7      gap profile plotted pose by pose              roto dottedArc cross       arpeggio + cue per pose
+// 7.25   1.5   airborne   hard cut      the one pose with all four hooves off the line roto dashedRing gapBracket noiseBurst + swell
+// 8.75   1.5   blueprint  static        BLOT to chalk on night, gap measured in chalk blot roto(chalk)           55Hz swell
+// 10.25  3.0   elephant   static        it walks, the profile never rises off zero    roto dottedArc             low sines
+// 13.25  3.0   pigeons    tilt up       ground drops away, birds hold the top third   roto aster cam             high sparse
+// 16.25  3.5   column     IRIS in       all four ranked by how far they get up        rotoSprite drawSprite      rising pentatonic
+// 19.75  2.5   signoff    static        hand lettering over the line                  signOff                    dyad
+// ============================================================
+
+// ===================== PALETTE =====================
+usePalette('paperInk');
+
+// ===================== GEOMETRY & HELPERS =====================
+const GY = () => H * .72;                       // the ground line: everything is measured from here
+const UP = () => H * .10;                       // top of the height scale: near the top of the frame
+
+// gap of pose k, in frame units, for a figure drawn h units tall
+const gapU = (name, k, h) => rotoGap(name, k) * h / CLIPS[name].h;
+// the tallest gap in a clip, as a fraction of the figure's own height
+const gapMax = name => { let g = 0; for (let k = 0; k < CLIPS[name].n; k++) g = Math.max(g, rotoGap(name, k)); return g / CLIPS[name].h; };
+
+// THE ANCHOR. One line, every shot. p < 1 draws it on.
+function groundLine(c, y, seed, o = {}) {
+  const { p = 1, color = PAL.ink, width = 3.6, band = true, al = 1 } = o;
+  const x0 = -W * .2, x1 = W * 1.2;
+  if (band) {                                    // a shallow band of ground under it, hatched (ink finish)
+    const yb = y + H * .010;                       // a strip of paper under the rule, so the rule reads as drawn
+    const g = rectPath(x0, yb, x1 - x0, H * .4), box = [x0, yb, x1 - x0, H * .4];
+    c.save(); c.globalAlpha = al * .9; c.fillStyle = tint(PAL.fills[0], .42); c.fill(g);
+    surface(c, g, box, { seed: seed + 4, color: PAL.shade, density: .22, gap: 9, len: 20, alpha: .38, width: 1.2, grain: 2600 });
+    c.restore();
+  }
+  c.save(); c.globalAlpha = al; c.strokeStyle = color; c.lineWidth = width; c.lineCap = 'round';
+  const pts = []; for (let x = x0; x <= x1; x += 40) pts.push([x, y]);
+  if (p >= 1) wob(c, pts, 2.4, seed); else selfDraw(c, pts, p, seed, 2.4);
+  c.stroke(); c.restore();
+}
+
+// the height scale up the right edge: ticks every step units above the line
+function heightScale(c, y, seed, o = {}) {
+  const { p = 1, color = alpha(PAL.ink, .40), step = H * .05, x = W * .86 } = o;
+  const n = Math.floor((y - UP()) / step); c.save(); c.strokeStyle = color; c.lineWidth = 1.5; c.globalAlpha = .95;
+  for (let k = 0; k <= n; k++) {
+    if (k / (n + 1) > p) break;
+    const yy = y - k * step, long = k % 5 === 0;
+    c.beginPath(); c.moveTo(x, yy); c.lineTo(x + (long ? W * .055 : W * .028), yy); c.stroke();
+    if (long && k) cross(c, x + W * .07, yy, W * .012);
+  }
+  c.beginPath(); c.moveTo(x, y); c.lineTo(x, y - n * step); c.stroke(); c.restore();
+}
+
+// the gap profile of a clip, plotted pose by pose: a drawing of the measurement
+function gapProfile(c, name, upto, o = {}) {
+  const { x0 = W * .13, x1 = W * .74, y = GY(), k = 1, seed = 61, color = PAL.accents[0], mark = -1 } = o;
+  const n = CLIPS[name].n, dx = (x1 - x0) / (n - 1), pts = [];
+  for (let j = 0; j < n; j++) pts.push([x0 + j * dx, y - Math.max(0, rotoGap(name, j)) * k]);
+  c.save();
+  c.strokeStyle = alpha(PAL.guide, .5); c.lineWidth = .9;                       // the baseline of the plot
+  c.beginPath(); c.moveTo(x0, y); c.lineTo(x1, y); c.stroke();
+  const m = Math.min(n, Math.floor(upto) + 1);
+  for (let j = 0; j < m; j++) {
+    const [px, py] = pts[j];
+    c.strokeStyle = alpha(PAL.guide, .55); c.lineWidth = .9;                    // the drop line to the ground
+    c.beginPath(); c.moveTo(px, y); c.lineTo(px, py); c.stroke();
+    c.fillStyle = j === mark ? color : PAL.ink; c.globalAlpha = j === mark ? 1 : .8;
+    c.beginPath(); c.arc(px, py, j === mark ? W * .009 : W * .005, 0, TAU); c.fill(); c.globalAlpha = 1;
+  }
+  if (m > 1) { c.strokeStyle = alpha(PAL.ink, .5); c.lineWidth = 1.2; wob(c, pts.slice(0, m), 1.4, seed); c.stroke(); }
+  c.restore();
+}
+
+// a bracket under a figure that is off the ground: how far up it got
+function gapBracket(c, x, yTop, yGround, seed, color = PAL.accents[0]) {
+  if (yGround - yTop < 4) return;
+  c.save(); c.strokeStyle = color; c.lineWidth = 2; c.lineCap = 'round';
+  const w = W * .035;
+  c.beginPath(); c.moveTo(x - w, yTop); c.lineTo(x + w, yTop); c.stroke();
+  c.setLineDash([7, 6]); c.beginPath(); c.moveTo(x, yTop); c.lineTo(x, yGround); c.stroke(); c.setLineDash([]);
+  dottedArc(c, x, yGround, (yGround - yTop) * .5, color, seed, 9, 1.2);
+  c.restore();
+}
+
+// ===================== SCENES =====================
+// 1. the line. Nothing but the ground and the means of measuring it.
+function sceneGround(c, tau, i) {
+  paper(c);
+  const y = GY(), p = lerp(.34, 1, sm(0, .65, tau, easeOut));
+  groundLine(c, y, 11, { p });
+  heightScale(c, y, 12, { p: sm(.15, .95, tau, easeOut) });
+  if (tau > .55) { c.save(); c.globalAlpha = sm(.55, 1.1, tau); construction(c, CX, y, W * .17, 13); c.restore(); }
+}
+
+// 2. the horse, on the line, at the cadence Muybridge shot it
+function sceneHorse(c, tau, i) {
+  paper(c); const y = GY();
+  cam(c, CX, CY + H * .02, lerp(1.0, 1.1, sm(0, 3, tau)));
+  groundLine(c, y, 11);
+  heightScale(c, y, 12);
+  const h = H * .30, x = lerp(-W * .10, W * 1.12, sm(0, 3, tau, t => t));   // linear: a gallop does not ease
+  speedLines(c, x - W * .3, y - h * .55, 1, i * 3 + 7, 6, .35);
+  roto(c, 'horse', i, { x, y, h, fill: PAL.light, wash: PAL.fills[1], ink: PAL.ink, seed: 5 });
+  c.save(); c.globalAlpha = .55; construction(c, x, y - h * .5, h * .62, 17 + Math.floor(i / 3) % 3); c.restore();
+}
+
+// 3. the measurement: the same twelve poses, plotted
+function sceneMeasure(c, tau, i) {
+  paper(c); const y = GY();
+  cam(c, CX, y - H * .13, 1.22);
+  groundLine(c, y, 11);
+  const h = H * .22, k = i % CLIPS.horse.n, g = gapU('horse', k, h);
+  roto(c, 'horse', i, { x: CX - W * .04, y: y - g, h, fill: PAL.light, wash: PAL.fills[1], seed: 5 });
+  if (g > 1.5) gapBracket(c, CX - W * .04, y - g, y, 40 + k);
+  gapProfile(c, 'horse', tau * 5.2, { y: y - H * .015, k: h / CLIPS.horse.h * 2.6, mark: k, seed: 61 });
+}
+
+// 4. the answer: the one pose in twelve with every hoof off the line
+const AIR = () => rotoAirborne('horse');
+function sceneAirborne(c, tau, i) {
+  // hard cut: the answer arrives without a device, because the next shot opens with the blot
+  paper(c);
+  const y = GY(), h = H * .34, k = AIR(), g = gapU('horse', k, h);
+  groundLine(c, y, 11);
+  heightScale(c, y, 12);
+  const lift = lerp(0, g, sm(.08, .55, tau, easeOut));
+  roto(c, 'horse', k, { x: CX, y: y - lift, h, fill: PAL.light, wash: PAL.fills[1], seed: 5 });
+  if (tau > .5) {
+    gapBracket(c, CX, y - lift, y, 44);
+    c.save(); c.globalAlpha = sm(.5, .9, tau); dashedRing(c, CX, y - h * .5, h * .72, alpha(PAL.accents[1], .8), 45); c.restore();
+  }
+}
+
+// 5. blueprint: the same fact, looked inside
+const L1 = layer(), L2 = layer();
+function sceneBlueprint(c, tau, i) {
+  const a = L1.getContext('2d'); sceneAirborne(a, 1.4, i);
+  const b = L2.getContext('2d'); night(b, PAL.night, 31);
+  const y = GY(), h = H * .34, k = AIR(), g = gapU('horse', k, h);
+  b.save(); b.strokeStyle = PAL.chalk; b.lineWidth = 2; b.globalAlpha = .8;
+  const pts = []; for (let x = -W * .2; x <= W * 1.2; x += 40) pts.push([x, y]);
+  wob(b, pts, 2.4, 11); b.stroke(); b.restore();
+  heightScale(b, y, 12, { color: alpha(PAL.chalk, .5) });
+  roto(b, 'horse', k, { x: CX, y: y - g, h, fill: null, wash: null, ink: PAL.chalk, weight: 1.15, seed: 5 });
+  gapBracket(b, CX, y - g, y, 44, PAL.chalkDim);
+  b.save(); b.globalAlpha = .7; construction(b, CX, y - h * .5, h * .7, 46, alpha(PAL.chalk, .55)); b.restore();
+  blit(c, L1);
+  blot(c, L2, CX, y - h * .5, lerp(0, H * 1.1, sm(0, .8, tau, easeOut)), 32);
+}
+
+// 6. the elephant: the profile that never leaves zero
+function sceneElephant(c, tau, i) {
+  paper(c); const y = GY();
+  cam(c, CX, CY + H * .03, 1.05);
+  groundLine(c, y, 11);
+  heightScale(c, y, 12);
+  const h = H * .30, k = i % CLIPS.elephant.n, g = Math.max(0, gapU('elephant', k, h));
+  roto(c, 'elephant', i, { x: CX - W * .02, y: y - g, h, fill: PAL.light, wash: PAL.fills[2], seed: 9 });
+  gapProfile(c, 'elephant', tau * 4.4, { y: y - H * .015, k: h / CLIPS.elephant.h * 2.6, mark: k, seed: 63 });
+  if (tau > 1.6) { c.save(); c.globalAlpha = sm(1.6, 2.2, tau) * .8; dottedArc(c, CX - W * .02, y, W * .30, PAL.accents[2], 51, 11, 1.1); c.restore(); }
+}
+
+// 7. the pigeons: the ground falls away
+function scenePigeons(c, tau, i) {
+  paper(c); const y = GY();
+  const tilt = sm(.2, 2.2, tau);                                  // the camera looks up; the line drops to the edge
+  cam(c, CX, lerp(CY + H * .02, CY - H * .095, tilt), lerp(1.05, .97, tilt));
+  groundLine(c, y, 11);
+  heightScale(c, y, 12);
+  const h = H * .34, k = i % CLIPS.pigeons.n, g = gapU('pigeons', k, h) * 2.0;
+  roto(c, 'pigeons', i, { x: CX, y: y - g - H * .16, h, fill: PAL.light, wash: PAL.fills[1], seed: 13 });
+  c.save(); c.globalAlpha = .5 * tilt;
+  for (let j = 0; j < 3; j++) aster(c, CX + (j - 1) * W * .26, y - H * (.34 + j * .06), W * .015, 7, PAL.accents[j % 4], 70 + j, 1);
+  c.restore();
+}
+
+// 8. the column: four animals, ranked by how far off the ground they get
+const COLUMN = ['elephant', 'kangaroo', 'horse', 'pigeons'];
+function sceneColumn(c, tau, i) {
+  const draw = cc => {
+    paper(cc); const y = GY();
+    groundLine(cc, y, 11);
+    heightScale(cc, y, 12);
+    const span = y - UP(), top = gapMax('pigeons');
+    COLUMN.forEach((name, j) => {
+      const on = sm(.25 + j * .45, .95 + j * .45, tau, easeOut);
+      if (on <= 0) return;
+      const h = H * .135, rise = span * (gapMax(name) / top) * .90, k = AIR_K(name, i);
+      const sp = rotoSprite(name, k, h, { fill: PAL.light, wash: PAL.fills[j % 3], ink: PAL.ink, seed: 20 + j });
+      const x = W * (.20 + j * .20), yy = y - rise * on;
+      cc.save(); cc.strokeStyle = alpha(PAL.guide, .6); cc.lineWidth = 1; cc.setLineDash([6, 7]);
+      cc.beginPath(); cc.moveTo(x, y); cc.lineTo(x, yy); cc.stroke(); cc.restore();
+      drawSprite(cc, sp, x, yy, { al: on });
+      if (rise > 6) { cc.save(); cc.globalAlpha = on; cc.fillStyle = PAL.accents[j % 4]; cc.beginPath(); cc.arc(x, yy, W * .007, 0, TAU); cc.fill(); cc.restore(); }
+    });
+  };
+  const r = lerp(0, H * .95, sm(0, .7, tau, easeOut));
+  if (tau < .72) { paper(c); iris(c, CX, CY, r, draw, PAL.paper); }
+  else draw(c);
+}
+// the pose of each clip that is highest off the ground, held while it rises, then cycling
+const AIR_K = (name, i) => rotoAirborne(name);
+
+// 9. sign it
+function sceneSign(c, tau, i) {
+  paper(c); const y = GY();
+  groundLine(c, y, 11);
+  heightScale(c, y, 12, { p: .6 });
+  signOff(c, 'off the', 'ground', { x: CX, y: y - H * .22, size: H * .060,
+    progressA: sm(.05, .5, tau), progressB: sm(.45, .95, tau) });
+}
+
+// ===================== SCORE =====================
+function score(ac, t0, dest) {
+  const master = ac.createGain(); master.gain.value = .55; master.connect(dest);
+  const r = rng(7); let acc = 0;
+  for (const s of TIMELINE) {
+    const a = acc, d = s.dur;
+    if (s.name === 'ground') for (let t = 0; t < d; t += .5) note(ac, master, pentHz(0, r() * 5 | 0), t0, a + t, .7, 'triangle', .16);
+    if (s.name === 'horse' || s.name === 'measure') {
+      for (let t = 0; t < d; t += .25) note(ac, master, pentHz(1, (t * 4) % 5 | 0), t0, a + t, .22, 'square', .07);
+      for (let t = 0; t < d; t += .5) note(ac, master, pentHz(0, 0), t0, a + t, .6, 'sine', .18);
+    }
+    if (s.name === 'airborne') { noiseBurst(ac, master, t0, a, .3, .22, 5); note(ac, master, pentHz(1, 3), t0, a, 1.2, 'sine', .3); }
+    if (s.name === 'blueprint') { note(ac, master, 55, t0, a, d, 'sawtooth', .16); note(ac, master, 110, t0, a, d, 'sine', .12); }
+    if (s.name === 'elephant') for (let t = 0; t < d; t += .75) note(ac, master, pentHz(-1, r() * 3 | 0), t0, a + t, .9, 'sine', .22);
+    if (s.name === 'pigeons') for (let t = 0; t < d; t += .5) note(ac, master, pentHz(2, r() * 5 | 0), t0, a + t, .45, 'triangle', .12);
+    if (s.name === 'column') for (let k = 0; k < 4; k++) note(ac, master, pentHz(1, k + 1), t0, a + .25 + k * .45, .8, 'triangle', .2);
+    if (s.name === 'signoff') { note(ac, master, pentHz(0, 0), t0, a, 1.8, 'sine', .22); note(ac, master, pentHz(1, 2), t0, a, 1.8, 'sine', .16); }
+    acc += d;
+  }
+}
+
+// ===================== FILM =====================
+const TIMELINE = [
+  { name: 'ground',    dur: 1.25, fn: sceneGround },
+  { name: 'horse',     dur: 3.0, fn: sceneHorse },
+  { name: 'measure',   dur: 3.0, fn: sceneMeasure },
+  { name: 'airborne',  dur: 1.5, fn: sceneAirborne },
+  { name: 'blueprint', dur: 1.5, fn: sceneBlueprint },
+  { name: 'elephant',  dur: 3.0, fn: sceneElephant },
+  { name: 'pigeons',   dur: 3.0, fn: scenePigeons },
+  { name: 'column',    dur: 3.5, fn: sceneColumn },
+  { name: 'signoff',   dur: 2.5, fn: sceneSign },
+];
+defineFilm({ timeline: TIMELINE, score, format: { ar: '9:16', width: 1080 } });
+</script>
