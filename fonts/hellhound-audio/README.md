@@ -79,21 +79,12 @@ register exactly.
 
 ## Google Docs
 
-**Google Docs cannot install custom fonts.** Its menu only offers the Google
-Fonts catalogue, with no upload — not on a personal account and not through
-Workspace admin. Same for Slides and Sheets. That is a limit of Docs, not
-something this font can work around.
-
-So for Docs, use a picture of the lettering:
-
-```bash
-python3 src/wordmark.py "HELLHOUND AUDIO" --out build/logo --bolt '#d7282f'
-```
-
-That writes a transparent SVG and PNG. In Docs use **Insert → Image → Upload
-from computer** and pick the PNG; hand the SVG to a printer or drop it into
-Affinity. Flags: `--style outline`, `--ink`, `--bolt`, `--shadow '#888'`,
-`--tracking` (defaults to the logo's 268), `--height`, `--pad`.
+Google Docs cannot install custom fonts — no upload, no admin setting, no
+add-on. The full playbook for working around that is in
+**[GOOGLE-DOCS.md](GOOGLE-DOCS.md)**: a ready letterhead in `docs-kit/`, the
+closest stand-in in the Google Fonts library (Outfit), wordmark images to drop
+in, and `src/docx_swap.py` to put the real font back when the document is
+downloaded on its way out.
 
 ## Character set
 
