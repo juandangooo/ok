@@ -7,7 +7,7 @@ family its chiselled, faceted look without hand-cutting each letter.
 
 import math
 
-from shapely.geometry import Polygon, MultiPolygon
+from shapely.geometry import Polygon, MultiPolygon, box
 from shapely.ops import unary_union
 from shapely import affinity
 
@@ -205,3 +205,57 @@ def draw(shape, pen, round_to=1):
             for pt in deduped[1:]:
                 pen.lineTo(pt)
             pen.closePath()
+
+
+# ------------------------------------------------------------------- spikes
+
+def foot_spike(shape, depth=42.0, lean=9.0, min_stem=88.0,
+               min_width=44.0, max_width=54.0):
+    """A spur hung off the rightmost foot a glyph plants on the baseline.
+
+    The stem is located well above the baseline, because the chamfer pass eats
+    into the corners and would otherwise hide a foot like the H's. The spur is
+    then sized against what the glyph really touches the baseline with, so it
+    sits on the foot instead of overhanging it. Glyphs that land on a point
+    (the bolt, a pointed V) have no stem wide enough and get nothing.
+    """
+    if shape.is_empty:
+        return None
+
+    def slices(y0, y1, lo=-3000.0, hi=6000.0):
+        cut = shape.intersection(box(lo, y0, hi, y1))
+        if cut.is_empty:
+            return []
+        parts = cut.geoms if hasattr(cut, "geoms") else [cut]
+        out = []
+        for part in parts:
+            if part.geom_type == "Polygon" and not part.is_empty:
+                x0, _, x1, _ = part.bounds
+                out.append((x0, x1))
+        return out
+
+    stems = [s for s in slices(54.0, 66.0) if s[1] - s[0] >= min_stem]
+    if not stems:
+        return None
+    sx0, sx1 = max(stems, key=lambda s: s[1])            # rightmost stem
+
+    contact = slices(0.0, 4.0, sx0 - 4.0, sx1 + 4.0)
+    if not contact:
+        return None
+    cx0, cx1 = max(contact, key=lambda c: c[1] - c[0])
+
+    w = max(min_width, min(max_width, (cx1 - cx0) * 1.1))
+    # Tuck it under the right-hand end of the foot rather than the middle, so a
+    # wide bottom bar (E, L, Z) kicks the same way a bare stem (H, N) does.
+    cx = max(cx0 + w / 2.0, cx1 - w / 2.0 - 10.0)
+    tip = Polygon([(cx - w / 2, 12), (cx + w / 2, 12), (cx + lean, -depth)])
+    return chamfer(tip, 9.0, 9.0, directional=0.0)
+
+
+def with_spike(shape, **kw):
+    """Chamfered glyph + its spur. The spur is added after the chamfer pass so
+    it keeps its point instead of being cut back like a letter corner."""
+    tip = foot_spike(shape, **kw)
+    if tip is None or tip.is_empty:
+        return shape
+    return unary_union([shape, tip]).buffer(0)

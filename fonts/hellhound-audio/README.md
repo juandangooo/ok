@@ -101,14 +101,41 @@ h1 { font-family: "Hellhound Audio", system-ui, sans-serif; }
 Open [`specimen.html`](specimen.html) in a browser for a working example,
 including the CSS for stacking Shadow behind the other cuts.
 
+## Two alphabets, one keyboard
+
+The font is caps-only, but the two cases give you *different* capitals:
+
+| You type | You get |
+|---|---|
+| `SHIFT` — `HELLHOUND` | **Marked caps**: a spur under the right-hand foot of every letter, and a thunderbolt for the `I`. |
+| unshifted — `hellhound` | **Plain caps**: no spurs, an ordinary bar for the `i`. |
+
+So `HIGH` sets with spurs and a bolt, `high` sets clean, and you switch between
+them with the shift key alone — no character palette, no stylistic-set menu, and
+it survives copy-paste into any app because it is ordinary upper- and lowercase
+text underneath.
+
+Mix them deliberately: marked caps for a logo or a title, plain caps for a
+tracklist or credits where the spurs would get noisy at small sizes.
+
+The spur is found automatically rather than from a hand-kept table — each glyph
+is measured to see what it actually plants on the baseline, and the spur is hung
+under the right-hand end of that foot. Letters that land on a point (the bolt,
+and `V`/`W` where the strokes converge) get none, because there is no foot to
+hang it on. Tune the size in one place: `foot_spike()` in `src/geom.py`
+(`depth`, `lean`, `min_width`, `max_width`). Move it to the left-hand foot by
+swapping the `max(...)` for a `min(...)` in the same function.
+
 ## Character set
 
-`A–Z` `0–9` and `& @ # $ % ! ? . , : ; ' " ( ) [ ] - – — / \ + = * _ ·`
+`A–Z` `a–z` (both are capitals — see above), `0–9` and
+`& @ # $ % ! ? . , : ; ' " ( ) [ ] - – — / \ + = * _ ·`
 
-Caps only — lowercase codepoints are mapped to the capitals. Kerning is built in
-for the usual troublemakers (`AV`, `LT`, `WA`, `Y.`).
+Digits and punctuation have one form each; the spur is a letter feature only.
+Kerning covers both alphabets (`AV`, `LT`, `WA`, `Y.` and the rest).
 
-Metrics: 1000 units/em, cap height 700, no descenders except on `Q , ; $ / \ _`.
+Metrics: 1000 units/em, cap height 700. Descenders on `Q , ; $ / \ _` and on
+every marked cap, which drops to -42 for the spur.
 
 ## Rebuilding from source
 
@@ -124,9 +151,9 @@ python3 src/proof.py proof/proof.png
 
 | File | Role |
 |---|---|
-| `src/glyphs.py` | Every glyph, as heavy bars and wedges on a 1000-unit grid. |
-| `src/geom.py` | The chamfer pass, plus the inline / outline / extrude operations. |
-| `src/build.py` | Compiles the four cuts to OTF, TTF and WOFF2; holds the kerning. |
+| `src/glyphs.py` | Every glyph, as heavy bars and wedges on a 1000-unit grid. `Ibolt` is the thunderbolt capital. |
+| `src/geom.py` | The chamfer pass, the spur finder, and the inline / outline / extrude operations. |
+| `src/build.py` | Compiles the four cuts to OTF, TTF and WOFF2; holds the kerning and the case mapping. |
 | `src/wordmark.py` | SVG and PNG exporter. |
 | `src/proof.py`, `src/verify.py` | Proof sheets and binary checks. |
 

@@ -8,43 +8,32 @@ from shapely.geometry import MultiPolygon
 from shapely import affinity
 
 import geom
-from glyphs import GLYPHS
 
 SS = 3  # supersample
-TIGHTEN = 16
 
-NAME = {c: c for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"}
-NAME.update({
-    " ": "space", ".": "period", ",": "comma", "!": "exclam", "?": "question",
-    "-": "hyphen", "&": "ampersand", "/": "slash", ":": "colon", ";": "semicolon",
-    "'": "quoteright", '"': "quotedbl", "(": "parenleft", ")": "parenright",
-    "0": "zero", "1": "one", "2": "two", "3": "three", "4": "four",
-    "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine",
-    "#": "numbersign", "%": "percent", "$": "dollar", "@": "at", "*": "asterisk",
-    "+": "plus", "=": "equal", "[": "bracketleft", "]": "bracketright",
-})
+from build import master_shapes, CMAP
 
-_cache = {}
+_M = None
 
 
 def shape_for(name):
-    if name not in _cache:
-        adv, solids, holes, extra = GLYPHS[name]
-        _cache[name] = (adv, geom.assemble(solids, holes, extra))
-    return _cache[name]
+    global _M
+    if _M is None:
+        _M = master_shapes()
+    return _M[name]
 
 
 def run(text, tracking=0):
     """Lay out a string; returns (total_advance, combined shape)."""
     parts, x = [], 0
     for ch in text:
-        name = NAME.get(ch)
+        name = CMAP.get(ord(ch))
         if name is None:
             continue
         adv, shp = shape_for(name)
         if not shp.is_empty:
-            parts.append(affinity.translate(shp, x - TIGHTEN / 2, 0))
-        x += adv - TIGHTEN + tracking
+            parts.append(affinity.translate(shp, x, 0))
+        x += adv + tracking
     from shapely.ops import unary_union
     return x, (unary_union(parts) if parts else MultiPolygon())
 
@@ -86,15 +75,19 @@ def sheet(path):
             return
         paint(d, shp, scale, x0 * SS, y * SS, H * SS, "black")
 
-    line("RAHWAY", 1370, 260, "layered", tracking=10)
-    line("HELLHOUND AUDIO", 1160, 150)
-    line("HELLHOUND AUDIO", 1010, 150, "outline")
-    line("HELLHOUND AUDIO", 860, 150, "inline")
-    line("ABCDEFGHIJKLM", 660, 150)
-    line("NOPQRSTUVWXYZ", 470, 150)
-    line("0123456789&$#%", 300, 150)
-    line("!?.,:;'\"()[]-+=/@*", 140, 150)
-
+    line("RAHWAY", 1370, 250, "layered", tracking=10)
+    line("HELLHOUND AUDIO", 1165, 145)
+    line("HELLHOUND AUDIO", 1015, 145, "outline")
+    line("HELLHOUND AUDIO", 865, 145, "inline")
+    line("ABCDEFGHIJKLM", 665, 145)
+    line("NOPQRSTUVWXYZ", 480, 145)
+    line("abcdefghijklm", 300, 145)
+    line("nopqrstuvwxyz", 120, 145)
+    line("0123456789 &@#$%!?.,:;'-/()", 1370, 96, x0=1300)
+    line("HIGH VOLTAGE", 1180, 96, x0=1300)
+    line("high voltage", 1080, 96, x0=1300)
+    line("SPIKED CAPS", 940, 96, x0=1300)
+    line("plain caps", 840, 96, x0=1300)
     img = img.resize((W, H), Image.LANCZOS)
     img.save(path)
     print("wrote", path, img.size)

@@ -51,50 +51,77 @@ CMAP = {
 }
 for i, name in enumerate("zero one two three four five six seven eight nine".split()):
     CMAP[0x30 + i] = name
+# Both cases give capitals, but not the same capitals.  Shift gets the marked
+# forms - spurred feet, and the thunderbolt I.  Unshifted gets the plain cuts.
+LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 for i in range(26):
-    letter = chr(ord("A") + i)
-    CMAP[0x41 + i] = letter          # uppercase
-    CMAP[0x61 + i] = letter          # lowercase types the same cap
+    CMAP[0x41 + i] = LETTERS[i]            # A -> spurred cap
+    CMAP[0x61 + i] = LETTERS[i].lower()    # a -> plain cap
 
+# Kerning has to reach both alphabets, so every class holds the spurred cap and
+# its plain twin.
 KERN = """
 languagesystem DFLT dflt;
 languagesystem latn dflt;
 
-@ROUND   = [C D G O Q];
-@FLAT    = [B D E F H I K L M N P R];
-@DIAG_L  = [A];
-@STOP    = [period comma colon semicolon];
+@A = [A a]; @B = [B b]; @C = [C c]; @D = [D d]; @E = [E e]; @F = [F f];
+@G = [G g]; @H = [H h]; @I = [I i]; @J = [J j]; @K = [K k]; @L = [L l];
+@M = [M m]; @N = [N n]; @O = [O o]; @P = [P p]; @Q = [Q q]; @R = [R r];
+@S = [S s]; @T = [T t]; @U = [U u]; @V = [V v]; @W = [W w]; @X = [X x];
+@Y = [Y y]; @Z = [Z z];
+
+@ROUND  = [@C @G @O @Q];
+@FLAG   = [@T @V @W @Y];
+@STOP   = [period comma colon semicolon];
+@UPRIGHT = [@B @D @E @H @I @K @L @M @N @P @R];
 
 feature kern {
-    pos A [T V W Y] -70;
-    pos [T V W Y] A -70;
-    pos [F P] A -45;
-    pos A [C G O Q] -20;
-    pos L [T V W Y] -85;
-    pos L [C G O Q U] -25;
-    pos [T V W Y] [C G O Q U] -35;
-    pos @ROUND [A V W X Y] -25;
-    pos [B D E H I K L M N P R] [V W Y] -20;
-    pos [T V W Y F P] @STOP -110;
-    pos [K R] [C G O Q] -20;
-    pos [A V W X Y] @STOP -60;
-    pos [J] [A] -30;
-    pos [D B P R] [A] -25;
-    pos Y [A] -80;
-    pos W [A] -60;
+    pos @A @FLAG -70;
+    pos @FLAG @A -70;
+    pos [@F @P] @A -45;
+    pos @A @ROUND -20;
+    pos @L @FLAG -85;
+    pos @L [@ROUND @U] -25;
+    pos @FLAG [@ROUND @U] -35;
+    pos @ROUND [@A @V @W @X @Y] -25;
+    pos @UPRIGHT [@V @W @Y] -20;
+    pos [@FLAG @F @P] @STOP -110;
+    pos [@K @R] @ROUND -20;
+    pos [@A @V @W @X @Y] @STOP -60;
+    pos @J @A -30;
+    pos [@D @B @P @R] @A -25;
+    pos @Y @A -80;
+    pos @W @A -60;
 } kern;
 """
 
 
+def _place(adv, shape):
+    if not shape.is_empty:
+        shape = affinity.translate(shape, -TIGHTEN / 2.0, 0)
+        shape = shape.simplify(0.4, preserve_topology=True)
+    return (adv - TIGHTEN, shape)
+
+
 def master_shapes():
-    """Chamfered master outline + advance for every glyph, spacing applied."""
+    """Chamfered master outline + advance for every glyph, spacing applied.
+
+    Letters are built twice: a plain cut under the lowercase name, and a
+    spurred cut under the uppercase one.
+    """
     out = {}
     for name, (adv, solids, holes, extra) in GLYPHS.items():
+        if name == "Ibolt":
+            continue                         # stands in for the capital I below
         shape = geom.assemble(solids, holes, extra)
-        if not shape.is_empty:
-            shape = affinity.translate(shape, -TIGHTEN / 2.0, 0)
-            shape = shape.simplify(0.4, preserve_topology=True)
-        out[name] = (adv - TIGHTEN, shape)
+        if name in LETTERS:
+            out[name.lower()] = _place(adv, shape)
+            out[name] = _place(adv, geom.with_spike(shape))
+        else:
+            out[name] = _place(adv, shape)
+
+    adv, solids, holes, extra = GLYPHS["Ibolt"]
+    out["I"] = _place(adv, geom.assemble(solids, holes, extra))
     return out
 
 

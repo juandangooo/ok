@@ -82,6 +82,12 @@ g("H", 596, [R(42, 0, 194, 700), R(402, 0, 554, 700), R(42, 282, 554, 414)])
 
 g("I", 288, [R(42, 0, 246, 700)])
 
+# Capital I is a thunderbolt: one clean hexagon, notched left at the waist and
+# right below it.  Lowercase i keeps the plain bar above.
+g("Ibolt", 500, [
+    P((400, 700), (60, 340), (200, 340), (120, 0), (440, 400), (300, 400)),
+])
+
 g("J", 500, [R(306, 190, 458, 700), R(42, 0, 458, 138), R(42, 0, 194, 270)])
 
 g("K", 596, [
