@@ -10,45 +10,45 @@
 </style>
 <canvas id="c" width="1080" height="1920"></canvas>
 <script src="core.js"></script>
+<script src="gear.js"></script>
+<script src="photos.js"></script>
 <script>
 'use strict';
 // ============================================================
 // ONE LONG CABLE - Hellhound Audio
 //
-// BRIEF
-// Subject: one cable leaves the shop and does not break. The world changes around it
-//          thirty times - a Primark opening, a ballroom, a corporate hall, a field -
-//          and it comes home. Your event is the variable. We are the constant.
-// Format: 9:16, short side 1080 logical units (1080x1920), drawn 12 fps, output 24 fps, 23.75 s
-// Look: riso (fluorescent inks on cream stock, halftone plates) with two chalk-on-navy
-//       blueprint interludes for the gear cutaways - the one thing nobody else can show.
-// Anchor: THE CABLE. It enters every shot at the same point on the top edge and leaves at
-//         the same point on the bottom edge, so across a hard cut the eye stitches it into
-//         one unbroken line. It is chalk in the blueprints and ink everywhere else.
-// Devices: one blot (into the first blueprint), one iris (into the montage). Never adjacent.
-// Sign-off: two words, two inks, complete 1.5 s before the end so it survives a loop.
+// Subject: the kit that leaves the shop. Named, drawn so an engineer recognises it, and
+//          intercut with Hellhound's own footage screened to one ink so the photographs
+//          print alongside the drawings instead of sitting on top of them.
+// Format: 9:16, 1080x1920 logical, drawn 12 fps, output 24 fps, 27.5 s
+// Look: riso, two chalk-on-navy blueprint cutaways, single-ink photographic plates.
+// Anchor: THE CABLE. Same entry point on the top edge and exit on the bottom edge in every
+//         shot, so a hard cut never breaks it.
+// Kit on screen: Allen & Heath SQ-7, Behringer X32, QSC K12.2, JBL SRX906LA flown column,
+//         JBL SRX918S subs, mic stands, handhelds, wireless receivers and their antennas.
 //
 // BEAT SHEET
-// t      dur   scene       what changes                                      kit                       sound
-// 0.00   2.25  shop        cases, a coil, the cable draws itself and leaves  dotScreen crayon selfDraw  low plucks
-// 2.25   1.50  door        out through the roller shutter into the dark      dotScreen crayon           pluck + rise
-// 3.75   2.25  primark     storefront, flown line array, cable up the truss  plates crayon              beat starts
-// 6.00   1.50  boxBlue     BLOT: the box opened up, driver, horn, pins       blot night hexLattice      55Hz swell
-// 7.50   2.00  ballroom    arches, chandeliers, a lectern, a screen          dotScreen crayon           warm chords
-// 9.50   1.75  corporate   a big screen, a row of people, little flags       dotScreen crayon           claps, bright
-// 11.25  2.00  field       truss towers, a stage, a sun, a crowd line        dotScreen crayon           open chords
-// 13.25  3.00  montage     IRIS: twelve venues at 4 cards a second           iris printPlate montage    one note per card
-// 16.25  1.25  faderBlue   the channel strip, opened up                      night hexLattice           55Hz swell
-// 17.50  2.25  quiet       the empty room before doors: one mic, ripples     ripples crayon             one note, then air
-// 19.75  1.50  home        back on the shelf, coiled, the shop again         dotScreen crayon           resolve
-// 21.25  2.50  signoff     hellhound / audio                                 signOff ripples            long dyad
+// t      dur   scene      what is in it                                          sound
+// 0.00   2.50  shop       the shelf: K12.2s, a sub, road cases, wireless, stands  low plucks
+// 2.50   1.50  plMixer    PLATE: the desk's own meter screen                      pluck + rise
+// 4.00   2.50  desks      SQ-7 and X32, faders riding                             beat starts
+// 6.50   1.50  stripBlue  BLOT: a channel strip opened up                         55Hz swell
+// 8.00   2.00  plFront    PLATE: the Primark shopfront, array flown over it       bright
+// 10.00  2.00  primark    the opening: SRX906LA column, subs, K12 fills           full beat
+// 12.00  1.50  plCrowd    PLATE: the crowd it was all for                         claps
+// 13.50  2.00  mics       stands rise, wireless antennas, RF you cannot see       open chords
+// 15.50  1.50  boxBlue    BLOT: the array box opened up                           55Hz swell
+// 17.00  1.50  smallShow  the small show: K12.2 on a stick, sub, stands, handheld  full beat
+// 18.50  2.50  montage    IRIS: ten more rooms, four a second                     one note a card
+// 21.00  2.25  quiet      the empty room before doors. One mic. Ripples.          one note, then air
+// 23.25  1.50  home       back on the shelf, coiled                               resolve
+// 24.75  2.75  signoff    the mark, then hellhound / audio                        long dyad
 // ============================================================
 
 // ===================== PALETTE =====================
-// ONE-LINE BRAND SWAP. These inks are measured off Hellhound's own showreel: the console
-// blue, the magenta and green lit fader caps, the amber of the house lights. Replace the
-// four `inks` (and `accents`) with the brand hex codes and the whole film re-derives.
-const BRAND_INKS = ['#0b5fa5', '#ff3d8b', '#ffc233', '#141a33'];   // blue, magenta, amber, navy
+// ONE-LINE BRAND SWAP. Measured off Hellhound's own reel: console blue, the lit fader caps in
+// magenta and amber, navy. Replace these four and the whole film re-derives.
+const BRAND_INKS = ['#0b5fa5', '#ff3d8b', '#ffc233', '#141a33'];
 usePalette(makePalette({
   inks: BRAND_INKS,
   accents: [BRAND_INKS[1], '#00c2b2', BRAND_INKS[2], BRAND_INKS[0]],
@@ -58,323 +58,315 @@ usePalette(makePalette({
   guide: 'rgba(20,26,51,.45)',
 }, 'risoPop'));
 const INK = i => PAL.inks[i];
+const poly = pts => polyPath(pts, true);
 
 // ===================== THE ANCHOR =====================
-// The cable enters and leaves every shot at the same two points, so a hard cut does not break it.
 const CIN = () => [W * .26, -40], COUT = () => [W * .74, H + 40];
 function cablePts(a, b, n = 110) { const p0 = CIN(), p3 = COUT(), out = []; for (let k = 0; k <= n; k++) out.push(bez(p0, a, b, p3, k / n)); return out; }
 function cable(c, a, b, o = {}) {
-  const { color = INK(3), w = 19, seed = 3, p = 1, from = 0 } = o, pts = cablePts(a, b);
-  const lo = Math.floor(pts.length * from), hi = Math.max(lo + 2, Math.round(pts.length * p));
-  crayon(c, pts.slice(lo, hi), color, w, seed);
-}
-// a plug on the end of the cable
-function plug(c, x, y, rot, seed) {
-  c.save(); c.translate(x, y); c.rotate(rot);
-  c.fillStyle = INK(3); c.fill(roundRectPath(-15, -34, 30, 52, 7));
-  c.fillStyle = INK(2); c.fill(roundRectPath(-10, -52, 20, 22, 5));
-  c.strokeStyle = INK(3); c.lineWidth = 3; wob(c, [[-15, -34], [15, -34], [15, 18], [-15, 18]], 1.6, seed, true); c.stroke();
-  c.restore();
+  const { color = INK(3), w = 19, seed = 3, p = 1 } = o, pts = cablePts(a, b);
+  crayon(c, pts.slice(0, Math.max(2, Math.round(pts.length * p))), color, w, seed);
 }
 
 // ===================== RISO HELPERS =====================
-// per-shape halftone, the cheap way to get the look inside a scene
 const dots = (c, path, box, o = {}) => dotScreen(c, path, box, { cell: o.cell ?? 11, color: o.color ?? INK(0), density: o.density ?? .50, angle: o.angle ?? .26, jitter: o.jitter ?? .5, seed: o.seed ?? 1, alpha: o.al ?? 1 });
-const poly = pts => polyPath(pts, true);
-// a flat mass: paper first, then the ink as dots, then a crayon rim. Fill and outline never coincide.
 function mass(c, pts, o = {}) {
   const { color = INK(0), cell = 11, density = .52, angle = .26, seed = 1, rim = null, rimW = 4 } = o;
   const p = poly(pts), xs = pts.map(q => q[0]), ys = pts.map(q => q[1]);
-  const box = [Math.min(...xs), Math.min(...ys), Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)];
-  dots(c, p, box, { color, cell, density, angle, seed });
+  dots(c, p, [Math.min(...xs), Math.min(...ys), Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)], { color, cell, density, angle, seed });
   if (rim) crayon(c, pts, rim, rimW, seed + 5, true);
 }
-// a full riso card: three plates, black coverage, printed at three angles. Used by the montage.
 function risoCard(c, paint, seed = 1) {
-  paper(c);
-  const angles = [.26, 1.31, 0];
-  for (let k = 0; k < 3; k++) {
-    const P = plate(), g = P.getContext('2d');
+  paper(c); const angles = [.26, 1.31, 0];
+  for (let k = 0; k < 3; k++) { const P = plate(), g = P.getContext('2d');
     g.save(); g.setTransform(S, 0, 0, S, 0, 0); g.fillStyle = '#000'; paint(g, k); g.restore();
-    printPlate(c, P, { cell: 11, ink: INK(k), angle: angles[k], seed: seed + k * 9, maxCov: .70 });
-  }
-}
-
-// ===================== SCENE FURNITURE =====================
-// a flight case: the thing that actually leaves the shop
-function flightCase(c, x, y, w, h, seed, o = {}) {
-  const { color = INK(0), density = .58 } = o;
-  const p = roundRectPath(x, y, w, h, 10);
-  dots(c, p, [x, y, w, h], { color, density, seed, cell: 7 });
-  crayon(c, [[x, y], [x + w, y], [x + w, y + h], [x, y + h]], INK(3), 4, seed + 1, true);
-  crayon(c, [[x + 14, y + 12], [x + w - 14, y + 12]], INK(3), 3, seed + 2);       // lid seam
-  for (const cx of [x + 18, x + w - 18]) { c.fillStyle = INK(2); c.beginPath(); c.arc(cx, y + h - 16, 7, 0, TAU); c.fill(); }   // corner hardware
-}
-// a line-array box, the shape everybody in this trade knows from across a car park
-const boxPts = (x, y, w, h) => [[x, y], [x + w, y], [x + w - w * .10, y + h], [x + w * .10, y + h]];
-function arrayBox(c, x, y, w, h, seed, o = {}) {
-  const pts = boxPts(x, y, w, h);
-  mass(c, pts, { color: o.color ?? INK(0), density: .7, seed, rim: INK(3), rimW: 4 });
-  const gx = x + w * .16, gw = w * .68;
-  hexLattice(c, [gx, y + h * .22, gw, h * .52], 9, alpha(INK(3), .55), .5, .9);   // the grille
-}
-function trussTower(c, x, y0, y1, seed, w = 34) {
-  crayon(c, [[x - w, y0], [x - w, y1]], INK(3), 5, seed);
-  crayon(c, [[x + w, y0], [x + w, y1]], INK(3), 5, seed + 1);
-  const n = Math.max(3, Math.round((y1 - y0) / 62));
-  for (let k = 0; k <= n; k++) { const y = lerp(y0, y1, k / n); crayon(c, [[x - w, y], [x + w, y]], INK(3), 3, seed + 10 + k); }
-  for (let k = 0; k < n; k++) crayon(c, [[x - w, lerp(y0, y1, k / n)], [x + w, lerp(y0, y1, (k + 1) / n)]], INK(3), 2.4, seed + 30 + k);
+    printPlate(c, P, { cell: 11, ink: INK(k), angle: angles[k], seed: seed + k * 9, maxCov: .70 }); }
 }
 const crowdRow = (c, y, n, seed, color = INK(3), r = 26) => { const rr = rng(seed); for (let k = 0; k < n; k++) { const x = W * .04 + k * (W * .92 / (n - 1)) + (rr() - .5) * 18, h = r * (.85 + rr() * .4); c.fillStyle = color; c.beginPath(); c.arc(x, y - h * 1.6, h * .62, 0, TAU); c.fill(); c.fill(roundRectPath(x - h * .8, y - h * 1.1, h * 1.6, h * 1.5, h * .5)); } };
 
-// ===================== SCENES =====================
-// 1. the shop. The cable is coiled, then it goes.
-function sShop(c, tau, i) {
-  paper(c);
-  const shelfY = [H * .30, H * .50];
-  for (const [k, y] of shelfY.entries()) {
-    crayon(c, [[W * .06, y], [W * .94, y]], INK(3), 5, 20 + k);
-    for (let j = 0; j < 3; j++) flightCase(c, W * (.09 + j * .28), y - H * .115, W * .25, H * .11, 40 + k * 7 + j, { color: INK(j % 2), density: .55 });
-  }
-  const cx = W * .5, cy = H * .74;                                  // the coil on the floor
-  const unwind = sm(.35, 1.5, tau, easeOut);
-  for (let k = 0; k < 5; k++) { const r = W * (.10 + k * .028) * (1 - unwind * .18); c.globalAlpha = 1 - unwind * .55; crayon(c, ellPts(cx, cy, r, r * .42, 0, 44), INK(3), 7, 60 + k, true); }
-  c.globalAlpha = 1;
-  cable(c, [W * .10, H * .62], [W * .96, H * .70], { p: lerp(.30, 1, sm(0, 1.6, tau, easeOut)), seed: 3 });
-  if (tau > 1.5) { const t = clamp((tau - 1.5) / .6, 0, 1); plug(c, lerp(cx, W * .74, t), lerp(cy, H + 20, t), .5, 9); }
-  crowdRow(c, H * .95, 2, 71, alpha(INK(3), .16), 22);              // two people, faint, the shop at 6am
-}
-// 2. out of the door
-function sDoor(c, tau, i) {
-  paper(c);
-  const dx = W * .16, dw = W * .68, top = H * .22, sill = H * .80;
-  mass(c, [[0, 0], [W, 0], [W, H], [0, H]], { color: INK(0), density: .16, seed: 10 });                    // the shop wall
-  c.fillStyle = PAL.paper; c.fillRect(dx, top, dw, sill - top);                                             // the opening, cut out of it
-  mass(c, [[dx, top], [dx + dw, top], [dx + dw, sill], [dx, sill]], { color: INK(3), density: .86, seed: 13 });  // and the dark beyond
-  const down = 1 - sm(.15, 1.05, tau, easeOut), sy = lerp(top, sill, down * .82);                           // the shutter, riding up
-  if (sy > top + 4) { mass(c, [[dx, top], [dx + dw, top], [dx + dw, sy], [dx, sy]], { color: INK(0), density: .74, seed: 14 });
-    for (let k = 0; k * H * .034 < sy - top; k++) crayon(c, [[dx, top + k * H * .034], [dx + dw, top + k * H * .034]], alpha(INK(3), .8), 5, 80 + k);
-    crayon(c, [[dx, sy], [dx + dw, sy]], INK(2), 8, 79); }                                                   // the bright lip of it
-  crayon(c, [[dx, top], [dx, sill], [dx + dw, sill], [dx + dw, top]], INK(3), 8, 12);                        // the frame
-  crayon(c, [[W * .06, sill], [W * .94, sill]], INK(3), 6, 17);                                              // the threshold
-  cable(c, [W * .30, H * .40], [W * .86, H * .70], { seed: 3 });
-  c.save(); c.globalAlpha = .5; construction(c, W * .5, lerp(top, sill, .5), W * .14, 15); c.restore();
+// ===================== THE PHOTOGRAPHS =====================
+// Hellhound's own footage, screened to one ink in photos.js. Laid on the paper as prints:
+// a paper border, a crayon rim, a contact shadow. They print, they do not float.
+function printPlate_(c, name, x, y, wid, seed, o = {}) {
+  const pl = place(name, { x, y, w: wid, rot: o.rot || 0 });
+  const B = onAll(pl, [[-.035, -.05], [1.035, -.05], [1.035, 1.05], [-.035, 1.05]]);
+  c.save(); c.globalAlpha = .18; c.fillStyle = INK(3); c.translate(0, 10); c.fill(poly(B)); c.restore();
+  c.fillStyle = PAL.paper; c.fill(poly(B));
+  photo(c, pl, { shadow: 0 });
+  crayon(c, B, INK(3), 4.5, seed, true);
+  if (o.tape !== false) { const t = onAll(pl, [[.36, -.10], [.64, -.10], [.64, .02], [.36, .02]]);   // a strip of tape
+    c.save(); c.globalAlpha = .75; mass(c, t, { color: INK(2), density: .75, cell: 7, seed: seed + 2 }); c.restore(); }
+  return pl;
 }
 
-// 3. the store opening
+// ===================== THE MARK =====================
+// LOGO SLOT. Drop the real mark into photos.js as `logo` (registerPhoto("logo", {...})) and
+// this draws it everywhere, at the right size, with no other change. Until then it hand-letters
+// the wordmark so the shots are composed correctly.
+function logoMark(c, x, y, h, o = {}) {
+  if (typeof PHOTOS !== 'undefined' && PHOTOS && PHOTOS.logo) { photo(c, place('logo', { x, y, h }), { shadow: o.flat ? 0 : .2 }); return; }
+  c.save();
+  if (!o.flat) { crayon(c, ellPts(x, y, h * 1.05, h * 1.05, 0, 64), INK(3), h * .055, 71, true);
+    dashedRing(c, x, y, h * 1.22, alpha(INK(1), .7), 72, [16, 12], 2.5); }
+  const pr = o.progress ?? 1, wa = 'hellhound'.slice(0, Math.round(9 * clamp(pr * 1.7, 0, 1))), wb = 'audio'.slice(0, Math.round(5 * clamp(pr * 1.7 - .7, 0, 1)));
+  handText(c, wa, x, y + h * .06, { size: h * .46, ink: INK(3), ink2: INK(1), align: 'center' });
+  handText(c, wb, x, y + h * .52, { size: h * .26, ink: INK(3), ink2: INK(0), align: 'center' });
+  c.restore();
+}
+
+// ===================== SCENES =====================
+// 1. the shelf it all lives on
+function sShop(c, tau, i) {
+  paper(c);
+  crayon(c, [[W * .04, H * .30], [W * .96, H * .30]], INK(3), 6, 20);
+  crayon(c, [[W * .04, H * .585], [W * .96, H * .585]], INK(3), 6, 21);
+  k12(c, 'riso', W * .16, H * .285, H * .085, 40);                                    // two K12.2 on the top shelf
+  k12(c, 'riso', W * .35, H * .285, H * .085, 41, { ink: INK(0) });
+  wirelessRack(c, 'riso', W * .72, H * .245, W * .20, 44);                            // and the wireless rack
+  roadCase(c, 'riso', W * .22, H * .49, W * .34, H * .15, 50, { mark: true });         // road cases on the lower shelf
+  roadCase(c, 'riso', W * .62, H * .49, W * .30, H * .15, 52, { ink: INK(1) });
+  sub918(c, 'riso', W * .30, H * .70, W * .34, 56);                                   // the sub on the floor
+  for (const [k, x] of [W * .62, W * .72, W * .82].entries()) micStand(c, 'riso', x, H * .78, H * .17, 60 + k, { boom: -.6 - k * .12 });
+  const cx = W * .5, cy = H * .89, unwind = sm(.4, 1.6, tau, easeOut);
+  for (let k = 0; k < 5; k++) { c.globalAlpha = 1 - unwind * .6; crayon(c, ellPts(cx, cy, W * (.09 + k * .025) * (1 - unwind * .2), W * (.036 + k * .01), 0, 44), INK(3), 7, 66 + k, true); }
+  c.globalAlpha = 1;
+  cable(c, [W * .10, H * .74], [W * .96, H * .80], { p: lerp(.34, 1, sm(0, 1.8, tau, easeOut)) });
+}
+// 2. PLATE: the desk's own screen
+function sPlMixer(c, tau, i) {
+  paper(c);
+  printPlate_(c, 'mixer', W * .5, H * .40, W * .86, 81, { rot: -.025 });
+  cable(c, [W * .06, H * .62], [W * .98, H * .72], {});
+  c.save(); c.globalAlpha = .5; construction(c, W * .5, H * .40, W * .34, 82); c.restore();
+}
+// 3. the desks, named by their silhouettes
+function sDesks(c, tau, i) {
+  paper(c);
+  const a = sm(.1, .8, tau, easeOut), b = sm(.9, 1.6, tau, easeOut);
+  c.save(); c.globalAlpha = a; sq7(c, 'riso', W * .48, lerp(-H * .1, H * .30, a), W * .44, 100, { rot: -.05 }); c.restore();
+  c.save(); c.globalAlpha = b; x32(c, 'riso', W * .52, lerp(H * 1.1, H * .62, b), W * .46, 140, { rot: .04 }); c.restore();
+  if (tau > 1.7) { c.save(); c.globalAlpha = sm(1.7, 2.3, tau) * .8; dashedRing(c, W * .48, H * .30, W * .40, alpha(INK(1), .8), 175); c.restore(); }
+  cable(c, [W * .04, H * .46], [W * .99, H * .56], {});
+}
+// 4. BLOT: a channel strip, opened up
+const L1 = layer(), L2 = layer();
+function stripBlueprint(b) {
+  night(b, PAL.night, 31);
+  const x = W * .22, y = H * .16, w = W * .56, h = H * .64;
+  b.save(); b.strokeStyle = PAL.chalk; b.lineWidth = 3; wob(b, [[x, y], [x + w, y], [x + w, y + h], [x, y + h]], 2, 181, true); b.stroke();
+  b.lineWidth = 2.2; b.strokeStyle = alpha(PAL.chalk, .85);
+  for (let k = 0; k < 3; k++) { const cy = y + h * (.09 + k * .10); wob(b, ellPts(x + w * .26, cy, w * .085, w * .085, 0, 30), 1.2, 182 + k, true); b.stroke();
+    b.beginPath(); b.moveTo(x + w * .26, cy); b.lineTo(x + w * .26 + Math.cos(-2.1 + k * .6) * w * .085, cy + Math.sin(-2.1 + k * .6) * w * .085); b.stroke(); }
+  const ex = x + w * .52, ey = y + h * .10, ew = w * .40, eh = h * .16;                       // the EQ curve
+  wob(b, [[ex, ey + eh], [ex + ew, ey + eh]], 1, 190); b.stroke();
+  const cur = []; for (let k = 0; k <= 28; k++) { const t = k / 28; cur.push([ex + t * ew, ey + eh * .55 - Math.sin(t * Math.PI * 1.6) * eh * .42 + Math.sin(t * 9) * 2]); }
+  b.strokeStyle = PAL.chalk; b.lineWidth = 2.6; wob(b, cur, 1.2, 191); b.stroke();
+  const fy0 = y + h * .46, fy1 = y + h * .92;                                                  // the fader
+  b.lineWidth = 2; wob(b, [[x + w * .5, fy0], [x + w * .5, fy1]], 1, 195); b.stroke();
+  const fk = lerp(fy1, fy0, .30 + .46);
+  wob(b, [[x + w * .34, fk], [x + w * .66, fk], [x + w * .66, fk + H * .030], [x + w * .34, fk + H * .030]], 1.3, 196, true); b.stroke();
+  for (let k = 0; k < 6; k++) { const yy = y + h * (.50 + k * .07); wob(b, [[x + w * .72, yy], [x + w * .90, yy]], 1, 200 + k); b.stroke(); }   // the aux sends
+  b.restore();
+  hexLattice(b, [x + w * .06, y + h * .62, w * .24, h * .30], 12, alpha(PAL.chalk, .35), .7, .8);
+  b.save(); b.globalAlpha = .7; construction(b, x + w * .5, fk, w * .3, 210, alpha(PAL.chalk, .5)); b.restore();
+  crayon(b, cablePts([W * .04, H * .46], [W * .99, H * .56]), alpha(PAL.chalk, .85), 8, 3);
+}
+function sStripBlue(c, tau, i) {
+  sDesks(L1.getContext('2d'), 2.4, i); stripBlueprint(L2.getContext('2d'));
+  blit(c, L1); blot(c, L2, W * .5, H * .44, lerp(0, H * 1.15, sm(0, .8, tau, easeOut)), 32);
+}
+// 5. PLATE: the shopfront, with what we flew over it
+function sPlFront(c, tau, i) {
+  paper(c);
+  printPlate_(c, 'primark_front', W * .5, H * .46, W * .88, 221, { rot: .018 });
+  const drop = sm(.15, 1.1, tau, easeOut);
+  arrayColumn(c, 'riso', W * .22, lerp(H * .06, H * .17, drop), W * .19, 4, 230, { spread: .13 });
+  arrayColumn(c, 'riso', W * .78, lerp(H * .06, H * .17, drop), W * .19, 4, 240, { spread: -.13 });
+  crowdRow(c, H * .95, 8, 250, INK(3), 34);
+  cable(c, [W * .06, H * .70], [W * .98, H * .78], {});
+}
+// 6. the opening itself
 function sPrimark(c, tau, i) {
   paper(c);
-  mass(c, [[0, H * .30], [W, H * .30], [W, H * .46], [0, H * .46]], { color: INK(0), density: .74, seed: 21 });   // the sign band
-  for (let k = 0; k < 5; k++) { const x = W * (.10 + k * .18);                                                     // letters, blocked in, never spelled
-    mass(c, [[x, H * .335], [x + W * .10, H * .335], [x + W * .10, H * .425], [x, H * .425]], { color: INK(2), density: .9, seed: 25 + k }); }
-  mass(c, [[0, H * .46], [W, H * .46], [W, H], [0, H]], { color: INK(0), density: .28, seed: 22 });                // glass
-  for (let k = 1; k < 4; k++) crayon(c, [[W * k / 4, H * .46], [W * k / 4, H]], alpha(INK(3), .5), 3, 26 + k);
-  crayon(c, [[W * .08, H * .50], [W * .92, H * .50]], INK(3), 5, 27);                                              // the flown truss
-  const drop = sm(.1, 1.0, tau, easeOut);
-  for (const [k, x] of [W * .22, W * .62].entries()) { const y = lerp(H * .30, H * .52, drop);
-    crayon(c, [[x + W * .09, H * .50], [x + W * .09, y]], INK(3), 3, 30 + k);
-    arrayBox(c, x, y, W * .18, H * .075, 32 + k * 3, { color: INK(k ? 1 : 0) });
-    arrayBox(c, x + W * .008, y + H * .078, W * .164, H * .07, 36 + k * 3, { color: INK(k ? 1 : 0) }); }
-  crowdRow(c, H * .97, 7, 41, alpha(INK(3), .8), 30);
-  cable(c, [W * .06, H * .52], [W * .99, H * .80], { seed: 3 });
-  if (tau > 1.2) { c.save(); c.globalAlpha = sm(1.2, 1.9, tau) * .8; dashedRing(c, W * .31, H * .60, W * .20, INK(1), 44); c.restore(); }
+  mass(c, [[0, H * .20], [W, H * .20], [W, H * .33], [0, H * .33]], { color: INK(0), density: .62, seed: 261 });   // the fascia
+  for (let k = 0; k < 6; k++) mass(c, [[W * (.08 + k * .145), H * .225], [W * (.08 + k * .145) + W * .09, H * .225], [W * (.08 + k * .145) + W * .09, H * .305], [W * (.08 + k * .145), H * .305]], { color: INK(2), density: .9, seed: 265 + k });
+  mass(c, [[0, H * .33], [W, H * .33], [W, H * .74], [0, H * .74]], { color: INK(0), density: .18, seed: 262 });   // glass
+  for (let k = 1; k < 4; k++) crayon(c, [[W * k / 4, H * .33], [W * k / 4, H * .74]], alpha(INK(3), .45), 3, 270 + k);
+  crayon(c, [[W * .06, H * .36], [W * .94, H * .36]], INK(3), 6, 275);                                             // the flown bar
+  arrayColumn(c, 'riso', W * .27, H * .38, W * .21, 5, 280, { spread: .12 });
+  arrayColumn(c, 'riso', W * .73, H * .38, W * .21, 5, 290, { spread: -.12 });
+  sub918(c, 'riso', W * .14, H * .80, W * .26, 300);
+  sub918(c, 'riso', W * .86, H * .80, W * .26, 301);
+  k12(c, 'riso', W * .42, H * .72, H * .060, 305, { ink: INK(1) });                                                 // K12.2 fills on sticks
+  crayon(c, [[W * .42, H * .72], [W * .42, H * .85]], INK(3), 5, 306);
+  k12(c, 'riso', W * .58, H * .72, H * .060, 307, { ink: INK(1) });
+  crayon(c, [[W * .58, H * .72], [W * .58, H * .85]], INK(3), 5, 308);
+  crowdRow(c, H * .99, 10, 310, INK(3), 30);
+  cable(c, [W * .04, H * .64], [W * .99, H * .82], {});
 }
-// 4. BLOT: what is actually inside the box
-const L1 = layer(), L2 = layer();
+// 7. PLATE: who it was for
+function sPlCrowd(c, tau, i) {
+  paper(c);
+  printPlate_(c, 'crowd', W * .5, H * .44, W * .86, 321, { rot: -.02 });
+  cable(c, [W * .06, H * .70], [W * .98, H * .76], {});
+  if (tau > .5) { c.save(); c.globalAlpha = sm(.5, 1.1, tau) * .7; ripples(c, W * .5, H * .44, [W * .34, W * .46], alpha(INK(1), .8), 325, 3); c.restore(); }
+}
+// 8. the mics, and the part of the job nobody can see
+function sMics(c, tau, i) {
+  paper(c);
+  crayon(c, [[0, H * .82], [W, H * .82]], INK(3), 6, 331);
+  const n = 4;
+  for (let k = 0; k < n; k++) { const up = sm(.1 + k * .16, .8 + k * .16, tau, easeOut);
+    micStand(c, 'riso', W * (.16 + k * .23), H * .82 + (1 - up) * H * .30, H * .26, 340 + k * 4, { boom: -.5 - k * .16 }); }
+  wirelessRack(c, 'riso', W * .5, H * .22, W * .26, 360, { rf: sm(.8, 2.0, tau) });
+  handheld(c, 'riso', W * .12, H * .46, H * .045, 370, { rot: -.5 });
+  handheld(c, 'riso', W * .88, H * .44, H * .045, 371, { rot: .4 });
+  cable(c, [W * .02, H * .58], [W * .99, H * .70], {});
+}
+// 9. BLOT: the box
 function boxBlueprint(b) {
   night(b, PAL.night, 31);
-  const x = W * .18, y = H * .26, w = W * .64, h = H * .40, pts = boxPts(x, y, w, h);
-  b.save(); b.strokeStyle = PAL.chalk; b.lineWidth = 3; wob(b, pts, 2, 51, true); b.stroke(); b.restore();
-  b.save(); b.strokeStyle = alpha(PAL.chalk, .8); b.lineWidth = 2.4;
-  wob(b, ellPts(x + w * .30, y + h * .40, w * .19, w * .19, 0, 60), 1.6, 52, true); b.stroke();                 // the LF driver
-  wob(b, ellPts(x + w * .30, y + h * .40, w * .09, w * .09, 0, 40), 1.4, 53, true); b.stroke();
-  wob(b, [[x + w * .58, y + h * .26], [x + w * .92, y + h * .38], [x + w * .92, y + h * .52], [x + w * .58, y + h * .64]], 1.8, 54, true); b.stroke();  // the horn
-  for (const s of [0, 1]) { const yy = y + h * (.06 + s * .86);                                                  // rigging pins
-    wob(b, [[x + w * .12, yy], [x + w * .88, yy]], 1.4, 55 + s); b.stroke();
+  const x = W * .18, y = H * .24, w = W * .64, h = H * .42, pts = [[x, y], [x + w, y], [x + w - w * .10, y + h], [x + w * .10, y + h]];
+  b.save(); b.strokeStyle = PAL.chalk; b.lineWidth = 3; wob(b, pts, 2, 381, true); b.stroke();
+  b.strokeStyle = alpha(PAL.chalk, .8); b.lineWidth = 2.4;
+  wob(b, ellPts(x + w * .30, y + h * .42, w * .19, w * .19, 0, 60), 1.6, 382, true); b.stroke();
+  wob(b, ellPts(x + w * .30, y + h * .42, w * .09, w * .09, 0, 40), 1.4, 383, true); b.stroke();
+  wob(b, [[x + w * .58, y + h * .26], [x + w * .92, y + h * .38], [x + w * .92, y + h * .54], [x + w * .58, y + h * .66]], 1.8, 384, true); b.stroke();
+  for (const s of [0, 1]) { const yy = y + h * (.06 + s * .86);
+    wob(b, [[x + w * .12, yy], [x + w * .88, yy]], 1.4, 385 + s); b.stroke();
     for (const px of [x + w * .18, x + w * .82]) { b.beginPath(); b.arc(px, yy, 8, 0, TAU); b.stroke(); } }
   b.restore();
   hexLattice(b, [x + w * .10, y + h * .70, w * .80, h * .22], 11, alpha(PAL.chalk, .5), .8, .9);
-  b.save(); b.globalAlpha = .7; construction(b, x + w * .30, y + h * .40, w * .30, 57, alpha(PAL.chalk, .5)); b.restore();
-  b.save(); b.strokeStyle = alpha(PAL.chalk, .6); b.lineWidth = 1; for (const q of [[x, y], [x + w, y], [x + w * .30, y + h * .40]]) cross(b, q[0], q[1], 14); b.restore();
-  const cp = cablePts([W * .06, H * .52], [W * .99, H * .80]);
-  crayon(b, cp, alpha(PAL.chalk, .85), 8, 3);
+  b.save(); b.globalAlpha = .7; construction(b, x + w * .30, y + h * .42, w * .30, 390, alpha(PAL.chalk, .5)); b.restore();
+  b.save(); b.strokeStyle = alpha(PAL.chalk, .6); b.lineWidth = 1; for (const q of [[x, y], [x + w, y], [x + w * .30, y + h * .42]]) cross(b, q[0], q[1], 14); b.restore();
+  crayon(b, cablePts([W * .02, H * .58], [W * .99, H * .70]), alpha(PAL.chalk, .85), 8, 3);
 }
 function sBoxBlue(c, tau, i) {
-  const a = L1.getContext('2d'); sPrimark(a, 1.45, i);
-  boxBlueprint(L2.getContext('2d'));
-  blit(c, L1);
-  blot(c, L2, W * .5, H * .46, lerp(0, H * 1.15, sm(0, .8, tau, easeOut)), 32);
+  sMics(L1.getContext('2d'), 1.9, i); boxBlueprint(L2.getContext('2d'));
+  blit(c, L1); blot(c, L2, W * .5, H * .44, lerp(0, H * 1.15, sm(0, .8, tau, easeOut)), 32);
 }
-// 5. the ballroom
-function sBallroom(c, tau, i) {
+// 10. the small show: the kit that turns up to a corporate room or a store opening
+function sSmallShow(c, tau, i) {
   paper(c);
-  mass(c, [[0, 0], [W, 0], [W, H * .58], [0, H * .58]], { color: INK(3), density: .15, seed: 61 });
-  for (let k = 0; k < 3; k++) { const x = W * (.2 + k * .3);                                        // arches
-    const a = []; for (let j = 0; j <= 22; j++) { const th = Math.PI + j / 22 * Math.PI; a.push([x + Math.cos(th) * W * .13, H * .44 + Math.sin(th) * H * .16]); }
-    crayon(c, a.concat([[x + W * .13, H * .58], [x - W * .13, H * .58]]), INK(2), 7, 62 + k, true); }
-  for (const [k, x] of [W * .26, W * .74].entries()) {                                              // chandeliers
-    crayon(c, [[x, 0], [x, H * .13]], INK(3), 3, 66 + k);
-    const g = 1 + Math.sin(i * .9 + k) * .05;
-    mass(c, ellPts(x, H * .17, W * .075 * g, H * .045 * g, 0, 26), { color: INK(2), density: .85, seed: 68 + k, rim: INK(3), rimW: 3 });
-    for (let j = 0; j < 7; j++) { const a = Math.PI + j / 6 * Math.PI; crayon(c, [[x + Math.cos(a) * W * .06, H * .19], [x + Math.cos(a) * W * .07, H * .24]], INK(2), 2.4, 70 + k * 9 + j); } }
-  mass(c, [[W * .22, H * .44], [W * .78, H * .44], [W * .78, H * .70], [W * .22, H * .70]], { color: INK(0), density: .72, seed: 74, rim: INK(3), rimW: 6 });   // the screen
-  mass(c, [[W * .41, H * .70], [W * .59, H * .70], [W * .62, H * .88], [W * .38, H * .88]], { color: INK(1), density: .75, seed: 75, rim: INK(3), rimW: 6 });  // the lectern
-  crowdRow(c, H * .99, 9, 77, alpha(INK(3), .75), 26);
-  cable(c, [W * .10, H * .58], [W * .95, H * .66], { seed: 3 });
+  crayon(c, [[0, H * .80], [W, H * .80]], INK(3), 6, 601);
+  mass(c, [[W * .08, H * .28], [W * .56, H * .28], [W * .56, H * .60], [W * .08, H * .60]], { color: INK(0), density: .55, seed: 602, rim: INK(3), rimW: 5 });   // the screen
+  mass(c, [[W * .64, H * .54], [W * .79, H * .54], [W * .82, H * .80], [W * .61, H * .80]], { color: INK(1), density: .70, seed: 603, rim: INK(3), rimW: 5 });   // the lectern
+  const up = sm(.1, .95, tau, easeOut), ky = lerp(H * .80, H * .44, up);
+  crayon(c, [[W * .88, H * .80], [W * .88, ky]], INK(3), 6, 604);                      // K12.2 up on a pole
+  k12(c, 'riso', W * .88, ky, H * .080, 605, { ink: INK(1) });
+  sub918(c, 'riso', W * .17, H * .90, W * .26, 606);                                    // a sub tucked under the screen
+  micStand(c, 'riso', W * .70, H * .80, H * .21, 607, { boom: -.72 });
+  handheld(c, 'riso', W * .40, H * .70, H * .052, 608, { rot: .6 });
+  crowdRow(c, H * .98, 7, 609, INK(3), 26);
+  cable(c, [W * .06, H * .66], [W * .98, H * .76], {});
 }
-// 6. the corporate hall
-function sCorporate(c, tau, i) {
-  paper(c);
-  mass(c, [[0, 0], [W, 0], [W, H * .16], [0, H * .16]], { color: INK(3), density: .22, seed: 81 });
-  for (let k = 0; k < 4; k++) crayon(c, [[W * .05, H * (.05 + k * .03)], [W * .95, H * (.05 + k * .03)]], alpha(INK(3), .35), 3, 82 + k);   // service ceiling
-  mass(c, [[W * .12, H * .22], [W * .88, H * .22], [W * .88, H * .56], [W * .12, H * .56]], { color: INK(0), density: .72, seed: 86, rim: INK(3), rimW: 5 });
-  crowdRow(c, H * .92, 8, 88, INK(3), 40);
-  const rr = rng(90);                                                                        // the little flags
-  for (let k = 0; k < 6; k++) { const x = W * (.10 + k * .16) + (rr() - .5) * 30, y = H * (.62 + rr() * .06), w = Math.sin(i * .8 + k) * 6;
-    crayon(c, [[x, y], [x + w, y - H * .075]], INK(3), 3.4, 92 + k);
-    mass(c, [[x + w, y - H * .075], [x + w + W * .08, y - H * .068], [x + w + W * .075, y - H * .028], [x, y - H * .035]], { color: INK(k % 2 ? 1 : 2), density: .9, seed: 96 + k }); }
-  cable(c, [W * .04, H * .66], [W * .98, H * .74], { seed: 3 });
-}
-// 7. the field
-function sField(c, tau, i) {
-  paper(c);
-  const sun = H * .20;
-  mass(c, ellPts(W * .5, sun, W * .17, W * .17, 0, 44), { color: INK(2), density: .92, seed: 101 });
-  for (let k = 0; k < 9; k++) { const a = k / 9 * TAU + tau * .05; crayon(c, [[W * .5 + Math.cos(a) * W * .21, sun + Math.sin(a) * W * .21], [W * .5 + Math.cos(a) * W * .27, sun + Math.sin(a) * W * .27]], INK(2), 3, 103 + k); }
-  mass(c, [[0, H * .60], [W, H * .60], [W, H], [0, H]], { color: INK(0), density: .34, seed: 110 });    // the field
-  trussTower(c, W * .16, H * .34, H * .62, 120); trussTower(c, W * .84, H * .34, H * .62, 130);
-  crayon(c, [[W * .16, H * .34], [W * .84, H * .34]], INK(3), 5, 140);
-  for (const [k, x] of [W * .30, W * .70].entries()) arrayBox(c, x - W * .07, H * .36, W * .14, H * .06, 142 + k * 3, { color: INK(k ? 1 : 0) });
-  mass(c, [[W * .30, H * .52], [W * .70, H * .52], [W * .70, H * .62], [W * .30, H * .62]], { color: INK(1), density: .8, seed: 146, rim: INK(3), rimW: 4 });   // the stage
-  crowdRow(c, H * .86, 11, 150, alpha(INK(3), .8), 30);
-  crowdRow(c, H * .99, 13, 151, INK(3), 34);
-  cable(c, [W * .02, H * .70], [W * .99, H * .80], { seed: 3 });
-}
-// 8. IRIS: twelve venues, four a second. Every card carries the cable at the same height.
+
+// 11. IRIS: ten more rooms
 const VENUES = [
-  { m: [[.10, .52], [.30, .30], [.50, .52]], a: [[.30, .40, .05]] },           // a chapel
-  { m: [[.06, .58], [.94, .58], [.94, .40], [.06, .40]], a: [[.5, .30, .07]] },// a school hall
-  { m: [[.10, .62], [.44, .28], [.78, .62]], a: [[.72, .24, .06]] },           // a rooftop
-  { m: [[.14, .56], [.50, .26], [.86, .56]], a: [[.50, .38, .08]] },           // a marquee
-  { m: [[.08, .50], [.92, .50], [.92, .66], [.08, .66]], a: [[.20, .34, .05]] },// a conference room
-  { m: [[.18, .60], [.82, .60], [.82, .34], [.18, .34]], a: [[.50, .46, .09]] },// a bar
-  { m: [[.10, .64], [.90, .64], [.78, .32], [.22, .32]], a: [[.50, .50, .06]] },// a theatre
-  { m: [[.06, .66], [.94, .66], [.94, .54], [.06, .54]], a: [[.30, .40, .05]] },// a car park
-  { m: [[.10, .60], [.10, .34], [.90, .34], [.90, .60]], a: [[.70, .46, .07]] },// a warehouse
-  { m: [[.16, .62], [.50, .32], [.84, .62]], a: [[.50, .48, .05]] },           // a garden
-  { m: [[.08, .58], [.26, .30], [.74, .30], [.92, .58]], a: [[.50, .42, .10]] },// an arena
-  { m: [[.22, .64], [.36, .26], [.64, .26], [.78, .64]], a: [[.50, .38, .06]] },// a chapel again, at night
+  { m: [[.10, .52], [.30, .30], [.50, .52]], a: [[.30, .40, .05]] },
+  { m: [[.06, .58], [.94, .58], [.94, .40], [.06, .40]], a: [[.5, .30, .07]] },
+  { m: [[.10, .62], [.44, .28], [.78, .62]], a: [[.72, .24, .06]] },
+  { m: [[.14, .56], [.50, .26], [.86, .56]], a: [[.50, .38, .08]] },
+  { m: [[.08, .50], [.92, .50], [.92, .66], [.08, .66]], a: [[.20, .34, .05]] },
+  { m: [[.18, .60], [.82, .60], [.82, .34], [.18, .34]], a: [[.50, .46, .09]] },
+  { m: [[.10, .64], [.90, .64], [.78, .32], [.22, .32]], a: [[.50, .50, .06]] },
+  { m: [[.06, .66], [.94, .66], [.94, .54], [.06, .54]], a: [[.30, .40, .05]] },
+  { m: [[.10, .60], [.10, .34], [.90, .34], [.90, .60]], a: [[.70, .46, .07]] },
+  { m: [[.08, .58], [.26, .30], [.74, .30], [.92, .58]], a: [[.50, .42, .10]] },
 ];
 const venueCards = VENUES.map((v, n) => (cc, t, i) => {
-  const M = () => poly(v.m.map(q => [q[0] * W, q[1] * H])), GY = H * .72;
+  const M = () => poly(v.m.map(q => [q[0] * W, q[1] * H])), GYc = H * .72;
   risoCard(cc, (g, k) => {
-    if (k === 0) {                                                   // SKY only, venue and ground knocked out
-      g.fillRect(0, H * .14, W, GY - H * .14);
-      g.fillStyle = '#fff'; g.fill(M()); g.fillRect(0, GY, W, H - GY); g.fillStyle = '#000';   // knockout is WHITE, not erased
-    }
-    if (k === 1) g.fill(M());                                        // the venue silhouette, alone on its plate
-    if (k === 2) { for (const [x, y, r] of v.a) { g.beginPath(); g.arc(x * W, y * H, r * W, 0, TAU); g.fill(); } }  // the light in it
-  }, 200 + n * 5);
-  crayon(cc, [[0, GY], [W, GY]], INK(3), 5, 290 + n);                // the floor it stands on
-  crowdRow(cc, H * .93, 7 + (n % 4), 300 + n, alpha(INK(3), .85), 24);
-  cable(cc, [W * .04, H * .66], [W * .98, H * .72], { seed: 3 });
+    if (k === 0) { g.fillRect(0, H * .14, W, GYc - H * .14); g.fillStyle = '#fff'; g.fill(M()); g.fillRect(0, GYc, W, H - GYc); g.fillStyle = '#000'; }
+    if (k === 1) g.fill(M());
+    if (k === 2) for (const [x, y, r] of v.a) { g.beginPath(); g.arc(x * W, y * H, r * W, 0, TAU); g.fill(); }
+  }, 420 + n * 5);
+  crayon(cc, [[0, GYc], [W, GYc]], INK(3), 5, 460 + n);
+  if (n % 3 === 0) arrayColumn(cc, 'riso', W * .80, H * .20, W * .13, 3, 470 + n, { spread: -.12 });
+  else if (n % 3 === 1) { k12(cc, 'riso', W * .16, GYc, H * .055, 480 + n); crayon(cc, [[W * .16, GYc], [W * .16, H * .86]], INK(3), 4, 481 + n); }
+  else micStand(cc, 'riso', W * .20, GYc, H * .16, 490 + n, { boom: -.6 });
+  crowdRow(cc, H * .93, 7 + (n % 4), 500 + n, alpha(INK(3), .85), 24);
+  cable(cc, [W * .04, H * .66], [W * .98, H * .72], {});
 });
 function sMontage(c, tau, i) {
   const draw = cc => { montage(cc, venueCards, tau, .25, i); };
   if (tau < .62) { paper(c); iris(c, W * .5, H * .5, lerp(0, H * .78, sm(0, .6, tau, easeOut)), draw, PAL.paper); }
   else draw(c);
 }
-// 9. the channel strip, opened up
-function sFaderBlue(c, tau, i) {
-  night(c, PAL.night, 33);
-  const x = W * .22, y = H * .20, w = W * .56, h = H * .58;
-  c.save(); c.strokeStyle = PAL.chalk; c.lineWidth = 3; wob(c, [[x, y], [x + w, y], [x + w, y + h], [x, y + h]], 2, 161, true); c.stroke();
-  c.strokeStyle = alpha(PAL.chalk, .8); c.lineWidth = 2;
-  for (let k = 0; k < 4; k++) { const cy = y + h * (.10 + k * .09); wob(c, ellPts(x + w * .5, cy, w * .13, w * .13, 0, 34), 1.4, 162 + k, true); c.stroke();   // the rotaries
-    c.beginPath(); c.moveTo(x + w * .5, cy); c.lineTo(x + w * .5 + Math.cos(-2.2 + k * .5) * w * .13, cy + Math.sin(-2.2 + k * .5) * w * .13); c.stroke(); }
-  const fy0 = y + h * .52, fy1 = y + h * .94;                                                   // the fader
-  wob(c, [[x + w * .5, fy0], [x + w * .5, fy1]], 1.2, 170); c.stroke();
-  const fk = lerp(fy1, fy0, .34 + sm(.2, 1.1, tau, easeIO) * .42);
-  wob(c, [[x + w * .34, fk], [x + w * .66, fk], [x + w * .66, fk + H * .035], [x + w * .34, fk + H * .035]], 1.4, 171, true); c.stroke();
-  c.restore();
-  hexLattice(c, [x + w * .08, y + h * .50, w * .84, h * .46], 13, alpha(PAL.chalk, .35), .7, .8);
-  c.save(); c.globalAlpha = .65; construction(c, x + w * .5, fk, w * .34, 173, alpha(PAL.chalk, .5)); c.restore();
-  crayon(c, cablePts([W * .04, H * .66], [W * .98, H * .72]), alpha(PAL.chalk, .85), 8, 3);
-}
-// 10. the empty room, before doors. The whole film is for this shot.
+// 12. the empty room before doors. The whole film is for this shot.
 function sQuiet(c, tau, i) {
   paper(c);
-  mass(c, [[0, 0], [W, 0], [W, H * .58], [0, H * .58]], { color: INK(3), density: .10, seed: 181 });
-  mass(c, [[W * .16, H * .58], [W * .84, H * .58], [W * .84, H * .70], [W * .16, H * .70]], { color: INK(0), density: .5, seed: 182, rim: INK(3), rimW: 4 });
-  const mx = W * .5, my = H * .36;
-  crayon(c, [[mx, H * .58], [mx, my + H * .085]], INK(3), 9, 184);                    // the stand
-  crayon(c, [[mx - W * .11, H * .58], [mx + W * .11, H * .58]], INK(3), 9, 185);
-  mass(c, ellPts(mx, my, W * .115, W * .145, 0, 34), { color: INK(1), density: .82, seed: 186, rim: INK(3), rimW: 7 });   // the mic, the hero of this shot
-  hexLattice(c, [mx - W * .095, my - W * .125, W * .19, W * .25], 13, alpha(INK(3), .5), .8, 1.1);   // its grille
+  mass(c, [[0, 0], [W, 0], [W, H * .58], [0, H * .58]], { color: INK(3), density: .10, seed: 511 });
+  mass(c, [[W * .16, H * .58], [W * .84, H * .58], [W * .84, H * .70], [W * .16, H * .70]], { color: INK(0), density: .42, seed: 512, rim: INK(3), rimW: 4 });
+  micStand(c, 'riso', W * .5, H * .58, H * .30, 520, { boom: -1.05 });
   const born = Math.floor(tau / .30), rad = [];
   for (let k = 0; k <= born; k++) { const age = tau - k * .30; if (age > 0) rad.push(W * .07 + age * W * .30); }
-  ripples(c, mx, my, rad.filter(r => r < W * .82), INK(2), 190, 5);
-  cable(c, [W * .10, H * .74], [W * .90, H * .66], { seed: 3 });
-  seedDot(c, mx, my + W * .19, 9, INK(3), INK(2));
+  ripples(c, W * .5, H * .30, rad.filter(r => r < W * .82), INK(2), 525, 5);
+  cable(c, [W * .10, H * .74], [W * .90, H * .66], {});
+  seedDot(c, W * .5, H * .49, 9, INK(3), INK(1));
 }
-// 11. home
+// 13. home
 function sHome(c, tau, i) {
   paper(c);
-  crayon(c, [[W * .06, H * .42], [W * .94, H * .42]], INK(3), 5, 201);
-  for (let j = 0; j < 3; j++) flightCase(c, W * (.09 + j * .28), H * .42 - H * .115, W * .25, H * .11, 210 + j, { color: INK(j % 2), density: .55 });
-  const cx = W * .5, cy = H * .70, coil = sm(.1, 1.0, tau, easeIO);
-  cable(c, [W * .10, H * .62], [W * .96, H * .70], { p: 1 - coil * .78, seed: 3 });
-  for (let k = 0; k < 5; k++) { c.globalAlpha = coil; crayon(c, ellPts(cx, cy, W * (.10 + k * .028), W * (.042 + k * .012), 0, 44), INK(3), 7, 60 + k, true); }
+  crayon(c, [[W * .04, H * .42], [W * .96, H * .42]], INK(3), 6, 531);
+  k12(c, 'riso', W * .18, H * .415, H * .085, 540);
+  k12(c, 'riso', W * .37, H * .415, H * .085, 541, { ink: INK(0) });
+  wirelessRack(c, 'riso', W * .74, H * .375, W * .20, 544);
+  roadCase(c, 'riso', W * .30, H * .63, W * .36, H * .15, 550, { mark: true });
+  const cx = W * .5, cy = H * .86, coil = sm(.1, 1.1, tau, easeIO);
+  cable(c, [W * .10, H * .74], [W * .96, H * .80], { p: 1 - coil * .80 });
+  for (let k = 0; k < 5; k++) { c.globalAlpha = coil; crayon(c, ellPts(cx, cy, W * (.09 + k * .025), W * (.036 + k * .01), 0, 44), INK(3), 7, 66 + k, true); }
   c.globalAlpha = 1;
 }
-// 12. sign it
+// 14. the mark, then the words
 function sSign(c, tau, i) {
   paper(c);
-  const cx = W * .5, cy = H * .38;
-  ripples(c, cx, cy, [W * .22, W * .32, W * .42].filter((r, k) => tau > .15 + k * .12), alpha(INK(0), .5), 220, 3);
-  signOff(c, 'hellhound', 'audio', { x: cx, y: cy, size: H * .048, ink: INK(3), ink2: INK(1),
-    progressA: sm(.05, .5, tau), progressB: sm(.45, .95, tau) });
-  seedDot(c, cx, H * .60, 8, INK(3), INK(1));
-  cable(c, [W * .10, H * .78], [W * .92, H * .84], { seed: 3, w: 9 });
+  const cx = W * .5;
+  ripples(c, cx, H * .42, [W * .28, W * .38, W * .48].filter((r, k) => tau > .25 + k * .16), alpha(INK(0), .45), 560, 3);
+  // the mark IS the sign-off: hand lettering in two inks, two dots, complete well before the end
+  c.save(); c.globalAlpha = sm(.1, .6, tau, easeOut); logoMark(c, cx, H * .42, H * .10, { progress: sm(.25, 1.1, tau) }); c.restore();
+  seedDot(c, cx - W * .035, H * .60, 8, INK(3), INK(1));
+  seedDot(c, cx + W * .035, H * .60, 8, INK(3), INK(2));
+  cable(c, [W * .10, H * .78], [W * .92, H * .86], {});
 }
 
 // ===================== SCORE =====================
-// 120 bpm. A beat is 6 drawn frames, every cut lands on one, because the picture and the
-// music are generated from this same TIMELINE.
 function score(ac, t0, dest) {
   const master = ac.createGain(); master.gain.value = .55; master.connect(dest);
   const r = rng(11); let acc = 0;
-  const pulseN = (t, o, s, d, g, ty) => note(ac, master, pentHz(o, s), t0, t, d, ty || 'triangle', g);
+  const N = (t, o, s, d, g, ty) => note(ac, master, pentHz(o, s), t0, t, d, ty || 'triangle', g);
   for (const s of TIMELINE) {
     const a = acc, d = s.dur;
-    if (s.name === 'shop' || s.name === 'home') for (let t = 0; t < d; t += .5) pulseN(a + t, 0, r() * 5 | 0, .7, .17);
-    if (s.name === 'door') { pulseN(a, 0, 0, .8, .22); pulseN(a + .5, 1, 2, .6, .16); }
-    if (s.name === 'primark' || s.name === 'ballroom' || s.name === 'corporate' || s.name === 'field') {
-      for (let t = 0; t < d; t += .25) pulseN(a + t, 1, (t * 4) % 5 | 0, .22, .07, 'square');
-      for (let t = 0; t < d; t += .5) pulseN(a + t, 0, 0, .6, .17);
-    }
-    if (s.name === 'boxBlue' || s.name === 'faderBlue') { note(ac, master, 55, t0, a, d, 'sawtooth', .16); note(ac, master, 110, t0, a, d, 'sine', .11); }
-    if (s.name === 'montage') for (let k = 0; k < 12; k++) pulseN(a + k * .25, 1 + (k > 7 ? 1 : 0), k % 5, .22, .13, 'square');
-    if (s.name === 'quiet') { pulseN(a + .1, 1, 0, 1.6, .26, 'sine'); pulseN(a + 1.1, 0, 2, 1.1, .14, 'sine'); }
-    if (s.name === 'signoff') { pulseN(a, 0, 0, 2.2, .22, 'sine'); pulseN(a, 1, 2, 2.2, .15, 'sine'); }
+    if (s.name === 'shop' || s.name === 'home') for (let t = 0; t < d; t += .5) N(a + t, 0, r() * 5 | 0, .7, .17);
+    if (s.name === 'plMixer' || s.name === 'plFront') { N(a, 1, 2, .8, .2); for (let t = 0; t < d; t += .5) N(a + t, 0, 0, .6, .14, 'sine'); }
+    if (s.name === 'desks' || s.name === 'primark' || s.name === 'mics' || s.name === 'smallShow') {
+      for (let t = 0; t < d; t += .25) N(a + t, 1, (t * 4) % 5 | 0, .22, .07, 'square');
+      for (let t = 0; t < d; t += .5) N(a + t, 0, 0, .6, .17); }
+    if (s.name === 'plCrowd') { noiseBurst(ac, master, t0, a, .35, .16, 5); for (let t = 0; t < d; t += .25) N(a + t, 2, r() * 5 | 0, .2, .09); }
+    if (s.name === 'stripBlue' || s.name === 'boxBlue') { note(ac, master, 55, t0, a, d, 'sawtooth', .16); note(ac, master, 110, t0, a, d, 'sine', .11); }
+    if (s.name === 'montage') for (let k = 0; k < 10; k++) N(a + k * .25, 1 + (k > 6 ? 1 : 0), k % 5, .22, .13, 'square');
+    if (s.name === 'quiet') { N(a + .1, 1, 0, 1.6, .26, 'sine'); N(a + 1.2, 0, 2, 1.0, .13, 'sine'); }
+    if (s.name === 'signoff') { N(a + .1, 0, 0, 2.4, .22, 'sine'); N(a + .1, 1, 2, 2.4, .15, 'sine'); }
     acc += d;
   }
 }
 
 // ===================== FILM =====================
 const TIMELINE = [
-  { name: 'shop',      dur: 2.25, fn: sShop },
-  { name: 'door',      dur: 1.50, fn: sDoor },
-  { name: 'primark',   dur: 2.25, fn: sPrimark },
+  { name: 'shop',      dur: 2.50, fn: sShop },
+  { name: 'plMixer',   dur: 1.50, fn: sPlMixer },
+  { name: 'desks',     dur: 2.50, fn: sDesks },
+  { name: 'stripBlue', dur: 1.50, fn: sStripBlue },
+  { name: 'plFront',   dur: 2.00, fn: sPlFront },
+  { name: 'primark',   dur: 2.00, fn: sPrimark },
+  { name: 'plCrowd',   dur: 1.50, fn: sPlCrowd },
+  { name: 'mics',      dur: 2.00, fn: sMics },
   { name: 'boxBlue',   dur: 1.50, fn: sBoxBlue },
-  { name: 'ballroom',  dur: 2.00, fn: sBallroom },
-  { name: 'corporate', dur: 1.75, fn: sCorporate },
-  { name: 'field',     dur: 2.00, fn: sField },
-  { name: 'montage',   dur: 3.00, fn: sMontage },
-  { name: 'faderBlue', dur: 1.25, fn: sFaderBlue },
+  { name: 'smallShow', dur: 1.50, fn: sSmallShow },
+  { name: 'montage',   dur: 2.50, fn: sMontage },
   { name: 'quiet',     dur: 2.25, fn: sQuiet },
   { name: 'home',      dur: 1.50, fn: sHome },
-  { name: 'signoff',   dur: 2.50, fn: sSign },
+  { name: 'signoff',   dur: 2.75, fn: sSign },
 ];
 defineFilm({ timeline: TIMELINE, score, format: { ar: '9:16', width: 1080 } });
 </script>
