@@ -3,19 +3,17 @@
 Run: python3 gear-study/build_sheet.py
 """
 import glob
-import io
 import json
 import os
 from datetime import date
 
 from openpyxl import Workbook
-from openpyxl.drawing.image import Image as XLImage
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
-from PIL import Image as PILImage
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "Gear_Inventory.xlsx")
+PHOTO_URL = "https://raw.githubusercontent.com/juandangooo/ok/claude/clever-lamport-wh1dmm/gear-study/photos/"
 
 CATEGORY = {"Audio": "Audio", "Lighting": "Lighting", "Video": "Video"}
 OTHER = "Staging, Rigging & Other"
@@ -41,16 +39,6 @@ def load():
     # Most expensive first; unconfirmed prices go last.
     items.sort(key=lambda i: (i["price"] is None, -(i["price"] or 0)))
     return items
-
-
-def sheet_copy(photo):
-    """A 400px JPEG copy for embedding; full-size originals stay in photos/."""
-    im = PILImage.open(photo).convert("RGB")
-    im.thumbnail((400, 400))
-    buf = io.BytesIO()
-    im.save(buf, "JPEG", quality=80)
-    buf.seek(0)
-    return buf
 
 
 def write_tab(ws, items):
@@ -85,13 +73,11 @@ def write_tab(ws, items):
                 cell = ws.cell(row=r, column=c, value=label)
                 cell.hyperlink = it[key]
                 cell.font = Font(color="1D4ED8", underline="single")
-        photo = next((f for f in (os.path.join(HERE, "photos", f"{it['id']}.{ext}") for ext in ("jpg", "png"))
-                      if os.path.exists(f)), None)
+        photo = next((f"{it['id']}.{ext}" for ext in ("jpg", "png")
+                      if os.path.exists(os.path.join(HERE, "photos", f"{it['id']}.{ext}"))), None)
         if photo:
-            img = XLImage(sheet_copy(photo))
-            scale = 110 / max(img.width, img.height)
-            img.width, img.height = img.width * scale, img.height * scale
-            ws.add_image(img, f"A{r}")
+            # In-cell image: stays with its row when sorting/resizing.
+            ws.cell(row=r, column=1, value=f'=IMAGE("{PHOTO_URL}{photo}")')
     ws.auto_filter.ref = f"A1:{get_column_letter(len(COLUMNS))}{len(items) + 1}"
 
 
@@ -112,7 +98,7 @@ def main():
         "Sorted by unit price, most expensive first. Items marked NOT CONFIRMED go last.",
         "Prices: new retail price of a real listing (see 'Price source'). Generic items (cables, pins) "
         "are priced using the named brand/model in 'Priced as', since the inventory doesn't list brands.",
-        "Photos come from your own inventory PDF.",
+        "Photos are in-cell IMAGE() formulas (they load from the GitHub repo and stay with their row when you sort).",
         "Category: Audio / Lighting / Video. Anything else (rigging, pipe & drape, tents, power, radios, safety) "
         f"goes under '{OTHER}'; the original inventory group is kept in 'Subcategory'.",
         "Qty 0 + 'SUB-RENTAL' = you rent it from another company when needed.",
