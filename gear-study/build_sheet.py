@@ -29,7 +29,7 @@ TABS = ["Audio", "Lighting", "Video", OTHER]
 COLORS = {"Audio": "DCEBFF", "Lighting": "FFF1C7", "Video": "E6DCFF", OTHER: "E3E3E3"}
 
 COLUMNS = [
-    ("Photo", 16), ("Name (inventory)", 34), ("Category", 13), ("Subcategory", 18),
+    ("Photo", 26), ("Name (inventory)", 34), ("Category", 13), ("Subcategory", 18),
     ("Type", 20), ("Qty owned", 9), ("Unit price (USD)", 13), ("Total value (USD)", 14),
     ("Priced as (brand / model)", 34), ("What it does", 60), ("Key specs", 36),
     ("Manual / spec sheet", 16), ("Price source", 16), ("Notes", 44), ("PDF page", 8),
@@ -57,11 +57,14 @@ def add_cell_picture(ws, path, row):
     im.save(buf, "JPEG", quality=80)
     buf.seek(0)
     img = XLImage(buf)
-    scale = min(110 / img.width, 110 / img.height)
+    # Cell is ~187x120px; keep the photo well inside it (<=96px, centered) so
+    # it never touches a neighbouring cell in any app.
+    scale = min(96 / img.width, 96 / img.height)
     w, h = int(img.width * scale), int(img.height * scale)
     img.width, img.height = w, h
-    marker = AnchorMarker(col=0, colOff=pixels_to_EMU(4), row=row - 1, rowOff=pixels_to_EMU(4))
-    end = AnchorMarker(col=0, colOff=pixels_to_EMU(4 + w), row=row - 1, rowOff=pixels_to_EMU(4 + h))
+    x, y = (180 - w) // 2, (120 - h) // 2
+    marker = AnchorMarker(col=0, colOff=pixels_to_EMU(x), row=row - 1, rowOff=pixels_to_EMU(y))
+    end = AnchorMarker(col=0, colOff=pixels_to_EMU(x + w), row=row - 1, rowOff=pixels_to_EMU(y + h))
     img.anchor = TwoCellAnchor(editAs="twoCell", _from=marker, to=end)
     ws.add_image(img)
 
