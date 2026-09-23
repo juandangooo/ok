@@ -73,8 +73,9 @@ def write_tab(ws, items):
                 cell = ws.cell(row=r, column=c, value=label)
                 cell.hyperlink = it[key]
                 cell.font = Font(color="1D4ED8", underline="single")
-        photo = os.path.join(HERE, "photos", f"{it['id']}.png")
-        if os.path.exists(photo):
+        photo = next((f for f in (os.path.join(HERE, "photos", f"{it['id']}.{ext}") for ext in ("jpg", "png"))
+                      if os.path.exists(f)), None)
+        if photo:
             img = XLImage(photo)
             scale = 110 / max(img.width, img.height)
             img.width, img.height = img.width * scale, img.height * scale
