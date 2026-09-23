@@ -22,7 +22,7 @@ def main(pdf, page):
     items = []
     for b in blocks:
         t = b[4].strip()
-        if round(b[0]) not in NAME_X or t.startswith(("Available", "Booked")) or "rent" in t:
+        if round(b[0]) not in NAME_X or t.startswith(("Available", "Booked", "Unavailable")) or "rent" in t:
             continue
         qty = [c for c in blocks if c[4].startswith("Available")
                and abs(c[0] - b[0]) < 2 and 0 < c[1] - b[1] < 80]
