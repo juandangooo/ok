@@ -1,0 +1,313 @@
+<title>Load-In Drills</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+:root{
+  --bg:#e9ecef; --panel:#f8f9fa; --ink:#15191e; --muted:#5b6570; --line:#cfd5db;
+  --tape:#f4efe1; --tape-ink:#23201a;
+  --accent:#e8a317; --accent-ink:#1b1400;
+  --good:#1f9d55; --bad:#d64541;
+  --audio:#2f6fd6; --lighting:#d99a00; --video:#7b4fd6; --other:#6b7580;
+  --shadow:0 2px 0 rgba(20,25,30,.18);
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark; --bg:#121518; --panel:#1b1f24; --ink:#e8ecef; --muted:#98a2ad; --line:#2c333b;
+  --tape:#e9e2cc; --tape-ink:#1e1b14; --shadow:0 2px 0 rgba(0,0,0,.5);
+}}
+:root[data-theme="dark"]{
+  color-scheme:dark; --bg:#121518; --panel:#1b1f24; --ink:#e8ecef; --muted:#98a2ad; --line:#2c333b;
+  --tape:#e9e2cc; --tape-ink:#1e1b14; --shadow:0 2px 0 rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 var(--body);padding-inline:16px;padding-block:0 40px}
+.wrap{max-width:760px;margin:0 auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:18px 12px}
+.brand{font:800 30px/1 var(--display);letter-spacing:.02em;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.brand .tape{background:var(--tape);color:var(--tape-ink);padding:4px 10px 3px;transform:rotate(-1.5deg);box-shadow:var(--shadow)}
+.stats{display:flex;gap:8px;flex-wrap:wrap}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:4px 10px;font:500 13px var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat b{font-weight:500;color:var(--accent)}
+nav{display:flex;gap:6px;border-bottom:2px solid var(--line);margin-bottom:18px;overflow-x:auto}
+nav button{background:none;border:0;border-bottom:3px solid transparent;margin-bottom:-2px;padding:8px 12px;font:700 17px var(--display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);cursor:pointer;white-space:nowrap}
+nav button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+button{font-family:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.label{font:700 13px var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h2{font:800 26px/1.1 var(--display);text-transform:uppercase;letter-spacing:.02em;margin:0;text-wrap:balance}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-block:12px 22px}
+.mode{text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;cursor:pointer;box-shadow:var(--shadow);display:grid;gap:6px;color:var(--ink)}
+.mode:hover{border-color:var(--accent)}
+.mode .t{font:800 22px/1 var(--display);text-transform:uppercase}
+.mode .d{color:var(--muted);font-size:14px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:6px 14px;font:600 14px var(--body);cursor:pointer;display:flex;gap:6px;align-items:center}
+.chip i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.dept-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:10px}
+.dept{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;gap:6px}
+.dept .row{display:flex;justify-content:space-between;font:500 13px var(--mono);font-variant-numeric:tabular-nums}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar span{display:block;height:100%}
+/* game */
+.game{display:grid;gap:14px}
+.gtop{display:flex;align-items:center;gap:12px}
+.gtop .progress{flex:1;height:12px;background:var(--line);border-radius:6px;overflow:hidden}
+.gtop .progress span{display:block;height:100%;background:var(--accent);transition:width .3s}
+.hearts{font:500 16px var(--mono);color:var(--bad);letter-spacing:2px}
+.quit{background:none;border:1px solid var(--line);border-radius:6px;color:var(--muted);padding:4px 10px;cursor:pointer}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:12px;box-shadow:var(--shadow)}
+.prompt{font:700 22px/1.15 var(--display);text-transform:uppercase;letter-spacing:.02em;text-wrap:balance}
+.photo{background:#fff;border-radius:8px;display:grid;place-items:center;height:230px;padding:10px}
+.photo img{max-height:210px;max-width:100%;object-fit:contain}
+.photo.sm{height:150px}.photo.sm img{max-height:130px}
+.tag{display:inline-block;font:700 12px var(--display);letter-spacing:.12em;text-transform:uppercase;padding:2px 8px;border-radius:4px;color:#fff}
+.name-tape{background:var(--tape);color:var(--tape-ink);font:700 20px/1.2 var(--display);padding:6px 12px;justify-self:start;transform:rotate(-.6deg);box-shadow:var(--shadow)}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;background:var(--panel);color:var(--ink);border:2px solid var(--line);border-bottom-width:4px;border-radius:10px;padding:12px 14px;font:500 16px var(--body);cursor:pointer;display:flex;gap:10px;align-items:baseline}
+.opt kbd{font:500 12px var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 5px}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.price{font:500 20px var(--mono);font-variant-numeric:tabular-nums}
+.opt.right{border-color:var(--good);background:color-mix(in srgb,var(--good) 14%,var(--panel))}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,var(--panel))}
+.opt:disabled{cursor:default}
+.feedback{border-radius:10px;padding:12px 14px;display:grid;gap:6px}
+.feedback.ok{background:color-mix(in srgb,var(--good) 16%,var(--panel));border:1px solid var(--good)}
+.feedback.no{background:color-mix(in srgb,var(--bad) 14%,var(--panel));border:1px solid var(--bad)}
+.feedback .h{font:800 20px var(--display);text-transform:uppercase}
+.feedback .facts{font-size:14px;color:var(--muted)}
+.next{justify-self:end;background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:12px 26px;font:800 18px var(--display);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;box-shadow:0 3px 0 color-mix(in srgb,var(--accent) 60%,#000)}
+.pop{animation:pop .35s ease}
+@keyframes pop{0%{transform:scale(.96)}60%{transform:scale(1.02)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.pop{animation:none}.gtop .progress span{transition:none}}
+.result{text-align:center;display:grid;gap:10px;justify-items:center}
+.big{font:800 64px/1 var(--display);color:var(--accent)}
+.miss{display:grid;gap:8px;width:100%;text-align:left}
+.miss div{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px}
+.miss img{width:48px;height:48px;object-fit:contain;background:#fff;border-radius:4px}
+/* browse */
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.tools input{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--ink);font:16px var(--body)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.item{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px;display:grid;gap:6px;cursor:pointer;text-align:left;color:var(--ink);align-content:start}
+.item .photo{height:120px;padding:6px}.item .photo img{max-height:108px}
+.item .nm{font:600 14px/1.25 var(--body)}
+.item .pr{font:500 13px var(--mono);color:var(--muted)}
+.item .more{font-size:13px;color:var(--muted)}
+.foot{color:var(--muted);font-size:13px;margin-top:22px}
+.loading{padding:40px 0;color:var(--muted)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="tape">Load-In</span> Drills</div>
+    <div class="stats">
+      <span class="stat">XP <b id="xp">0</b></span>
+      <span class="stat">Streak <b id="streak">0</b>d</span>
+      <span class="stat">Mastered <b id="mastered">0</b>/<span id="total">0</span></span>
+    </div>
+  </header>
+  <nav role="tablist">
+    <button role="tab" data-tab="play" aria-selected="true">Play</button>
+    <button role="tab" data-tab="browse" aria-selected="false">Browse the shop</button>
+  </nav>
+  <main id="view"><p class="loading">Loading the inventory…</p></main>
+  <p class="foot">757 products from the Current RMS export. Packages, cases and billing lines are left out. Prices are new retail from real listings; items without a confirmed price only show up in the photo and job drills.</p>
+</div>
+
+<script>
+(() => {
+const CAT = {Audio:"var(--audio)",Lighting:"var(--lighting)",Video:"var(--video)",Other:"var(--other)"};
+const CAT_NAME = {Audio:"Audio",Lighting:"Lighting",Video:"Video",Other:"Staging & rigging"};
+const store = {
+  get(k,d){try{const v=localStorage.getItem("lid_"+k);return v?JSON.parse(v):d}catch(e){return d}},
+  set(k,v){try{localStorage.setItem("lid_"+k,JSON.stringify(v))}catch(e){}}
+};
+let GEAR=[], byId={};
+let st = store.get("state",{xp:0,streak:0,last:"",box:{}});
+let dept = store.get("dept","All");
+const view = document.getElementById("view");
+const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money = p => p==null?"Price not confirmed":"$"+(p>=100?Math.round(p).toLocaleString():p.toFixed(2));
+const shuffle = a => {for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const today = () => new Date().toISOString().slice(0,10);
+const box = id => st.box[id]||0;
+function save(){store.set("state",st);renderStats()}
+function renderStats(){
+  document.getElementById("xp").textContent=st.xp.toLocaleString();
+  document.getElementById("streak").textContent=st.streak;
+  document.getElementById("mastered").textContent=GEAR.filter(g=>box(g.id)>=3).length;
+  document.getElementById("total").textContent=GEAR.length;
+}
+function pool(){return GEAR.filter(g=>dept==="All"||g.c===dept)}
+
+const MODES = {
+  photo:{t:"Name that gear",d:"See the photo, pick the right name.",ok:g=>g.img&&!g.sub},
+  price:{t:"Price is right",d:"Guess what it costs new.",ok:g=>g.p!=null&&g.img&&!g.sub},
+  job:{t:"What's it for?",d:"Match the gear to its job on a show.",ok:g=>g.w&&g.w.length>12},
+};
+
+/* ---------- home ---------- */
+function home(){
+  const chips=["All","Audio","Lighting","Video","Other"].map(c=>`<button class="chip" data-dept="${c}" aria-pressed="${dept===c}">${c!=="All"?`<i style="background:${CAT[c]}"></i>`:""}${c==="All"?"All departments":CAT_NAME[c]}</button>`).join("");
+  const depts=["Audio","Lighting","Video","Other"].map(c=>{
+    const all=GEAR.filter(g=>g.c===c), m=all.filter(g=>box(g.id)>=3).length, pct=all.length?Math.round(m/all.length*100):0;
+    return `<div class="dept"><div class="row"><span class="label" style="color:${CAT[c]}">${CAT_NAME[c]}</span><span>${m}/${all.length}</span></div><div class="bar"><span style="width:${pct}%;background:${CAT[c]}"></span></div></div>`}).join("");
+  view.innerHTML=`
+    <div class="label">Department</div>
+    <div class="chips" style="margin-top:8px">${chips}</div>
+    <div class="modes">${Object.entries(MODES).map(([k,m])=>`<button class="mode" data-mode="${k}"><span class="t">${m.t}</span><span class="d">${m.d}</span><span class="label">${pool().filter(m.ok).length} items · 10 questions · 3 lives</span></button>`).join("")}
+      <button class="mode" data-mode="mix"><span class="t">Full shift</span><span class="d">All three drills mixed together. Double XP.</span><span class="label">15 questions · 3 lives</span></button>
+    </div>
+    <div class="label">Mastery by department</div>
+    <div class="dept-grid">${depts}</div>
+    <p class="foot">An item counts as mastered after you get it right 3 times in a row. Items you miss come back sooner.</p>`;
+  view.querySelectorAll("[data-dept]").forEach(b=>b.onclick=()=>{dept=b.dataset.dept;store.set("dept",dept);home()});
+  view.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>startRound(b.dataset.mode));
+}
+
+/* ---------- round ---------- */
+let R=null;
+function pick(n, modes){
+  // weight toward items with low mastery
+  const out=[], used=new Set();
+  let tries=0;
+  while(out.length<n && tries<5000){
+    tries++;
+    const mode=modes[Math.random()*modes.length|0];
+    const cands=pool().filter(g=>MODES[mode].ok(g)&&!used.has(g.id));
+    if(!cands.length) continue;
+    const w=cands.map(g=>1/(1+box(g.id)*2)); const sum=w.reduce((a,b)=>a+b,0);
+    let r=Math.random()*sum, i=0; while(r>w[i]){r-=w[i];i++}
+    used.add(cands[i].id); out.push({mode,g:cands[i]});
+  }
+  return out;
+}
+function startRound(mode){
+  const modes = mode==="mix"?["photo","price","job"]:[mode];
+  const qs=pick(mode==="mix"?15:10, modes);
+  if(qs.length<4){view.innerHTML=`<p>Not enough items in this department for that drill yet.</p>`;return}
+  R={mode,qs,i:0,lives:3,combo:0,earned:0,correct:0,missed:[],mult:mode==="mix"?2:1};
+  ask();
+}
+function distractors(g, mode){
+  const base=GEAR.filter(x=>x.id!==g.id && x.c===g.c);
+  let c;
+  if(mode==="photo") c=base.filter(x=>x.t!==g.t && x.n.split(" ").slice(0,2).join(" ")!==g.n.split(" ").slice(0,2).join(" "));
+  if(mode==="job") c=base.filter(x=>x.w && x.w!==g.w && x.t!==g.t);
+  if(!c||c.length<3) c=GEAR.filter(x=>x.id!==g.id && x.t!==g.t);
+  return shuffle(c).slice(0,3);
+}
+function priceOpts(p){
+  const priced=shuffle(GEAR.filter(x=>x.p!=null).map(x=>x.p));
+  const out=[p];
+  for(const v of priced){ if(out.every(o=>Math.max(o,v)/Math.min(o,v)>=1.6)) out.push(v); if(out.length===4) break; }
+  return shuffle(out);
+}
+function ask(){
+  const q=R.qs[R.i], g=q.g;
+  let prompt, media="", opts;
+  if(q.mode==="photo"){
+    prompt="What is this?";
+    media=`<div class="photo"><img alt="Mystery gear" src="${g.img}"></div>`;
+    opts=shuffle([g,...distractors(g,"photo")]).map(x=>({label:x.n,right:x.id===g.id}));
+  } else if(q.mode==="price"){
+    prompt="What does one cost new?";
+    media=`<div class="photo sm"><img alt="" src="${g.img}"></div><div class="name-tape">${esc(g.n)}</div>`;
+    opts=priceOpts(g.p).map(v=>({label:money(v),right:v===g.p,price:true}));
+  } else {
+    prompt="What does this do?";
+    media=`${g.img&&!g.sub?`<div class="photo sm"><img alt="" src="${g.img}"></div>`:""}<div class="name-tape">${esc(g.n)}</div>`;
+    opts=shuffle([g,...distractors(g,"job")]).map(x=>({label:x.w,right:x.id===g.id}));
+  }
+  R.opts=opts;
+  const total=R.qs.length;
+  view.innerHTML=`<div class="game">
+    <div class="gtop"><button class="quit" id="quit">Quit</button><div class="progress"><span style="width:${R.i/total*100}%"></span></div><span class="hearts" aria-label="${R.lives} lives">${"♥".repeat(R.lives)}${"♡".repeat(3-R.lives)}</span></div>
+    <div class="card pop">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><span class="tag" style="background:${CAT[g.c]}">${CAT_NAME[g.c]}</span><span class="label">${R.i+1} / ${total}${R.combo>=3?` · combo ×${R.combo}`:""}</span></div>
+      <div class="prompt">${prompt}</div>
+      ${media}
+      <div class="opts">${opts.map((o,k)=>`<button class="opt${o.price?" price":""}" data-k="${k}"><kbd>${k+1}</kbd><span>${esc(o.label)}</span></button>`).join("")}</div>
+      <div id="fb"></div>
+    </div></div>`;
+  document.getElementById("quit").onclick=home;
+  view.querySelectorAll(".opt").forEach(b=>b.onclick=()=>answer(+b.dataset.k));
+}
+function answer(k){
+  if(R.answered) return; R.answered=true;
+  const q=R.qs[R.i], g=q.g, ok=R.opts[k].right;
+  view.querySelectorAll(".opt").forEach((b,j)=>{b.disabled=true; if(R.opts[j].right) b.classList.add("right"); else if(j===k) b.classList.add("wrong")});
+  if(ok){
+    R.combo++; R.correct++;
+    const pts=(10+Math.min(R.combo-1,5)*2)*R.mult; R.earned+=pts;
+    st.box[g.id]=box(g.id)+1;
+  } else {
+    R.combo=0; R.lives--; st.box[g.id]=0; R.missed.push(g);
+  }
+  const facts=[g.t, g.s, g.p!=null?money(g.p)+" each":"", g.q!=null?`${g.q} in the shop`:""].filter(Boolean).map(esc).join(" · ");
+  const cheers=["Nailed it","Clean","Good ears","Pro move","Tight"];
+  document.getElementById("fb").innerHTML=`<div class="feedback ${ok?"ok":"no"} pop">
+    <div class="h">${ok?cheers[Math.random()*cheers.length|0]+` +${(10+Math.min(R.combo-1,5)*2)*R.mult} XP`:"Not quite"}</div>
+    <div><b>${esc(g.n)}</b>. ${esc(g.w)}</div><div class="facts">${facts}</div></div>
+    <button class="next" id="next">${R.lives===0||R.i+1===R.qs.length?"See results":"Continue"}</button>`;
+  save();
+  const nx=document.getElementById("next"); nx.focus({preventScroll:true});
+  nx.onclick=()=>{R.answered=false; R.i++; if(R.lives===0||R.i>=R.qs.length) finish(); else ask();};
+}
+function finish(){
+  const t=today();
+  if(st.last!==t){const y=new Date(Date.now()-864e5).toISOString().slice(0,10); st.streak=st.last===y?st.streak+1:1; st.last=t;}
+  const perfect=R.lives===3&&R.i>=R.qs.length;
+  if(perfect){R.earned+=25*R.mult}
+  st.xp+=R.earned; save();
+  const out=R.lives===0;
+  view.innerHTML=`<div class="card result pop">
+    <div class="label">${out?"Out of lives":"Round complete"}</div>
+    <div class="big">+${R.earned} XP</div>
+    <h2>${R.correct} of ${R.i} right${perfect?" · perfect round, +"+25*R.mult+" bonus":""}</h2>
+    ${R.missed.length?`<div class="label" style="margin-top:6px">Study these</div><div class="miss">${R.missed.map(g=>`<div>${g.img&&!g.sub?`<img alt="" src="${g.img}">`:""}<span><b>${esc(g.n)}</b><br><span style="color:var(--muted);font-size:14px">${esc(g.w)} ${g.p!=null?"· "+money(g.p):""}</span></span></div>`).join("")}</div>`:""}
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><button class="next" id="again">Play again</button><button class="chip" id="menu">Back to drills</button></div>
+  </div>`;
+  document.getElementById("again").onclick=()=>startRound(R.mode);
+  document.getElementById("menu").onclick=home;
+}
+document.addEventListener("keydown",e=>{
+  if(!R||!document.querySelector(".opt")) return;
+  if(!R.answered && /^[1-4]$/.test(e.key)) answer(+e.key-1);
+  else if(R.answered && (e.key==="Enter"||e.key===" ")){const n=document.getElementById("next"); if(n){e.preventDefault(); n.click();}}
+});
+
+/* ---------- browse ---------- */
+function browse(){
+  view.innerHTML=`<div class="tools"><input id="q" type="search" placeholder="Search 716 items (try “SM58” or “truss”)" aria-label="Search gear">
+    <div class="chips">${["All","Audio","Lighting","Video","Other"].map(c=>`<button class="chip" data-dept="${c}" aria-pressed="${dept===c}">${c==="All"?"All":CAT_NAME[c]}</button>`).join("")}</div></div>
+    <div class="label" id="count"></div><div class="grid" id="grid" style="margin-top:8px"></div>`;
+  const q=document.getElementById("q");
+  const draw=()=>{
+    const s=q.value.trim().toLowerCase();
+    const list=pool().filter(g=>!s||(g.n+" "+g.t+" "+g.w).toLowerCase().includes(s)).sort((a,b)=>(b.p??-1)-(a.p??-1));
+    document.getElementById("count").textContent=`${list.length} items · most expensive first`;
+    document.getElementById("grid").innerHTML=list.slice(0,300).map(g=>`<button class="item" data-id="${g.id}">
+      <div class="photo">${g.img?`<img loading="lazy" alt="" src="${g.img}">`:""}</div>
+      <span class="tag" style="background:${CAT[g.c]};justify-self:start">${CAT_NAME[g.c]}</span>
+      <span class="nm">${esc(g.n)}</span><span class="pr">${g.p!=null?money(g.p):"—"}${g.q!=null?` · ×${g.q}`:""}</span>
+      <span class="more" hidden>${esc(g.w)}<br>${esc(g.s)}</span></button>`).join("");
+    document.querySelectorAll(".item").forEach(b=>b.onclick=()=>{const m=b.querySelector(".more"); m.hidden=!m.hidden});
+  };
+  q.oninput=draw;
+  view.querySelectorAll("[data-dept]").forEach(b=>b.onclick=()=>{dept=b.dataset.dept;store.set("dept",dept);view.querySelectorAll("[data-dept]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.dept===dept));draw()});
+  draw();
+}
+
+document.querySelectorAll("nav [data-tab]").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll("nav [data-tab]").forEach(x=>x.setAttribute("aria-selected",x===b));
+  R=null; b.dataset.tab==="play"?home():browse();
+});
+
+fetch("gear.json").then(r=>r.json()).then(d=>{GEAR=d;d.forEach(g=>byId[g.id]=g);renderStats();home()})
+  .catch(()=>{view.innerHTML=`<p>The gear list didn't load. Reload the page to try again.</p>`});
+})();
+</script>
