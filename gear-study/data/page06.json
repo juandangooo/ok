@@ -118,12 +118,12 @@
   "qty": 4,
   "type": "Truss junction",
   "ref": "Global Truss DT-6WB",
-  "price": null,
-  "price_src": "https://www.fullcompass.com/prod/584359-global-truss-dt-6wb-6-way-corner-block-6-connecting-sides-included",
+  "price": 571.0,
+  "price_src": "https://www.farralane.com/global-truss-dt-6wb-6-way-corner-block-for-dt-gp-series-truss.html",
   "what": "A cube that joins truss in up to 6 directions, for building corners, T's and goalpost structures.",
   "specs": "12\" square; plated; fits DT-GP truss",
   "manual": "",
-  "notes": "PRICE NOT CONFIRMED."
+  "notes": "Price from www.farralane.com product page."
  },
  {
   "id": "p06-10",
@@ -174,12 +174,12 @@
   "qty": 8,
   "type": "Box truss",
   "ref": "Global Truss DT-GP8",
-  "price": null,
-  "price_src": "https://www.fullcompass.com/prod/584356-global-truss-dt-gp8-dt-gp-8-end-plated-truss-segment",
+  "price": 686.0,
+  "price_src": "https://www.farralane.com/global-truss-dt-gp8-8ft-12-square-straight-segment-end-plated-truss-with-2mm-wall-thickness.html",
   "what": "8 ft section of square truss. Your most common length (8 owned).",
   "specs": "8 ft; 12\" square",
   "manual": "",
-  "notes": "PRICE NOT CONFIRMED."
+  "notes": "Price from www.farralane.com product page."
  },
  {
   "id": "p06-14",
@@ -314,12 +314,12 @@
   "qty": 2,
   "type": "Tripod",
   "ref": "E-Image tall tripod for PTZ",
-  "price": null,
-  "price_src": "",
+  "price": 599.99,
+  "price_src": "https://www.markertek.com/product/ikan-ptz-stnd21a/e-image-ptz-stnd-21a-aluminum-tripod-stand-for-ptz-cameras-21-foot",
   "what": "Tall tripod to put a PTZ camera up above the audience's heads.",
   "specs": "Tall tripod; PTZ mount",
   "manual": "",
-  "notes": "PRICE NOT CONFIRMED."
+  "notes": "Price from www.markertek.com product page."
  },
  {
   "id": "p06-24",
@@ -496,12 +496,12 @@
   "qty": 1,
   "type": "Network cable",
   "ref": "Elite Core Cat5e with EtherCON, 1 ft",
-  "price": null,
-  "price_src": "",
+  "price": 44.49,
+  "price_src": "https://www.farralane.com/elite-core-procat5e-s-ee-1-5-1-5ft-ultra-flexible-shielded-tactical-cat5e-cable-with-neutrik-ethercon-connectors.html",
   "what": "Rugged Ethernet jumper with locking EtherCON ends, for digital audio links (e.g. S16 to X32).",
   "specs": "Cat5e; EtherCON; 1 ft",
   "manual": "",
-  "notes": "PRICE NOT CONFIRMED."
+  "notes": "Price from www.farralane.com product page."
  },
  {
   "id": "p06-37",

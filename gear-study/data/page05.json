@@ -217,12 +217,12 @@
   "qty": 4,
   "type": "Crowd barrier",
   "ref": "Concert barrier corner section",
-  "price": null,
-  "price_src": "",
+  "price": 1197.0,
+  "price_src": "https://www.epiccrowdcontrol.com/products/concert-stage-barriers-aluminum-corner-unit",
   "what": "Angled piece that turns the barricade line around a corner.",
   "specs": "Aluminum",
   "manual": "",
-  "notes": "PRICE NOT CONFIRMED."
+  "notes": "Price from www.epiccrowdcontrol.com product page."
  },
  {
   "id": "p05-17",
@@ -371,12 +371,12 @@
   "qty": 10,
   "type": "Signal converter",
   "ref": "Decimator MD-LX",
-  "price": null,
-  "price_src": "https://www.bhphotovideo.com/c/product/1333957-REG/decimator_dd_lx_hdmi_sdi_converter.html",
+  "price": 110.0,
+  "price_src": "https://www.markertek.com/product/dec-md-lx/decimator-design-md-lx-hdmi-3g-sdi-smpte-bi-directional-converter",
   "what": "Tiny red converter: HDMI to SDI and SDI to HDMI at the same time. A favorite on shoots because it's small and reliable.",
   "specs": "Bi-directional HDMI/SDI; 3G/HD/SD",
   "manual": "https://decimator.com/Products/MiniConverters/MD-LX/MD-LX.html",
-  "notes": "PRICE NOT CONFIRMED."
+  "notes": "Price from www.markertek.com product page."
  },
  {
   "id": "p05-28",
@@ -385,12 +385,12 @@
   "qty": 1,
   "type": "Scaler / converter",
   "ref": "Decimator MD-HX",
-  "price": null,
-  "price_src": "https://www.amazon.com/Decimator-MD-HX-Converter-Scaling-Conversion/dp/B00QPRGGCS",
+  "price": 325.0,
+  "price_src": "https://www.markertek.com/product/dec-md-hx/decimator-md-hx-hdmi-sdi-cross-converter-with-scaling-and-rate-conversion",
   "what": "Big brother of the MD-LX: also SCALES resolution and converts frame rates, so mismatched sources work together.",
   "specs": "HDMI/SDI; scaling; frame-rate conversion; LCD menu",
   "manual": "https://decimator.com/Products/MiniConverters/MD-HX/MD-HX.html",
-  "notes": "PRICE NOT CONFIRMED."
+  "notes": "Price from www.markertek.com product page."
  },
  {
   "id": "p05-29",
@@ -544,12 +544,12 @@
   "qty": 10,
   "type": "DMX cable",
   "ref": "5-pin DMX, 5 ft",
-  "price": null,
-  "price_src": "https://www.sweetwater.com/store/detail/DMX5P5FT--chauvet-pro-dmx5p5ft-5-pin-5-conductor-dmx-cable-5-foot",
+  "price": 9.95,
+  "price_src": "https://www.markertek.com/product/chvt-dmx5p-5ft/chauvet-dmx5p5ft-5-pin-dmx-cable-5-foot",
   "what": "5 ft 5-pin DMX jumper.",
   "specs": "5-pin DMX; 5 ft",
   "manual": "",
-  "notes": "SUB-RENTAL. PRICE NOT CONFIRMED."
+  "notes": "SUB-RENTAL. Price from www.markertek.com product page."
  },
  {
   "id": "p05-40",

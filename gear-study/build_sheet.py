@@ -3,6 +3,7 @@
 Run: python3 gear-study/build_sheet.py
 """
 import glob
+import io
 import json
 import os
 from datetime import date
@@ -11,6 +12,7 @@ from openpyxl import Workbook
 from openpyxl.drawing.image import Image as XLImage
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
+from PIL import Image as PILImage
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "Gear_Inventory.xlsx")
@@ -39,6 +41,16 @@ def load():
     # Most expensive first; unconfirmed prices go last.
     items.sort(key=lambda i: (i["price"] is None, -(i["price"] or 0)))
     return items
+
+
+def sheet_copy(photo):
+    """A 400px JPEG copy for embedding; full-size originals stay in photos/."""
+    im = PILImage.open(photo).convert("RGB")
+    im.thumbnail((400, 400))
+    buf = io.BytesIO()
+    im.save(buf, "JPEG", quality=80)
+    buf.seek(0)
+    return buf
 
 
 def write_tab(ws, items):
@@ -76,7 +88,7 @@ def write_tab(ws, items):
         photo = next((f for f in (os.path.join(HERE, "photos", f"{it['id']}.{ext}") for ext in ("jpg", "png"))
                       if os.path.exists(f)), None)
         if photo:
-            img = XLImage(photo)
+            img = XLImage(sheet_copy(photo))
             scale = 110 / max(img.width, img.height)
             img.width, img.height = img.width * scale, img.height * scale
             ws.add_image(img, f"A{r}")
