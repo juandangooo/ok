@@ -3,16 +3,24 @@
 Run: python3 gear-study/build_sheet.py
 """
 import glob
+import io
 import json
 import os
+import sys
 from datetime import date
 
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.drawing.image import Image as XLImage
+from openpyxl.drawing.spreadsheet_drawing import AnchorMarker, TwoCellAnchor
 from openpyxl.utils import get_column_letter
+from openpyxl.utils.units import pixels_to_EMU
+from PIL import Image as PILImage
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, "Gear_Inventory.xlsx")
+# --embed: pictures stored in the file (Excel/Numbers). Default: IMAGE() formulas (Google Sheets).
+EMBED = "--embed" in sys.argv
+OUT = os.path.join(HERE, "Gear_Inventory_Excel_Numbers.xlsx" if "--embed" in sys.argv else "Gear_Inventory_GoogleSheets.xlsx")
 PHOTO_URL = "https://raw.githubusercontent.com/juandangooo/ok/claude/clever-lamport-wh1dmm/gear-study/photos/"
 
 CATEGORY = {"Audio": "Audio", "Lighting": "Lighting", "Video": "Video"}
@@ -39,6 +47,23 @@ def load():
     # Most expensive first; unconfirmed prices go last.
     items.sort(key=lambda i: (i["price"] is None, -(i["price"] or 0)))
     return items
+
+
+def add_cell_picture(ws, path, row):
+    """Embed a photo fitted inside cell A<row>, set to move and size with the cell."""
+    im = PILImage.open(path).convert("RGB")
+    im.thumbnail((300, 300))
+    buf = io.BytesIO()
+    im.save(buf, "JPEG", quality=80)
+    buf.seek(0)
+    img = XLImage(buf)
+    scale = min(110 / img.width, 110 / img.height)
+    w, h = int(img.width * scale), int(img.height * scale)
+    img.width, img.height = w, h
+    marker = AnchorMarker(col=0, colOff=pixels_to_EMU(4), row=row - 1, rowOff=pixels_to_EMU(4))
+    end = AnchorMarker(col=0, colOff=pixels_to_EMU(4 + w), row=row - 1, rowOff=pixels_to_EMU(4 + h))
+    img.anchor = TwoCellAnchor(editAs="twoCell", _from=marker, to=end)
+    ws.add_image(img)
 
 
 def write_tab(ws, items):
@@ -77,7 +102,10 @@ def write_tab(ws, items):
                       if os.path.exists(os.path.join(HERE, "photos", f"{it['id']}.{ext}"))), None)
         if photo:
             # In-cell image: stays with its row when sorting/resizing.
-            ws.cell(row=r, column=1, value=f'=IMAGE("{PHOTO_URL}{photo}")')
+            if EMBED:
+                add_cell_picture(ws, os.path.join(HERE, "photos", photo), r)
+            else:
+                ws.cell(row=r, column=1, value=f'=IMAGE("{PHOTO_URL}{photo}")')
     ws.auto_filter.ref = f"A1:{get_column_letter(len(COLUMNS))}{len(items) + 1}"
 
 
