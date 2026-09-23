@@ -1,0 +1,242 @@
+[
+ {
+  "id": "p03-01",
+  "name": "Audio-Technica Pro45",
+  "group": "Audio",
+  "qty": 5
+ },
+ {
+  "id": "p03-02",
+  "name": "Audio WorkBox",
+  "group": "Audio",
+  "qty": 2
+ },
+ {
+  "id": "p03-03",
+  "name": "Audix D6 Microphone",
+  "group": "Audio",
+  "qty": 1
+ },
+ {
+  "id": "p03-04",
+  "name": "Audix F90 Microphone",
+  "group": "Audio",
+  "qty": 1
+ },
+ {
+  "id": "p03-05",
+  "name": "Baofeng Charging Station",
+  "group": "Miscellaneous",
+  "qty": 2
+ },
+ {
+  "id": "p03-06",
+  "name": "Baofeng UV-5R MK5 Walkie Talkie",
+  "group": "Miscellaneous",
+  "qty": 9
+ },
+ {
+  "id": "p03-07",
+  "name": "Batteries",
+  "group": "Wireless Accessories",
+  "qty": 297
+ },
+ {
+  "id": "p03-08",
+  "name": "Behringer P1 Wired IEM Ampli\ufb01er",
+  "group": "Audio",
+  "qty": 1
+ },
+ {
+  "id": "p03-09",
+  "name": "Behringer Powerplay P2 In-Ear Monitor Ampli\ufb01er",
+  "group": "Audio",
+  "qty": 14
+ },
+ {
+  "id": "p03-10",
+  "name": "Behringer S16 Stage Box",
+  "group": "Audio",
+  "qty": 1
+ },
+ {
+  "id": "p03-11",
+  "name": "Behringer X32C Console",
+  "group": "Audio",
+  "qty": 2
+ },
+ {
+  "id": "p03-12",
+  "name": "Behringer X32 Rack (Blossom)",
+  "group": "Audio",
+  "qty": 1
+ },
+ {
+  "id": "p03-13",
+  "name": "Behringer X32 Rack (Bubbles)",
+  "group": "Audio",
+  "qty": 1
+ },
+ {
+  "id": "p03-14",
+  "name": "Behringer X32 Rack (Buttercup)",
+  "group": "Audio",
+  "qty": 1
+ },
+ {
+  "id": "p03-15",
+  "name": "Behringer Xenyx 1204USB Analog Mixer",
+  "group": "Audio",
+  "qty": 1
+ },
+ {
+  "id": "p03-16",
+  "name": "BESTEK 8-Outlet Surge Protector",
+  "group": "Power Products",
+  "qty": 6
+ },
+ {
+  "id": "p03-17",
+  "name": "BeyerDynamic M88 Microphone",
+  "group": "Audio",
+  "qty": 1
+ },
+ {
+  "id": "p03-18",
+  "name": "BirdDog 3 X5 Ultra PTZ Camera",
+  "group": "Video",
+  "qty": 3
+ },
+ {
+  "id": "p03-19",
+  "name": "BirdDog KBD PTZ Controller",
+  "group": "Video",
+  "qty": 1
+ },
+ {
+  "id": "p03-20",
+  "name": "Bistro Lighting WorkBox",
+  "group": "Lighting",
+  "qty": 1
+ },
+ {
+  "id": "p03-21",
+  "name": "Bistro String Lights (100 ft.)",
+  "group": "Lighting",
+  "qty": 16
+ },
+ {
+  "id": "p03-22",
+  "name": "Bistro String Lights (50. ft)",
+  "group": "Lighting",
+  "qty": 11
+ },
+ {
+  "id": "p03-23",
+  "name": "Black Area Rug (3.3 X 5 ft)",
+  "group": "Event Space Furnishings",
+  "qty": 1
+ },
+ {
+  "id": "p03-24",
+  "name": "Black Area Rug (4'6\" X 6'7\")",
+  "group": "Event Space Furnishings",
+  "qty": 3
+ },
+ {
+  "id": "p03-25",
+  "name": "Blackmagic Design ATEM 2 M/E Constellation 4K Sw\u2026",
+  "group": "Video",
+  "qty": 1
+ },
+ {
+  "id": "p03-26",
+  "name": "Blackmagic Design ATEM Mini Pro Live Stream Swit\u2026",
+  "group": "Video",
+  "qty": 1
+ },
+ {
+  "id": "p03-27",
+  "name": "Blackmagic Design ATEM Television Studio HD Vide\u2026",
+  "group": "Video",
+  "qty": 1
+ },
+ {
+  "id": "p03-28",
+  "name": "Blackmagic Design HyperDeck Studio 4K Pro",
+  "group": "Video",
+  "qty": 3
+ },
+ {
+  "id": "p03-29",
+  "name": "Blackmagic Design Micro Converter Bidirectional S\u2026",
+  "group": "Video",
+  "qty": 2
+ },
+ {
+  "id": "p03-30",
+  "name": "Blackmagic Design Micro Converter Bidirectional S\u2026",
+  "group": "Video",
+  "qty": 16
+ },
+ {
+  "id": "p03-31",
+  "name": "Blackmagic Design Power Supply for Micro Convert\u2026",
+  "group": "Misc Cables",
+  "qty": 4
+ },
+ {
+  "id": "p03-32",
+  "name": "Black Stage Skirt 15.5\" X 10'",
+  "group": "Staging",
+  "qty": 2
+ },
+ {
+  "id": "p03-33",
+  "name": "Black Stage Skirt 15.5\" X 8'",
+  "group": "Staging",
+  "qty": 4
+ },
+ {
+  "id": "p03-34",
+  "name": "Black Stage Skirt 23.5\" X 10'",
+  "group": "Staging",
+  "qty": 2
+ },
+ {
+  "id": "p03-35",
+  "name": "Black Stage Skirt 23.5\" X 8'",
+  "group": "Staging",
+  "qty": 4
+ },
+ {
+  "id": "p03-36",
+  "name": "Blue Tarp",
+  "group": "Safety Equipment",
+  "qty": 2
+ },
+ {
+  "id": "p03-37",
+  "name": "BNC Cable (1 ft.)",
+  "group": "Audio",
+  "qty": 2
+ },
+ {
+  "id": "p03-38",
+  "name": "BNC Cable (25 ft.)",
+  "group": "Audio",
+  "qty": 8
+ },
+ {
+  "id": "p03-39",
+  "name": "Boom Tie Off",
+  "group": "Rigging",
+  "qty": 22
+ },
+ {
+  "id": "p03-40",
+  "name": "Brown Tarp",
+  "group": "Safety Equipment",
+  "qty": 9
+ }
+]

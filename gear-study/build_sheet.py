@@ -16,7 +16,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "Gear_Inventory.xlsx")
 
 CATEGORY = {"Audio": "Audio", "Lighting": "Lighting", "Video": "Video"}
-OTHER = "Staging & Rigging"
+OTHER = "Staging, Rigging & Other"
 TABS = ["Audio", "Lighting", "Video", OTHER]
 COLORS = {"Audio": "DCEBFF", "Lighting": "FFF1C7", "Video": "E6DCFF", OTHER: "E3E3E3"}
 
@@ -34,7 +34,7 @@ def load():
         page = int(os.path.basename(path)[4:6])
         for it in json.load(open(path)):
             it["page"] = page
-            it["category"] = CATEGORY.get(it["group"], OTHER)
+            it["category"] = it.get("category") or CATEGORY.get(it["group"], OTHER)
             items.append(it)
     # Most expensive first; unconfirmed prices go last.
     items.sort(key=lambda i: (i["price"] is None, -(i["price"] or 0)))
@@ -100,9 +100,10 @@ def main():
         "Prices: new retail price of a real listing (see 'Price source'). Generic items (cables, pins) "
         "are priced using the named brand/model in 'Priced as', since the inventory doesn't list brands.",
         "Photos come from your own inventory PDF.",
-        "Category: Audio / Lighting / Video. Anything else (rigging, pipe & drape, tents, power, safety) "
+        "Category: Audio / Lighting / Video. Anything else (rigging, pipe & drape, tents, power, radios, safety) "
         f"goes under '{OTHER}'; the original inventory group is kept in 'Subcategory'.",
         "Qty 0 + 'SUB-RENTAL' = you rent it from another company when needed.",
+        "A few items are moved out of the inventory's own group when it's wrong (e.g. BNC cables filed under Audio are Video); the Notes say so.",
     ]
     for r, line in enumerate(lines, 1):
         info.cell(row=r, column=1, value=line).alignment = Alignment(wrap_text=True)
