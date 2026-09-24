@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Load-In Drills</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
@@ -119,6 +120,7 @@ h2{font:800 26px/1.1 var(--display);text-transform:uppercase;letter-spacing:.02e
 .qty{display:flex;align-items:center;gap:6px;font:500 15px var(--mono);font-variant-numeric:tabular-nums}
 .qty button{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:700 18px var(--body);cursor:pointer}
 .qty button:disabled{opacity:.35;cursor:default}
+.cats{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}.cats .chip{white-space:nowrap}.cats .chip b{font:500 12px var(--mono);color:var(--accent)}
 .truck{position:sticky;bottom:0;margin-top:12px;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:0 -4px 16px rgba(0,0,0,.18)}
 .truck .t{font:700 16px var(--display);letter-spacing:.06em;text-transform:uppercase}
 .truck .s{font:500 12px var(--mono);opacity:.8}
@@ -165,231 +167,215 @@ h2{font:800 26px/1.1 var(--display);text-transform:uppercase;letter-spacing:.02e
 </div>
 
 <script>
-/* Gig mode: venues, gear roles and answer keys.
+/* Gig mode: venues, gear categories and answer keys.
+   Grading is by category (any sub is a sub, any vocal mic is a vocal mic).
    Every rule below is a game assumption drafted from NJ_Rock_Venue_Game_Scenarios.xlsx; edit freely. */
 window.GIG_DATA = (() => {
-  // ---- what each shop item counts as ----
-  const CONSOLES = { // audio consoles: channels, monitor mixes, digital, stage-box family
-    "p02-24":{n:"Allen & Heath SQ-7",ch:48,mix:12,dig:true,fam:"ah"},
-    "p19-35":{n:"Yamaha QL5",ch:64,mix:16,dig:true,fam:"yam"},
-    "p11-05":{n:"Midas M32",ch:40,mix:16,dig:true,fam:"mt"},
-    "p11-06":{n:"Midas M32C",ch:40,mix:16,dig:true,fam:"mt",needsBox:true},
-    "p07-22":{n:"M32 Core rack",ch:40,mix:16,dig:true,fam:"mt",needsBox:true},
-    "p03-11":{n:"Behringer X32C",ch:40,mix:16,dig:true,fam:"mt"},
-    "p03-12":{n:"Behringer X32 Rack",ch:40,mix:16,dig:true,fam:"mt"},
-    "p03-13":{n:"Behringer X32 Rack",ch:40,mix:16,dig:true,fam:"mt"},
-    "p03-14":{n:"Behringer X32 Rack",ch:40,mix:16,dig:true,fam:"mt"},
-    "p19-29":{n:"Yamaha DM3-D",ch:16,mix:8,dig:true,fam:"yam"},
-    "p19-34":{n:"Yamaha MG16XU",ch:16,mix:4,dig:false},
-    "p19-33":{n:"Yamaha MG12XU",ch:12,mix:2,dig:false},
-    "p03-15":{n:"Behringer Xenyx 1204USB",ch:12,mix:2,dig:false},
-    "p19-32":{n:"Yamaha MG10XU",ch:10,mix:1,dig:false},
-    "p19-31":{n:"Yamaha MG06X",ch:6,mix:1,dig:false},
-    "p10-19":{n:"Mackie 402",ch:4,mix:0,dig:false},
-  };
-  const BOXES = { // snakes / stage boxes: channels, family (null = analog, works with anything)
-    "p01-15":[32,null],"p14-37":[32,null],"p01-03":[16,null],"p01-04":[16,null],
-    "p01-36":[8,null],"p01-37":[8,null],"p06-32":[8,null],"p17-05":[8,null],
-    "p02-23":[16,"ah"],"p11-04":[32,"mt"],"p03-10":[16,"mt"],
-  };
-  const R = { // roles -> {id: inputs per unit}
-    vocal:{"p16-21":1,"p16-01":1,"p15-04":1,"p15-05":1,"p16-23":1,"p14-36":1},
-    kick:{"p15-39":1,"p16-02":1},
-    close:{"p15-02":1,"p15-06":1,"p16-20":1,"p15-40":1,"p15-24":1,"p15-03":1},
-    overhead:{"p16-04":1,"p16-22":1,"p13-35":1,"p16-05":1},
-    beatkit:{"p09-37":7},
-    horn:{"p15-38":1,"p15-24":1,"p16-20":1,"p15-40":1},
-    di:{"p13-17":1,"p13-18":1,"p10-08":1,"p05-14":1,"p10-16":1,"p13-16":2,"p13-14":2,"p13-15":2,"p19-18":2,"p12-03":2},
-    stereoDI:{"p13-16":1,"p13-14":1,"p13-15":1,"p19-18":1,"p12-03":1},
-    lectern:{"p16-09":1,"p05-19":1,"p15-34":1,"p16-36":1},
-    rx:{"p16-31":1,"p16-28":2,"p16-29":4,"p16-12":1,"p16-16":1,"p15-16":4,"p15-09":1,"p15-10":1},
-    speaker:{"p12-40":1,"p13-03":1,"p13-02":1,"p09-09":1,"p09-10":1,"p10-21":1,"p10-20":1,"p18-30":1,"p06-28":1,"p06-29":1},
-    linearray:{"p09-13":1,"p09-16":1,"p09-20":1,"p09-21":1,"p13-23":1},
-    sub:{"p09-17":1,"p09-18":1,"p13-05":1,"p13-08":1,"p13-09":1},
-    p2:{"p03-09":1,"p03-08":1},
-    iemTx:{"p15-12":1,"p15-19":1,"p15-15":1},
-    iemRx:{"p15-07":1,"p15-13":1},
-    fixture:{"p04-34":1,"p04-26":1,"p12-29":1,"p15-30":1,"p15-32":1,"p05-04":1,"p05-03":1},
-    lightctl:{"p11-25":1,"p04-24":1,"p06-25":1,"p06-26":1,"p02-18":1,"p04-37":1,"p05-06":1},
-    nx1:{"p11-25":1},
-    dmx:{"p01-18":1,"p01-19":1,"p01-20":1,"p01-21":1,"p01-22":1,"p01-23":1,"p01-24":1,"p01-25":1,"p01-32":1,"p01-33":1,"p01-34":1,"p05-35":1,"p05-36":1,"p05-37":1,"p05-38":1,"p05-39":1,"p12-14":1,"p12-15":1,"p12-16":1,"p12-17":1},
-    switcher:{"p03-25":1,"p03-26":1,"p03-27":1,"p13-37":1,"p13-36":1},
-    playback:{"p03-28":1},
-    camera:{"p03-18":1},
-    sdi:{"p04-07":1,"p04-08":1,"p04-09":1,"p04-10":1,"p04-11":1,"p04-12":1,"p04-13":1,"p04-14":1,"p04-15":1},
-    stand:{"p06-04":1,"p06-05":1,"p09-26":1,"p09-27":1},
-  };
-  const WIRELESS = { // handheld -> receivers that pair with it
-    ulx:{hh:["p16-27","p16-25","p16-26"],rx:["p16-31","p16-28","p16-29"]},
-    qlx:{hh:["p16-11"],rx:["p16-12"]},
-    slx:{hh:["p16-15"],rx:["p16-16"]},
-  };
-  const INTERCOM = [
-    {n:"Hollyland C1 Pro",master:"p08-22",packs:["p08-21"]},
-    {n:"Hollyland Solidcom SE Pro 9S",master:"p08-25",packs:["p08-26"]},
+  // ---- categories: every shop item is sorted into one by its type and name ----
+  const CATS = [
+    ["console","Mixing consoles"],["snake","Snakes & stage boxes"],["vocal","Vocal mics"],["instmic","Instrument & drum mics"],
+    ["speech","Lectern, lav & headset mics"],["wireless","Wireless mic systems"],["di","DI boxes"],
+    ["speaker","Speakers (mains or wedges)"],["sub","Subwoofers"],["linearray","Line arrays & column PA"],
+    ["iem","In-ear monitors"],["stand","Mic & speaker stands"],["fixture","Lighting fixtures"],["lightctl","Lighting control"],
+    ["dmx","DMX cables"],["switcher","Video switchers"],["camera","Cameras"],["playback","Video playback"],["sdi","SDI cables"],
+    ["display","Screens & projectors"],["intercom","Intercom"],["cable","Audio & power cables"],["power","Power & distro"],["other","Everything else"],
   ];
+  function cat(x){
+    const t=x.t.toLowerCase(), n=x.n.toLowerCase();
+    if(/lighting console|usb-dmx interface|dmx lighting controller/.test(t+" "+n)) return "lightctl";
+    if(/video switcher|live production switcher|streaming video mixer/.test(t+" "+n)) return "switcher";
+    if(/mixer|mixing console/.test(t) && !/video/.test(t)) return "console";
+    if(/snake|stage box|breakout|multicore|press box/.test(t+" "+n) && !/dmx|power|soca/.test(t+" "+n)) return "snake";
+    if(/wireless handheld|wireless receiver|wireless transmitter|antenna/.test(t)) return "wireless";
+    if(/in-ear|iem/.test(t)) return "iem";
+    if(/podium|cart\b/.test(n)) return "other";
+    if(/lectern mic|lavalier|earset|headset mic/.test(t) || /pcc/.test(n)) return "speech";
+    if(/vocal mic/.test(t)) return "vocal";
+    if(/instrument mic|drum mic|condenser mic|dynamic mic|boundary|drum mic kit/.test(t)) return "instmic";
+    if(/\bdi box|direct box/.test(t)) return "di";
+    if(/subwoofer/.test(t)) return "sub";
+    if(/line array speaker|column/.test(t) || /evox/.test(n)) return "linearray";
+    if(/powered speaker/.test(t)) return "speaker";
+    if(/mic stand|speaker stand|speaker pole/.test(t)) return "stand";
+    if(/\bpar\b|moving head|strobe|pixel bar|uplight|ellipsoidal|followspot|wash|lighting kit/.test(t)) return "fixture";
+    if(/dmx cable|combo cable/.test(t)) return "dmx";
+    if(/ptz camera|camera$/.test(t)) return "camera";
+    if(/recorder|player/.test(t)) return "playback";
+    if(/sdi/.test(t)) return "sdi";
+    if(/^tv$|projector|display/.test(t)) return "display";
+    if(/intercom/.test(t)) return "intercom";
+    if(/cable|cord/.test(t)) return "cable";
+    if(/power|generator|cam-lok|distro/.test(t)) return "power";
+    return "other";
+  }
+  // ---- specs the grader needs for some categories ----
+  const CONSOLES = { // channels, monitor mixes, digital, stage-box family
+    "p02-24":{ch:48,mix:12,dig:true,fam:"ah"}, "p19-35":{ch:64,mix:16,dig:true,fam:"yam"},
+    "p11-05":{ch:40,mix:16,dig:true,fam:"mt"}, "p11-06":{ch:40,mix:16,dig:true,fam:"mt",needsBox:true},
+    "p07-22":{ch:40,mix:16,dig:true,fam:"mt",needsBox:true}, "p03-11":{ch:40,mix:16,dig:true,fam:"mt"},
+    "p03-12":{ch:40,mix:16,dig:true,fam:"mt"}, "p03-13":{ch:40,mix:16,dig:true,fam:"mt"}, "p03-14":{ch:40,mix:16,dig:true,fam:"mt"},
+    "p19-29":{ch:16,mix:8,dig:true,fam:"yam"}, "p19-34":{ch:16,mix:4,dig:false}, "p19-33":{ch:12,mix:2,dig:false},
+    "p03-15":{ch:12,mix:2,dig:false}, "p19-32":{ch:10,mix:1,dig:false}, "p19-31":{ch:6,mix:1,dig:false}, "p10-19":{ch:4,mix:0,dig:false},
+  };
+  const BOX_FAM = {"p02-23":"ah","p11-04":"mt","p03-10":"mt"}; // digital boxes only talk to their own brand
+  const boxCh = x => { const m=x.n.match(/(\d+)\s*[x×]\s*\d+/i) || x.n.match(/DL(\d+)|S(\d+) |DX(\d)(\d)/i);
+    if(/DX168/i.test(x.n)) return 16; if(/DL32/i.test(x.n)) return 32; if(/S16/i.test(x.n)) return 16; if(/CAT Box 8/i.test(x.n)) return 8;
+    if(/CAT Tails/i.test(x.n)) return 4; if(/Press Box/i.test(x.n)) return 0; return m ? +m[1] : 8; };
+  const inputsOf = x => { const k=cat(x);
+    if(k==="vocal"||k==="instmic"||k==="speech") return /kit/i.test(x.t)?7:1;
+    if(k==="di") return /stereo|prod2|direct2|proav2|usb-p|jdi stereo/i.test(x.n)?2:1;
+    if(k==="wireless" && /receiver/i.test(x.t)) return /4Q|EM 4/i.test(x.n)?4:/4D\b|Dual/i.test(x.n)?2:1;
+    return 0; };
+  const WL_FAM = n => (n.match(/ULXD|QLXD|SLXD|EW-DX|EW 100 G3|G4/i)||[""])[0].toUpperCase();
 
   // ---- the 15 venues ----
+  // need: [category, how many, label]. "mics" = vocal + instrument mics combined; "vocalish" = anything a singer can use.
+  const H = "The house has a main PA.", HL = "The house PA covers the low end.";
   const GIGS = [
     {id:1,venue:"Lizzie Rose Music Room",town:"Tuckerton",cap:"70 seated",house:"Stage and building power. Bring a compact PA.",
      request:"Roots-rock trio: acoustic guitar, upright bass, mandolin, three vocals. Low volume, small stage.",
      pa:"bring",inputs:6,mixes:2,digital:false,box:false,
-     need:[["vocal",3,"3 vocal mics"],["di",2,"2 DI channels (acoustic + bass)"],["stand",3,"3 mic stands"]],
+     need:[["vocalish",3,"Vocal mics for 3 singers"],["di",2,"DIs for acoustic and bass"],["stand",3,"Mic stands"]],
      forbid:[["sub","Subs are overkill for a 70-seat acoustic trio."],["linearray","A line array in a 70-seat room is way too much."]],
      bigConsoleWarn:true},
     {id:2,venue:"Hamilton Stage",town:"Rahway",cap:"199 seated",house:"Main PA.",
      request:"Four-piece indie band (drums, bass, guitar, keys; 3 vocals) in a seated theater. Keep the lighting restrained.",
      pa:"house",inputs:16,mixes:4,digital:true,box:true,
-     need:[["vocal",3,"3 vocal mics"],["kick",1,"a kick drum mic"],["close",3,"3 snare/tom/amp mics"],["overhead",2,"2 overheads"],["di",3,"3 DI channels (bass + stereo keys)"],["stand",10,"10 mic stands"]],
-     forbid:[["linearray","The house has a main PA."],["sub","The house PA covers the low end."]]},
+     need:[["vocalish",3,"Vocal mics"],["mics",9,"Mics for vocals, drums and amps"],["di",3,"DI channels for bass and stereo keys"],["stand",10,"Mic stands"]],
+     forbid:[["linearray",H],["sub",HL]]},
     {id:3,venue:"Crossroads",town:"Garwood",cap:"~200",house:"Stage and building power. Bring a compact PA.",
      request:"Three local rock bands with fast changeovers.",
      pa:"bring",inputs:16,mixes:4,digital:true,box:true,
-     need:[["sub",2,"2 subs"],["vocal",3,"3 vocal mics"],["kick",1,"a kick mic"],["close",4,"4 snare/tom/amp mics"],["di",1,"a bass DI"],["stand",10,"10 mic stands"]],
+     need:[["sub",2,"Subwoofers"],["vocalish",3,"Vocal mics"],["mics",8,"Mics for vocals, drums and amps"],["di",1,"Bass DI"],["stand",10,"Mic stands"]],
      forbid:[["linearray","A flown line array is too big for a 200-cap bar. Use compact tops and subs."]],
      note:"Digital console so each band's settings can be saved as a scene."},
     {id:4,venue:"Dingbatz",town:"Clifton",cap:"~200",house:"Stage and building power. Bring a compact PA.",
      request:"Metal band: two guitars, bass, full drums, two vocals.",
      pa:"bring",inputs:14,mixes:4,digital:true,box:true,
-     need:[["sub",2,"2 subs"],["kick",1,"a kick mic"],["close",5,"5 snare/tom/guitar-amp mics"],["overhead",2,"2 overheads"],["vocal",2,"2 vocal mics"],["di",1,"a bass DI"]],
+     need:[["sub",2,"Subwoofers"],["vocalish",2,"Vocal mics"],["mics",10,"Mics for vocals, full drums and two guitar amps"],["di",1,"Bass DI"]],
      forbid:[["linearray","A line array is too big for a 200-cap club."]]},
     {id:5,venue:"Wonder Bar (indoor)",town:"Asbury Park",cap:"300–350 indoor",house:"Main PA.",
      request:"Punk double bill with a simple stage wash.",
      pa:"house",inputs:14,mixes:4,digital:false,box:true,
-     need:[["vocal",3,"3 vocal mics"],["kick",1,"a kick mic"],["close",4,"4 snare/tom/amp mics"],["fixture",6,"6 wash fixtures"],["lightctl",1,"a lighting controller"],["dmx",4,"4 DMX cables"]],
-     forbid:[["linearray","The house has a main PA."],["sub","The house PA covers the low end."]]},
+     need:[["vocalish",3,"Vocal mics"],["mics",8,"Mics for vocals, drums and amps"],["fixture",6,"Wash lights"],["lightctl",1,"Lighting control"],["dmx",4,"DMX cables"]],
+     forbid:[["linearray",H],["sub",HL]]},
     {id:6,venue:"Carteret PAC (Gallery config)",town:"Carteret",cap:"573",house:"Installed PA.",
      request:"Rock benefit show. A speaker opens with remarks from a lectern, then a five-piece band.",
      pa:"house",inputs:18,mixes:4,digital:true,box:true,
-     need:[["lectern",1,"a lectern mic"],["vocal",3,"3 vocal mics"],["kick",1,"a kick mic"],["close",4,"4 snare/tom/amp mics"],["di",2,"2 DI channels"]],
+     need:[["speech",1,"Lectern or speech mic"],["vocalish",3,"Vocal mics"],["mics",8,"Mics for vocals, drums and amps"],["di",2,"DI channels"]],
      forbid:[["linearray","The PA is installed."],["sub","The PA is installed."]],
      note:"Digital console so the speech and the band can be separate scenes."},
     {id:7,venue:"Anchor Rock Club",town:"Atlantic City",cap:"~650",house:"Main PA.",
      request:"Alternative band wants stereo keys and five separate monitor mixes.",
      pa:"house",inputs:18,mixes:5,digital:true,box:true,
-     need:[["stereoDI",1,"a stereo DI for the keys"],["vocal",3,"3 vocal mics"],["kick",1,"a kick mic"],["close",4,"4 snare/tom/amp mics"]],
-     forbid:[["linearray","The house has a main PA."],["sub","The house PA covers the low end."]]},
+     need:[["stereoDI",1,"A stereo DI for the keys"],["vocalish",3,"Vocal mics"],["mics",8,"Mics for vocals, drums and amps"]],
+     forbid:[["linearray",H],["sub",HL]]},
     {id:8,venue:"White Eagle Hall",town:"Jersey City",cap:"400 seated / 800 standing",house:"Main PA.",
      request:"Six-piece band with a three-piece horn section. Wants a basic lighting look.",
      pa:"house",inputs:24,mixes:6,digital:true,box:true,
-     need:[["horn",3,"3 horn mics"],["vocal",4,"4 vocal mics"],["kick",1,"a kick mic"],["close",4,"4 snare/tom/amp mics"],["fixture",6,"6 lighting fixtures"],["lightctl",1,"a lighting controller"]],
-     forbid:[["linearray","The house has a main PA."],["sub","The house PA covers the low end."]]},
+     need:[["vocalish",4,"Vocal mics"],["mics",13,"Mics for vocals, drums, amps and 3 horns"],["fixture",6,"Lighting fixtures"],["lightctl",1,"Lighting control"]],
+     forbid:[["linearray",H],["sub",HL]]},
     {id:9,venue:"Stone Pony (indoor club)",town:"Asbury Park",cap:"~850",house:"Main PA.",
      request:"Four-band rock showcase. Every band needs its own monitor settings.",
      pa:"house",inputs:22,mixes:5,digital:true,box:true,
-     need:[["vocal",4,"4 vocal mics"],["kick",1,"a kick mic"],["close",5,"5 snare/tom/amp mics"],["overhead",2,"2 overheads"],["stand",14,"14 mic stands"]],
-     forbid:[["linearray","The house has a main PA."],["sub","The house PA covers the low end."]],
-     note:"Four bands means saved scenes, so digital only."},
+     need:[["vocalish",4,"Vocal mics"],["mics",12,"Mics for vocals, drums and amps"],["stand",14,"Mic stands"]],
+     forbid:[["linearray",H],["sub",HL]],note:"Four bands means saved scenes, so digital only."},
     {id:10,venue:"The Vogel",town:"Red Bank",cap:"400 seated / 984 standing",house:"Main PA.",
      request:"Rock show that was booked standing. The client just switched it to seated: 400 chairs and a revised stage plot.",
      pa:"house",inputs:16,mixes:4,digital:true,box:true,
-     need:[["vocal",3,"3 vocal mics"],["kick",1,"a kick mic"],["close",4,"4 snare/tom/amp mics"],["fixture",6,"6 lighting fixtures"],["lightctl",1,"a lighting controller"]],
-     forbid:[["linearray","The house has a main PA."],["sub","Seated floor: no ground-stacked subs in the aisles."]],
+     need:[["vocalish",3,"Vocal mics"],["mics",9,"Mics for vocals, drums and amps"],["fixture",6,"Lighting fixtures"],["lightctl",1,"Lighting control"]],
+     forbid:[["linearray",H],["sub","Seated floor: no ground-stacked subs in the aisles."]],
      twist:"Seated means no floor gear in front of the stage. Keep everything on the deck."},
     {id:11,venue:"UCPAC Main Stage",town:"Rahway",cap:"~1,334 seated",house:"Main PA and stage lighting. The video wall is provided.",
      request:"Classic-rock show with a video backdrop played from FOH.",
      pa:"house",inputs:20,mixes:5,digital:true,box:true,
-     need:[["switcher",1,"a video switcher"],["playback",1,"a playback deck"],["sdi",3,"3 SDI cables"],["vocal",4,"4 vocal mics"],["kick",1,"a kick mic"],["close",4,"4 snare/tom/amp mics"]],
-     forbid:[["linearray","The house has a main PA."],["sub","The house PA covers the low end."],["fixture","The house provides stage lighting."]]},
+     need:[["switcher",1,"Video switcher"],["playback",1,"Playback deck for the backdrop"],["sdi",3,"SDI cables"],["vocalish",4,"Vocal mics"],["mics",10,"Mics for vocals, drums and amps"]],
+     forbid:[["linearray",H],["sub",HL],["fixture","The house provides stage lighting."]]},
     {id:12,venue:"Count Basie Center",town:"Red Bank",cap:"1,568 seated",house:"Main PA.",
      request:"Full band plus a guest vocalist who walks on with a wireless handheld.",
      pa:"house",inputs:21,mixes:5,digital:true,box:true,wireless:1,
-     need:[["vocal",4,"4 band vocal mics"],["kick",1,"a kick mic"],["close",4,"4 snare/tom/amp mics"]],
-     forbid:[["linearray","The house has a main PA."],["sub","The house PA covers the low end."]]},
+     need:[["vocalish",4,"Band vocal mics"],["mics",10,"Mics for vocals, drums and amps"]],
+     forbid:[["linearray",H],["sub",HL]]},
     {id:13,venue:"State Theatre New Jersey",town:"New Brunswick",cap:"1,811 seated",house:"Main PA. The video display is provided.",
      request:"Rock show with opening remarks, a live camera feed to the screen, and crew on headsets.",
      pa:"house",inputs:18,mixes:4,digital:true,box:true,intercom:4,
-     need:[["lectern",1,"a lectern mic"],["camera",1,"a PTZ camera"],["switcher",1,"a video switcher"],["sdi",2,"2 SDI cables"],["vocal",3,"3 vocal mics"]],
-     forbid:[["linearray","The house has a main PA."],["sub","The house PA covers the low end."]]},
+     need:[["speech",1,"Lectern or speech mic"],["camera",1,"Camera"],["switcher",1,"Video switcher"],["sdi",2,"SDI cables"],["vocalish",3,"Vocal mics"],["mics",8,"Mics for vocals, drums and amps"]],
+     forbid:[["linearray",H],["sub",HL]]},
     {id:14,venue:"Starland Ballroom",town:"Sayreville",cap:"2,000 standing (game setting)",house:"Main PA.",
      request:"Large standing rock bill with a timed lighting look.",
      pa:"house",inputs:26,mixes:6,digital:true,minCh:40,box:true,
-     need:[["nx1",1,"the NX1 Onyx console for timed cues"],["fixture",12,"12 lighting fixtures"],["dmx",6,"6 DMX cables"],["vocal",4,"4 vocal mics"],["kick",1,"a kick mic"],["close",5,"5 snare/tom/amp mics"],["overhead",2,"2 overheads"]],
-     forbid:[["linearray","The house has a main PA."],["sub","The house PA covers the low end."]]},
+     need:[["lightctl",1,"A lighting console that can run cues"],["fixture",12,"Lighting fixtures"],["dmx",6,"DMX cables"],["vocalish",4,"Vocal mics"],["mics",12,"Mics for vocals, drums and amps"]],
+     forbid:[["linearray",H],["sub",HL]]},
     {id:15,venue:"Wellmont Theater",town:"Montclair",cap:"~2,500",house:"Main PA.",
      request:"Headliner wants six separate in-ear mixes plus two stage wedges.",
      pa:"house",inputs:22,mixes:8,digital:true,box:true,iem:6,
-     need:[["speaker",2,"2 wedges"],["vocal",3,"3 vocal mics"],["kick",1,"a kick mic"],["close",5,"5 snare/tom/amp mics"]],
-     forbid:[["linearray","The house has a main PA."],["sub","The house PA covers the low end."]]},
+     need:[["speaker",2,"Wedges"],["vocalish",3,"Vocal mics"],["mics",10,"Mics for vocals, drums and amps"]],
+     forbid:[["linearray",H],["sub",HL]]},
   ];
 
   // ---- grading ----
-  function grade(gig, pick){ // pick: {id: qty}
-    const q = id => pick[id]||0;
-    const sumRole = r => Object.entries(R[r]).reduce((s,[id,w])=>s+q(id)*w,0);
-    const countRole = r => Object.keys(R[r]).reduce((s,id)=>s+q(id),0);
+  function grade(gig, pick, byId){
+    const items=Object.entries(pick).filter(([,n])=>n>0).map(([id,n])=>({x:byId[id],n}));
+    const inCat=k=>items.filter(i=>cat(i.x)===k);
+    const count=k=>inCat(k).reduce((s,i)=>s+i.n,0);
     const checks=[]; const add=(ok,label,detail)=>checks.push({ok,label,detail});
-
+    const wl=inCat("wireless"), hh=wl.filter(i=>/handheld/i.test(i.x.t)), rx=wl.filter(i=>/receiver/i.test(i.x.t));
+    const counts={
+      vocalish: count("vocal") + inCat("instmic").filter(i=>/dynamic/i.test(i.x.t)).reduce((s,i)=>s+i.n,0) + hh.reduce((s,i)=>s+i.n,0),
+      mics: [...inCat("vocal"),...inCat("instmic")].reduce((s,i)=>s+i.n*inputsOf(i.x),0) + hh.reduce((s,i)=>s+i.n,0),
+      stereoDI: inCat("di").filter(i=>inputsOf(i.x)===2).reduce((s,i)=>s+i.n,0),
+      di: inCat("di").reduce((s,i)=>s+i.n*inputsOf(i.x),0),
+    };
+    const have=k=>k in counts?counts[k]:count(k);
     // console
-    const cons=Object.keys(CONSOLES).filter(id=>q(id)>0);
-    const consQty=cons.reduce((s,id)=>s+q(id),0);
-    const C=cons.length?CONSOLES[cons[0]]:null;
-    // B98H horn mics are the only horn-role mics not already counted as close mics
-    const totalIn=sumRole("vocal")+sumRole("kick")+sumRole("close")+sumRole("overhead")+sumRole("beatkit")+sumRole("di")+sumRole("lectern")+sumRole("rx")+q("p15-38");
-    if(!consQty) add(false,"Mixing console","You didn't pull a mixing console.");
-    else if(consQty>1) add(false,"Mixing console",`You pulled ${consQty} consoles. Send one.`);
+    const cons=inCat("console"), nCons=count("console");
+    const C=cons.length?(CONSOLES[cons[0].x.id]||{ch:16,mix:2,dig:/digital/i.test(cons[0].x.t)}):null;
+    const cname=cons.length?cons[0].x.n:"";
+    const totalIn=items.reduce((s,i)=>s+i.n*inputsOf(i.x),0);
+    if(!nCons) add(false,"Mixing console","No mixing console on the truck.");
+    else if(nCons>1) add(false,"Mixing console",`${nCons} consoles on the truck. Send one.`);
     else {
-      const need=Math.max(gig.inputs,gig.minCh||0);
-      const probs=[];
-      if(gig.digital && !C.dig) probs.push("this gig needs a digital console (saved scenes)");
-      if(C.ch<need) probs.push(`${C.n} has ${C.ch} channels; this gig needs ${need}`);
-      if(C.mix<gig.mixes) probs.push(`${C.n} has ${C.mix} monitor mixes; this gig needs ${gig.mixes}`);
-      add(!probs.length,"Mixing console",probs.length?probs.join("; ")+".":`${C.n}: ${C.ch} channels, ${C.mix} monitor mixes. Good fit.`);
-      if(gig.bigConsoleWarn && C.ch>=40) add(false,"Right-sized console",`A ${C.n} for a 70-seat trio is overkill. A small mixer does this job.`);
+      const need=Math.max(gig.inputs,gig.minCh||0), p=[];
+      if(gig.digital && !C.dig) p.push("this gig needs a digital console so scenes can be saved");
+      if(C.ch<need) p.push(`it has ${C.ch} channels and the show needs ${need}`);
+      if(C.mix<gig.mixes) p.push(`it has ${C.mix} monitor mixes and the band needs ${gig.mixes}`);
+      add(!p.length,"Mixing console",p.length?`${cname}: ${p.join("; ")}.`:`${cname}: ${C.ch} channels, ${C.mix} monitor mixes. Good fit.`);
+      if(gig.bigConsoleWarn && C.ch>=40) add(false,"Right-sized console",`A ${C.ch}-channel console for a 70-seat trio is overkill. Any small mixer does this job.`);
     }
-    // inputs
-    add(totalIn>=gig.inputs,"Input count",`You pulled ${totalIn} inputs (mics, DIs, wireless channels). The show needs ${gig.inputs}.`);
-    if(C && totalIn>C.ch) add(false,"Inputs fit the console",`${totalIn} inputs won't fit on a ${C.ch}-channel ${C.n}.`);
+    add(totalIn>=gig.inputs,"Enough inputs",`${totalIn} inputs on the truck (mics, DIs, wireless channels). The show needs ${gig.inputs}.`);
+    if(C && totalIn>C.ch) add(false,"Inputs fit the console",`${totalIn} inputs won't fit on a ${C.ch}-channel console.`);
     // monitors
-    const wedges = sumRole("speaker") - (gig.pa==="bring"?2:0);
-    const iemW = Math.min(countRole("iemTx"),countRole("iemRx"));
-    const dest = Math.max(0,wedges)+countRole("p2")+iemW;
-    add(dest>=gig.mixes,"Monitor mixes",`You can feed ${dest} monitor destination${dest===1?"":"s"} (${Math.max(0,wedges)} wedges, ${countRole("p2")} P2 packs, ${iemW} wireless IEM). The band needs ${gig.mixes}.`);
-    // PA for bring-your-own gigs
-    if(gig.pa==="bring") add(sumRole("speaker")>=2,"Main PA",sumRole("speaker")>=2?"Two tops for the mains. Good.":"You need 2 speakers for the main PA, on top of any wedges.");
-    // stage box
+    const wedges=Math.max(0,count("speaker")-(gig.pa==="bring"?2:0));
+    const iem=inCat("iem"), p2=iem.filter(i=>/amp/i.test(i.x.t)).reduce((s,i)=>s+i.n,0);
+    const tx=iem.filter(i=>/transmitter/i.test(i.x.t)).reduce((s,i)=>s+i.n,0), bp=iem.filter(i=>/receiver|bodypack/i.test(i.x.t)).reduce((s,i)=>s+i.n,0);
+    const wIem=Math.min(tx,bp), dest=wedges+p2+wIem;
+    add(dest>=gig.mixes,"Monitor mixes",`${dest} monitor destinations (${wedges} wedge${wedges===1?"":"s"}, ${p2} wired in-ear, ${wIem} wireless in-ear). The band needs ${gig.mixes}.`);
+    if(gig.pa==="bring") add(count("speaker")>=2,"Main PA",count("speaker")>=2?`${count("speaker")} speakers: 2 as mains, the rest as wedges.`:"Bring at least 2 speakers for the mains, plus any wedges.");
+    // snake / stage box
     if(gig.box || (C&&C.needsBox)){
-      let cap=0, wrong=[];
-      for(const [id,[ch,fam]] of Object.entries(BOXES)) if(q(id)){ if(fam && C && fam!==C.fam) wrong.push(id); else cap+=ch*q(id); }
-      const ok=cap>=totalIn && !wrong.length && cap>0;
-      add(ok,"Snake / stage box", wrong.length?"That stage box doesn't talk to your console. Match the brand (A&H DX168 with SQ-7; Midas DL32 or Behringer S16 with M32/X32).":
-        cap?`${cap} stage channels for ${totalIn} inputs.${cap<totalIn?" Not enough.":""}`:"Nothing gets the stage inputs to FOH. Pull a snake or stage box.");
+      let cap=0, wrong=false;
+      for(const i of inCat("snake")){ const f=BOX_FAM[i.x.id]; if(f && C && f!==C.fam) wrong=true; else cap+=boxCh(i.x)*i.n; }
+      add(cap>=totalIn && cap>0 && !wrong,"Snake / stage box", wrong?"That digital stage box only talks to its own brand of console (A&H DX168 with the SQ-7; Midas DL32 or Behringer S16 with an M32 or X32). An analog snake works with anything.":
+        cap?`${cap} stage channels for ${totalIn} inputs.${cap<totalIn?" Not enough.":""}`:"Nothing gets the stage inputs to FOH. Bring a snake or stage box.");
     }
-    // role requirements
-    for(const [r,min,label] of gig.need){
-      let have=countRole(r);
-      if(r==="kick") have+=q("p09-37"); if(r==="close") have+=q("p09-37")*4; if(r==="overhead") have+=q("p09-37")*2;
-      add(have>=min,label.charAt(0).toUpperCase()+label.slice(1),`${have} of ${min} pulled.`);
-    }
-    // wireless guest vocal
+    for(const [k,min,label] of gig.need){ const h=have(k); add(h>=min,label,`${h} on the truck, need ${min}.`); }
     if(gig.wireless){
-      let ok=false,msg="No matched wireless handheld and receiver.";
-      for(const [fam,w] of Object.entries(WIRELESS)){
-        const hh=w.hh.reduce((s,id)=>s+q(id),0), rx=w.rx.reduce((s,id)=>s+q(id)*(R.rx[id]||1),0);
-        if(hh&&rx){ok=true;msg="Handheld and receiver are the same system. Good.";break}
-        if(hh&&!rx) msg="You pulled a wireless handheld but no receiver from the same system (ULX-D with ULXD4, QLX-D with QLXD4, SLX-D with SLXD4).";
-      }
-      add(ok,"Guest vocal wireless",msg);
+      const fams=new Set(rx.map(i=>WL_FAM(i.x.n)));
+      const ok=hh.some(i=>fams.has(WL_FAM(i.x.n)));
+      add(ok,"Guest vocal wireless", ok?"Handheld and receiver are the same system.":hh.length?"The handheld needs a receiver from the same system (ULX-D with ULXD4, QLX-D with QLXD4, SLX-D with SLXD4).":"No wireless handheld for the guest.");
     }
-    // in-ears
-    if(gig.iem){
-      const p2=countRole("p2"), n=p2+iemW;
-      add(n>=gig.iem,"In-ear mixes",`${n} independent in-ear mixes (${p2} wired P2, ${iemW} wireless transmitter + bodypack pairs). Needs ${gig.iem}. Bodypacks alone don't make a mix; each needs its own transmitter.`);
-    }
-    // intercom
+    if(gig.iem) add(p2+wIem>=gig.iem,"In-ear mixes",`${p2+wIem} separate in-ear mixes (${p2} wired packs, ${wIem} wireless transmitter + bodypack pairs). Needs ${gig.iem}. A bodypack without its own transmitter isn't a mix.`);
     if(gig.intercom){
-      let ok=false,msg="No intercom system.";
-      for(const s of INTERCOM){ const m=q(s.master), p=s.packs.reduce((a,id)=>a+q(id),0);
-        if(m&&p>=gig.intercom){ok=true;msg=`${s.n}: base station + ${p} headsets.`;break}
-        if(m||p) msg=`${s.n} needs its base station plus ${gig.intercom} headsets from the same system.`; }
-      add(ok,"Crew intercom",msg);
+      const ic=inCat("intercom"), fam=n=>/C1/i.test(n)?"C1":/9S|SE Pro/i.test(n)?"SE":"";
+      const bases=ic.filter(i=>/master|package/i.test(i.x.n)), packs=ic.filter(i=>/headset|remote/i.test(i.x.n)&&!/master/i.test(i.x.n));
+      const ok=bases.some(b=>packs.filter(p=>fam(p.x.n)===fam(b.x.n)).reduce((s,p)=>s+p.n,0)+(/package/i.test(b.x.n)?5:0)>=gig.intercom);
+      add(ok,"Crew intercom",ok?"Base station plus enough headsets from the same system.":`Needs a base station and ${gig.intercom} headsets from the same Hollyland system.`);
     }
-    // forbidden
-    for(const [r,why] of gig.forbid){ const n=countRole(r); if(n) add(false,"Don't bring it",`${n} × ${r==="linearray"?"line array / column PA":r==="sub"?"subwoofer":"lighting fixture"}: ${why}`); }
-    const passed=checks.filter(c=>c.ok).length;
-    return {checks,passed,total:checks.length,inputs:totalIn,dest};
+    const names={sub:"subwoofer",linearray:"line array / column PA",fixture:"lighting fixture"};
+    for(const [k,why] of gig.forbid){ const n=count(k); if(n) add(false,"Leave it at the shop",`${n} × ${names[k]||k}: ${why}`); }
+    return {checks,passed:checks.filter(c=>c.ok).length,total:checks.length};
   }
-  return {GIGS,grade,CONSOLES};
+  return {GIGS,grade,cat,CATS};
 })();
 
 </script>
@@ -590,7 +576,7 @@ function gigList(){
   document.getElementById("rand").onclick=()=>startGig(GD.GIGS[Math.random()*GD.GIGS.length|0].id);
   view.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>startGig(+b.dataset.g));
 }
-function startGig(id){ G={gig:GD.GIGS.find(g=>g.id===id),pick:{},q:"",dept:"All"}; gigScreen(); }
+function startGig(id){ G={gig:GD.GIGS.find(g=>g.id===id),pick:{},q:"",dept:"console"}; gigScreen(); }
 function gigBrief(g){
   return `<div class="card brief"><div class="label">Gig #${g.id} · ${esc(g.town)}, NJ</div><h2>${esc(g.venue)}</h2>
     <div class="req">“${esc(g.request)}”</div>
@@ -601,38 +587,46 @@ function gigScreen(){
   const g=G.gig;
   view.innerHTML=`<div class="game"><div class="gtop"><button class="quit" id="gback">All gigs</button><span class="label" style="flex:1">Pull sheet</span></div>
     ${gigBrief(g)}
-    <div class="tools" style="margin:0"><input id="gq" type="search" placeholder="Search the shop (try “SM58”, “snake”, “P2”)" aria-label="Search the shop" value="${esc(G.q)}">
-      <div class="chips">${["All","Audio","Lighting","Video","Other","Pulled"].map(c=>`<button class="chip" data-gd="${c}" aria-pressed="${G.dept===c}">${c==="Other"?"Staging & rigging":c==="Pulled"?"On the truck":c}</button>`).join("")}</div></div>
+    <div class="tools" style="margin:0"><input id="gq" type="search" placeholder="Search the whole shop (try “SM58”, “snake”, “sub”)" aria-label="Search the shop" value="${esc(G.q)}"></div>
+    <div class="label">Shop by category</div>
+    <div class="chips cats" id="gcats"></div>
     <div class="pull" id="plist"></div>
-    <div class="truck"><div><div class="t" id="tt"></div><div class="s">Tip: count your channels and monitor mixes before you load.</div></div>
+    <div class="truck"><div><div class="t" id="tt"></div><div class="s" id="ts"></div></div>
       <div style="display:flex;gap:8px"><button class="ghost" id="clear">Clear</button><button id="load">Load the truck</button></div></div></div>`;
   document.getElementById("gback").onclick=gigList;
   const q=document.getElementById("gq"); q.oninput=()=>{G.q=q.value;drawPull()};
-  view.querySelectorAll("[data-gd]").forEach(b=>b.onclick=()=>{G.dept=b.dataset.gd;view.querySelectorAll("[data-gd]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.gd===G.dept));drawPull()});
   document.getElementById("clear").onclick=()=>{G.pick={};drawPull()};
   document.getElementById("load").onclick=gigResult;
   drawPull();
 }
 function drawPull(){
   const s=G.q.trim().toLowerCase();
+  const onTruck=k=>Object.entries(G.pick).filter(([id])=>GD.cat(byId[id])===k).reduce((a,[,n])=>a+n,0);
+  const chips=[["pulled","On the truck"],...GD.CATS];
+  document.getElementById("gcats").innerHTML=chips.map(([k,l])=>{const n=k==="pulled"?Object.values(G.pick).reduce((a,b)=>a+b,0):onTruck(k);
+    return `<button class="chip" data-gc="${k}" aria-pressed="${G.dept===k}">${esc(l)}${n?` <b>${n}</b>`:""}</button>`}).join("");
+  document.querySelectorAll("[data-gc]").forEach(b=>b.onclick=()=>{G.dept=b.dataset.gc;G.q="";document.getElementById("gq").value="";const x=document.getElementById("gcats").scrollLeft;drawPull();document.getElementById("gcats").scrollLeft=x});
   let list=GEAR.filter(x=>x.q>0);
-  if(G.dept==="Pulled") list=list.filter(x=>G.pick[x.id]);
-  else if(G.dept!=="All") list=list.filter(x=>x.c===G.dept);
   if(s) list=list.filter(x=>(x.n+" "+x.t+" "+x.r).toLowerCase().includes(s));
-  list=list.slice(0,80);
+  else if(G.dept==="pulled") list=list.filter(x=>G.pick[x.id]);
+  else list=list.filter(x=>GD.cat(x)===G.dept);
+  const catName=Object.fromEntries(GD.CATS);
   const el=document.getElementById("plist");
-  el.innerHTML=list.length?list.map(x=>{const n=G.pick[x.id]||0;return `<div class="prow${n?" on":""}" data-id="${x.id}">
+  el.innerHTML=list.length?list.slice(0,120).map(x=>{const n=G.pick[x.id]||0;return `<div class="prow${n?" on":""}" data-id="${x.id}">
       ${x.img&&!x.sub?`<img alt="" src="${x.img}" loading="lazy">`:`<span></span>`}
-      <div><div class="nm">${esc(x.n)}</div><div class="sub">${esc(x.t)} · shop has ${x.q}</div></div>
+      <div><div class="nm">${esc(x.n)}</div><div class="sub">${esc(catName[GD.cat(x)])} · ${esc(x.t)} · shop has ${x.q}</div></div>
       <div class="qty"><button data-d="-1" ${n?"":"disabled"} aria-label="Remove one">−</button><span>${n}</span><button data-d="1" ${n>=x.q?"disabled":""} aria-label="Add one">+</button></div></div>`}).join("")
-    :`<p class="foot">${G.dept==="Pulled"?"Nothing on the truck yet.":"No matches. Try another word."}</p>`;
+    :`<p class="foot">${G.dept==="pulled"&&!s?"Nothing on the truck yet. Pick a category above.":"No matches. Try another word."}</p>`;
   el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{const id=b.closest(".prow").dataset.id, x=byId[id];
-    G.pick[id]=Math.max(0,Math.min(x.q,(G.pick[id]||0)+ +b.dataset.d)); if(!G.pick[id]) delete G.pick[id]; drawPull();});
+    G.pick[id]=Math.max(0,Math.min(x.q,(G.pick[id]||0)+ +b.dataset.d)); if(!G.pick[id]) delete G.pick[id];
+    const sx=document.getElementById("gcats").scrollLeft; drawPull(); document.getElementById("gcats").scrollLeft=sx;});
   const items=Object.values(G.pick).reduce((a,b)=>a+b,0);
-  document.getElementById("tt").textContent=`Truck: ${items} item${items===1?"":"s"} · ${Object.keys(G.pick).length} lines`;
+  document.getElementById("tt").textContent=`Truck: ${items} item${items===1?"":"s"}`;
+  const top=GD.CATS.map(([k,l])=>[l,onTruck(k)]).filter(([,n])=>n).map(([l,n])=>`${l}: ${n}`);
+  document.getElementById("ts").textContent=top.length?top.slice(0,4).join(" · ")+(top.length>4?" …":""):"Count your channels and monitor mixes before you load.";
 }
 function gigResult(){
-  const g=G.gig, r=GD.grade(g,G.pick), pct=Math.round(r.passed/r.total*100);
+  const g=G.gig, r=GD.grade(g,G.pick,byId), pct=Math.round(r.passed/r.total*100);
   const xp=r.passed*15+(pct===100?50:0);
   st.xp+=xp; const best=store.get("gigbest",{}); best[g.id]=Math.max(best[g.id]||0,pct); store.set("gigbest",best); save();
   const verdict=pct===100?"Show went off clean":pct>=75?"Show happened, with a few scrambles":pct>=50?"Rough night at FOH":"Truck's coming back to the shop";

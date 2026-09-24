@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Load-In Drills</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
@@ -119,6 +120,7 @@ h2{font:800 26px/1.1 var(--display);text-transform:uppercase;letter-spacing:.02e
 .qty{display:flex;align-items:center;gap:6px;font:500 15px var(--mono);font-variant-numeric:tabular-nums}
 .qty button{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:700 18px var(--body);cursor:pointer}
 .qty button:disabled{opacity:.35;cursor:default}
+.cats{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}.cats .chip{white-space:nowrap}.cats .chip b{font:500 12px var(--mono);color:var(--accent)}
 .truck{position:sticky;bottom:0;margin-top:12px;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 12px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:0 -4px 16px rgba(0,0,0,.18)}
 .truck .t{font:700 16px var(--display);letter-spacing:.06em;text-transform:uppercase}
 .truck .s{font:500 12px var(--mono);opacity:.8}
@@ -364,7 +366,7 @@ function gigList(){
   document.getElementById("rand").onclick=()=>startGig(GD.GIGS[Math.random()*GD.GIGS.length|0].id);
   view.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>startGig(+b.dataset.g));
 }
-function startGig(id){ G={gig:GD.GIGS.find(g=>g.id===id),pick:{},q:"",dept:"All"}; gigScreen(); }
+function startGig(id){ G={gig:GD.GIGS.find(g=>g.id===id),pick:{},q:"",dept:"console"}; gigScreen(); }
 function gigBrief(g){
   return `<div class="card brief"><div class="label">Gig #${g.id} · ${esc(g.town)}, NJ</div><h2>${esc(g.venue)}</h2>
     <div class="req">“${esc(g.request)}”</div>
@@ -375,38 +377,46 @@ function gigScreen(){
   const g=G.gig;
   view.innerHTML=`<div class="game"><div class="gtop"><button class="quit" id="gback">All gigs</button><span class="label" style="flex:1">Pull sheet</span></div>
     ${gigBrief(g)}
-    <div class="tools" style="margin:0"><input id="gq" type="search" placeholder="Search the shop (try “SM58”, “snake”, “P2”)" aria-label="Search the shop" value="${esc(G.q)}">
-      <div class="chips">${["All","Audio","Lighting","Video","Other","Pulled"].map(c=>`<button class="chip" data-gd="${c}" aria-pressed="${G.dept===c}">${c==="Other"?"Staging & rigging":c==="Pulled"?"On the truck":c}</button>`).join("")}</div></div>
+    <div class="tools" style="margin:0"><input id="gq" type="search" placeholder="Search the whole shop (try “SM58”, “snake”, “sub”)" aria-label="Search the shop" value="${esc(G.q)}"></div>
+    <div class="label">Shop by category</div>
+    <div class="chips cats" id="gcats"></div>
     <div class="pull" id="plist"></div>
-    <div class="truck"><div><div class="t" id="tt"></div><div class="s">Tip: count your channels and monitor mixes before you load.</div></div>
+    <div class="truck"><div><div class="t" id="tt"></div><div class="s" id="ts"></div></div>
       <div style="display:flex;gap:8px"><button class="ghost" id="clear">Clear</button><button id="load">Load the truck</button></div></div></div>`;
   document.getElementById("gback").onclick=gigList;
   const q=document.getElementById("gq"); q.oninput=()=>{G.q=q.value;drawPull()};
-  view.querySelectorAll("[data-gd]").forEach(b=>b.onclick=()=>{G.dept=b.dataset.gd;view.querySelectorAll("[data-gd]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.gd===G.dept));drawPull()});
   document.getElementById("clear").onclick=()=>{G.pick={};drawPull()};
   document.getElementById("load").onclick=gigResult;
   drawPull();
 }
 function drawPull(){
   const s=G.q.trim().toLowerCase();
+  const onTruck=k=>Object.entries(G.pick).filter(([id])=>GD.cat(byId[id])===k).reduce((a,[,n])=>a+n,0);
+  const chips=[["pulled","On the truck"],...GD.CATS];
+  document.getElementById("gcats").innerHTML=chips.map(([k,l])=>{const n=k==="pulled"?Object.values(G.pick).reduce((a,b)=>a+b,0):onTruck(k);
+    return `<button class="chip" data-gc="${k}" aria-pressed="${G.dept===k}">${esc(l)}${n?` <b>${n}</b>`:""}</button>`}).join("");
+  document.querySelectorAll("[data-gc]").forEach(b=>b.onclick=()=>{G.dept=b.dataset.gc;G.q="";document.getElementById("gq").value="";const x=document.getElementById("gcats").scrollLeft;drawPull();document.getElementById("gcats").scrollLeft=x});
   let list=GEAR.filter(x=>x.q>0);
-  if(G.dept==="Pulled") list=list.filter(x=>G.pick[x.id]);
-  else if(G.dept!=="All") list=list.filter(x=>x.c===G.dept);
   if(s) list=list.filter(x=>(x.n+" "+x.t+" "+x.r).toLowerCase().includes(s));
-  list=list.slice(0,80);
+  else if(G.dept==="pulled") list=list.filter(x=>G.pick[x.id]);
+  else list=list.filter(x=>GD.cat(x)===G.dept);
+  const catName=Object.fromEntries(GD.CATS);
   const el=document.getElementById("plist");
-  el.innerHTML=list.length?list.map(x=>{const n=G.pick[x.id]||0;return `<div class="prow${n?" on":""}" data-id="${x.id}">
+  el.innerHTML=list.length?list.slice(0,120).map(x=>{const n=G.pick[x.id]||0;return `<div class="prow${n?" on":""}" data-id="${x.id}">
       ${x.img&&!x.sub?`<img alt="" src="${x.img}" loading="lazy">`:`<span></span>`}
-      <div><div class="nm">${esc(x.n)}</div><div class="sub">${esc(x.t)} · shop has ${x.q}</div></div>
+      <div><div class="nm">${esc(x.n)}</div><div class="sub">${esc(catName[GD.cat(x)])} · ${esc(x.t)} · shop has ${x.q}</div></div>
       <div class="qty"><button data-d="-1" ${n?"":"disabled"} aria-label="Remove one">−</button><span>${n}</span><button data-d="1" ${n>=x.q?"disabled":""} aria-label="Add one">+</button></div></div>`}).join("")
-    :`<p class="foot">${G.dept==="Pulled"?"Nothing on the truck yet.":"No matches. Try another word."}</p>`;
+    :`<p class="foot">${G.dept==="pulled"&&!s?"Nothing on the truck yet. Pick a category above.":"No matches. Try another word."}</p>`;
   el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{const id=b.closest(".prow").dataset.id, x=byId[id];
-    G.pick[id]=Math.max(0,Math.min(x.q,(G.pick[id]||0)+ +b.dataset.d)); if(!G.pick[id]) delete G.pick[id]; drawPull();});
+    G.pick[id]=Math.max(0,Math.min(x.q,(G.pick[id]||0)+ +b.dataset.d)); if(!G.pick[id]) delete G.pick[id];
+    const sx=document.getElementById("gcats").scrollLeft; drawPull(); document.getElementById("gcats").scrollLeft=sx;});
   const items=Object.values(G.pick).reduce((a,b)=>a+b,0);
-  document.getElementById("tt").textContent=`Truck: ${items} item${items===1?"":"s"} · ${Object.keys(G.pick).length} lines`;
+  document.getElementById("tt").textContent=`Truck: ${items} item${items===1?"":"s"}`;
+  const top=GD.CATS.map(([k,l])=>[l,onTruck(k)]).filter(([,n])=>n).map(([l,n])=>`${l}: ${n}`);
+  document.getElementById("ts").textContent=top.length?top.slice(0,4).join(" · ")+(top.length>4?" …":""):"Count your channels and monitor mixes before you load.";
 }
 function gigResult(){
-  const g=G.gig, r=GD.grade(g,G.pick), pct=Math.round(r.passed/r.total*100);
+  const g=G.gig, r=GD.grade(g,G.pick,byId), pct=Math.round(r.passed/r.total*100);
   const xp=r.passed*15+(pct===100?50:0);
   st.xp+=xp; const best=store.get("gigbest",{}); best[g.id]=Math.max(best[g.id]||0,pct); store.set("gigbest",best); save();
   const verdict=pct===100?"Show went off clean":pct>=75?"Show happened, with a few scrambles":pct>=50?"Rough night at FOH":"Truck's coming back to the shop";
