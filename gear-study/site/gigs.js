@@ -144,6 +144,165 @@ window.GIG_DATA = (() => {
      forbid:[["linearray",H],["sub",HL]]},
   ];
 
+
+  // ---- EASY: one decision at a time, 3–4 choices each ----
+  // Each option: {items:{id:qty}, ok, why}. Quantities come from the gig.
+  const need=(g,k)=>{const r=g.need.find(n=>n[0]===k);return r?r[1]:0;};
+  const consolePass=(g,id)=>{const c=CONSOLES[id],n=Math.max(g.inputs,g.minCh||0),p=[];
+    if(g.digital&&!c.dig)p.push("it's analog and this gig needs saved scenes");
+    if(c.ch<n)p.push(`only ${c.ch} channels for ${n} inputs`);
+    if(c.mix<g.mixes)p.push(`only ${c.mix} monitor mix${c.mix===1?"":"es"} for ${g.mixes} needed`);
+    if(g.bigConsoleWarn&&c.ch>=40)p.push("way too much console for a 70-seat trio");
+    return p;};
+  let byStock={}; // set by the page: id -> qty in shop
+  const setStock=m=>{byStock=m;};
+  function easy(g){
+    const S=[], V=need(g,"vocalish")||3, M=need(g,"mics"), I=g.inputs;
+    const D=need(g,"stereoDI")?2:need(g,"di"), band=Math.max(0,M-V,I-V-D-(need(g,"speech")?1:0)-(g.wireless?1:0));
+    const fill=(n,list)=>{const o={};for(const id of list){if(n<=0)break;const k=Math.min(n,byStock[id]||0);if(k){o[id]=k;n-=k;}}return o;};
+    const opt=(items,ok,why)=>({items,ok,why});
+    // console
+    const pool=g.bigConsoleWarn?["p19-33","p19-32","p02-24","p10-19"]:["p19-29","p11-05","p02-24","p19-35","p19-33","p10-19"];
+    const good=pool.find(id=>!consolePass(g,id).length);
+    const bad=pool.filter(id=>consolePass(g,id).length).slice(0,3);
+    S.push({title:"Mixing console",q:`You need ${I}+ inputs and ${g.mixes} monitor mixes${g.digital?", with saved scenes":""}. Which console?`,
+      opts:[opt({[good]:1},true,"Enough channels and monitor mixes for this show."),...bad.map(id=>opt({[id]:1},false,consolePass(g,id).join("; ")+"."))]});
+    // main PA
+    if(g.pa==="bring") S.push({title:"Main PA",q:"The venue has no PA. What goes up as the mains?",opts:[
+      opt({"p13-03":2},true,"Two compact powered tops on sticks are right for a small room."),
+      opt({"p09-16":8},false,"A flown line array is far too big for this room."),
+      opt({"p19-30":2},false,"Studio monitors are for mixing in a studio, not for an audience."),
+      opt({},false,"This room has no PA. Somebody has to bring one.")]});
+    else S.push({title:"Main PA",q:"The house has its own main PA. What do you bring for mains?",opts:[
+      opt({},true,"Nothing. The house PA covers the audience; you bring stage and FOH gear."),
+      opt({"p09-16":8},false,"The house already has a PA. Hauling a line array is wasted truck space and labor."),
+      opt({"p13-03":2},false,"Extra tops would fight the house system."),
+      opt({"p13-05":2},false,"The house PA covers the low end.")]});
+    // subs
+    if(need(g,"sub")) S.push({title:"Subwoofers",q:"The band needs real low end. Which subs?",opts:[
+      opt({"p13-05":2},true,"Two 18-inch subs under the tops."),opt({},false,"Rock through tops only sounds thin. Bring subs."),
+      opt({"p06-29":2},false,"The Everse 12 is a battery full-range speaker, not a sub."),opt({"p04-36":2},false,"The Chauvet Wedge Tri is a light, not a speaker.")]});
+    else if(g.bigConsoleWarn) S.push({title:"Subwoofers",q:"Low-volume acoustic trio in a 70-seat room. Subs?",opts:[
+      opt({},true,"No subs. Upright bass and acoustic guitar sound fine through two tops."),opt({"p13-05":2},false,"Subs are overkill here and eat stage space."),opt({"p09-18":2},false,"Dual-18 subs in a 70-seat room would shake the chairs.")]});
+    // vocals
+    S.push({title:"Vocal mics",q:`${V} singers. Which vocal mics?`,opts:[
+      opt({"p16-21":V},true,"Handheld dynamic vocal mics: rugged and good at rejecting feedback."),
+      opt({"p15-25":V},false,"Lavalier mics are for speech and theater, not rock vocals."),
+      opt({"p16-05":V},false,"A large studio condenser feeds back easily on a loud stage."),
+      opt({"p16-02":V},false,"The Beta 91A is a boundary mic that goes inside a kick drum.")]});
+    // band mics
+    if(band) S.push({title:"Drum & amp mics",q:`${band} more mics for drums and amps. Which?`,opts:[
+      opt(fill(band,["p15-02","p16-20","p15-06","p15-24","p15-03"]),true,"Clip-on drum mics and SM57s: the standard for toms, snare and guitar amps."),
+      opt({"p05-19":band},false,"The PCC-160 is a lectern/boundary mic for speech."),
+      opt({"p15-25":band},false,"Lavs won't handle a snare drum or a guitar cab."),
+      opt({"p16-24":band},false,"Wireless bodypacks without mics don't pick up anything.")]});
+    // DI
+    if(need(g,"stereoDI")) S.push({title:"Keys DI",q:"The keyboard player runs stereo. Which DI?",opts:[
+      opt({"p13-16":1},true,"The ProD2 has two channels, one for left and one for right."),
+      opt({"p13-17":1},false,"The ProDI is mono. You'd lose one side of the keys."),
+      opt({"p13-18":1},false,"The J48 is mono too."),opt({"p03-09":1},false,"A P2 is an in-ear monitor amp, not a DI.")]});
+    else if(need(g,"di")) S.push({title:"DI boxes",q:`${need(g,"di")} DI channel${need(g,"di")>1?"s":""} for bass, acoustic or keys. Which?`,opts:[
+      opt({"p13-17":need(g,"di")},true,"A passive DI turns an instrument signal into a balanced mic-level line for the snake."),
+      opt({"p05-27":need(g,"di")},false,"The Decimator is a video converter (HDMI to SDI)."),
+      opt({"p04-22":need(g,"di")},false,"The Data Stream 4 is a DMX lighting splitter."),
+      opt({"p03-09":need(g,"di")},false,"A P2 is an in-ear monitor amp.")]});
+    // monitors
+    const wedges=g.iem?2:g.mixes;
+    if(g.iem) S.push({title:"In-ear monitors",q:`The headliner wants ${g.iem} separate in-ear mixes. What do you bring?`,opts:[
+      opt({"p03-09":g.iem},true,"Each wired P2 pack gets its own mix from the console. Six packs, six mixes."),
+      opt({"p15-07":g.iem},false,"Bodypack receivers alone don't make mixes. Each needs a transmitter."),
+      opt({"p02-40":1},false,"Studio headphones aren't an in-ear monitor system."),
+      opt({"p19-30":g.iem},false,"Studio monitors aren't in-ears.")]});
+    S.push({title:"Stage wedges",q:`${wedges} wedge mix${wedges>1?"es":""} on stage. Which speakers?`,opts:[
+      opt({"p18-30":Math.min(5,wedges),"p12-40":Math.max(0,wedges-5)},true,"Powered 12-inch speakers laid on their side make good wedges."),
+      opt({"p19-30":wedges},false,"Studio monitors can't get loud enough for a rock stage."),
+      opt({"p09-13":wedges},false,"Line array boxes are for flying, not for wedges."),
+      opt({},false,"The band can't hear themselves. Bring wedges.")]});
+    // snake
+    if(g.box){ const good=I<=8?"p01-37":I<=16?"p01-04":"p01-15";
+      S.push({title:"Snake",q:`${I} inputs have to get from the stage to FOH. Which snake?`,opts:[
+        opt({[good]:1},true,"Enough channels for every input."),
+        ...[["p01-37",8],["p01-04",16]].filter(([id,c])=>c<I).map(([id,c])=>opt({[id]:1},false,`Only ${c} channels for ${I} inputs.`)),
+        opt({"p17-02":1},false,"Soca is a multi-circuit power cable for lighting, not audio."),
+        opt({"p01-18":1},false,"A DMX cable carries one lighting data line, not your inputs.")].slice(0,4)}); }
+    // cables
+    const cab=I+g.mixes;
+    S.push({title:"Cables",q:`About ${cab} runs for mics, DIs and wedges. Which cables?`,opts:[
+      opt({"p01-09":cab},true,"XLR mic cables carry every mic, DI and wedge line."),
+      opt({"p01-24":cab},false,"DMX cables look like XLR but are built for lighting data. Use real mic cable."),
+      opt({"p01-02":cab},false,"Quarter-inch jumpers are for pedals and instruments, not mics."),
+      opt({"p04-14":cab},false,"SDI cables carry video.")]});
+    // stands
+    if(need(g,"stand")) S.push({title:"Mic stands",q:`${need(g,"stand")} mics need stands. Which?`,opts:[
+      opt({"p06-05":need(g,"stand")},true,"Tall boom stands cover vocals, overheads and amps."),
+      opt({"p04-21":need(g,"stand")},false,"Those are lighting T-bar stands."),opt({"p18-37":need(g,"stand")},false,"Those are speaker stands."),
+      opt({"p05-30":need(g,"stand")},false,"Desktop stands are for tables and lecterns.")]});
+    // speech
+    if(need(g,"speech")) S.push({title:"Lectern mic",q:"Someone gives opening remarks at a lectern. Which mic?",opts:[
+      opt({"p16-09":1},true,"A gooseneck on a desk base sits on the lectern and follows the talker."),
+      opt({"p17-17":1},false,"That's just a gooseneck clamp. It has no mic."),
+      opt({"p10-07":1},false,"That's a gooseneck lamp, not a mic."),opt({"p16-02":1},false,"The Beta 91A is a kick-drum boundary mic.")]});
+    // wireless guest
+    if(g.wireless) S.push({title:"Guest vocal wireless",q:"The guest walks on with a wireless handheld. What do you pull?",opts:[
+      opt({"p16-27":1,"p16-31":1},true,"ULX-D handheld plus a ULX-D receiver: same system, they talk."),
+      opt({"p16-27":1,"p16-12":1},false,"A ULX-D handheld won't talk to a QLX-D receiver."),
+      opt({"p16-15":1},false,"A handheld without a receiver goes nowhere."),
+      opt({"p15-17":1,"p15-16":1},false,"That's a bodypack for a lav, not a handheld.")]});
+    // lighting
+    if(need(g,"fixture")) S.push({title:"Lights",q:`${need(g,"fixture")} lights for a stage wash. Which?`,opts:[
+      opt({"p04-34":need(g,"fixture")},true,"LED pars wash the stage in color and run on DMX."),
+      opt({"p03-21":1},false,"Bistro string lights are decoration, not a stage wash."),
+      opt({"p14-33":need(g,"fixture")},false,"Balloon lights are soft work lights."),opt({"p10-07":need(g,"fixture")},false,"Console lamps light a mixing desk.")]});
+    else if(g.forbid.some(f=>f[0]==="fixture")) S.push({title:"Lights",q:"The house provides stage lighting. Do you bring lights?",opts:[
+      opt({},true,"No. The house rig covers it."),opt({"p04-34":12},false,"The house already has stage lighting.")]});
+    if(need(g,"lightctl")){ const nx=need(g,"fixture")>=12;
+      S.push({title:"Lighting control",q:nx?"The show has a timed lighting look. What runs it?":"What runs the lights?",opts:[
+        opt(nx?{"p11-25":1}:{"p04-24":1},true,nx?"The NX1 runs ONYX cue lists: timed looks, fades and chases.":"A simple DMX controller is plenty for a wash."),
+        opt({"p04-22":1},false,"The Data Stream 4 splits DMX; it doesn't create it."),
+        opt({"p13-36":1},false,"That's a video mixer."),opt({"p06-24":1},false,"A dimmer pack powers conventional lights; it doesn't program them.")]}); }
+    if(need(g,"dmx")) S.push({title:"Lighting cables",q:`${need(g,"dmx")} runs of lighting control. Which cable?`,opts:[
+      opt({"p01-21":need(g,"dmx")},true,"DMX cable, daisy-chained light to light."),
+      opt({"p01-09":need(g,"dmx")},false,"Mic cable often works for a while, then DMX glitches. Use real DMX cable."),
+      opt({"p04-14":need(g,"dmx")},false,"SDI is video."),opt({"p17-02":1},false,"Soca carries power, not DMX.")]});
+    // video
+    if(need(g,"switcher")) S.push({title:"Video switcher",q:"What switches the video sources to the screen?",opts:[
+      opt({"p03-27":1},true,"An ATEM production switcher cuts between sources."),
+      opt({"p05-27":1},false,"The Decimator only converts formats."),opt({"p10-22":1},false,"The Magewell captures video into a computer."),
+      opt({"p11-25":1},false,"That's a lighting console.")]});
+    if(need(g,"playback")) S.push({title:"Playback",q:"The backdrop video plays from FOH. What plays it?",opts:[
+      opt({"p03-28":1},true,"The HyperDeck plays clips out over SDI."),opt({"p10-05":1},false,"The Lilliput is a monitor; it only displays."),
+      opt({"p10-22":1},false,"The Magewell records into a computer; it doesn't play out.")]});
+    if(need(g,"camera")) S.push({title:"Camera",q:"The client wants a live camera feed. What do you pull?",opts:[
+      opt({"p03-18":1},true,"A BirdDog PTZ camera, controlled remotely from FOH."),opt({"p03-19":1},false,"The controller alone has no camera to control."),
+      opt({"p10-05":1},false,"That's a field monitor."),opt({"p10-25":1},false,"A tripod with nothing on it.")]});
+    if(need(g,"sdi")) S.push({title:"Video cables",q:`${need(g,"sdi")} video runs to FOH and the screen. Which cable?`,opts:[
+      opt({"p04-14":need(g,"sdi")},true,"SDI over BNC runs long distances without trouble."),
+      opt({"p01-21":need(g,"sdi")},false,"DMX is lighting data."),opt({"p11-39":need(g,"sdi")},false,"Barrels join two cables; they aren't cables."),
+      opt({"p01-09":need(g,"sdi")},false,"XLR is audio.")]});
+    if(g.intercom) S.push({title:"Crew intercom",q:`${g.intercom} crew need headsets. What do you pull?`,opts:[
+      opt({"p08-22":1,"p08-21":g.intercom},true,"A C1 Pro base station plus C1 Pro headsets: one system."),
+      opt({"p08-21":g.intercom},false,"Headsets without the base station can't talk to each other."),
+      opt({"p08-25":1,"p08-21":g.intercom},false,"An SE Pro base station won't talk to C1 Pro headsets."),
+      opt({"p03-06":g.intercom},false,"Walkie-talkies aren't hands-free for the crew running the show.")]});
+    return S;
+  }
+  // ---- MEDIUM: only the categories this gig touches, plus a checklist ----
+  function mediumCats(g){
+    const s=new Set(["console","vocal","instmic","cable","speaker","iem","linearray","display"]);
+    if(g.box) s.add("snake"); if(g.pa==="bring"||need(g,"sub")) s.add("sub");
+    const map={vocalish:"vocal",mics:"instmic",stereoDI:"di"};
+    g.need.forEach(([k])=>s.add(map[k]||k)); if(g.wireless) s.add("wireless"); if(g.intercom) s.add("intercom");
+    g.forbid.forEach(([k])=>s.add(k)); if(s.has("fixture")) s.add("lightctl");
+    return CATS.map(c=>c[0]).filter(k=>s.has(k));
+  }
+  function checklist(g){
+    const L=[`Console with ${Math.max(g.inputs,g.minCh||0)}+ channels and ${g.mixes} monitor mixes${g.digital?" (digital)":""}`,`${g.inputs} inputs total`,`${g.mixes} monitor mixes`];
+    if(g.pa==="bring") L.push("2 speakers for the mains"); if(g.box) L.push("A snake or stage box for every input");
+    g.need.forEach(([,n,l])=>L.push(`${l}: ${n}`)); if(g.wireless) L.push("Wireless handheld + matching receiver");
+    if(g.iem) L.push(`${g.iem} separate in-ear mixes`); if(g.intercom) L.push(`Intercom base + ${g.intercom} headsets`);
+    return L;
+  }
+
   // ---- grading ----
   function grade(gig, pick, byId){
     const items=Object.entries(pick).filter(([,n])=>n>0).map(([id,n])=>({x:byId[id],n}));
@@ -206,5 +365,5 @@ window.GIG_DATA = (() => {
     for(const [k,why] of gig.forbid){ const n=count(k); if(n) add(false,"Leave it at the shop",`${n} × ${names[k]||k}: ${why}`); }
     return {checks,passed:checks.filter(c=>c.ok).length,total:checks.length};
   }
-  return {GIGS,grade,cat,CATS};
+  return {GIGS,grade,cat,CATS,easy,mediumCats,checklist,setStock};
 })();
