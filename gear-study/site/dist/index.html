@@ -1,7 +1,7 @@
 <meta charset="utf-8">
 <title>Load-In Drills</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{
   --bg:#e9ecef; --panel:#f8f9fa; --ink:#15191e; --muted:#5b6570; --line:#cfd5db;
@@ -275,6 +275,44 @@ details.bd summary::-webkit-details-marker{display:none} details.bd summary::aft
 details.bd .checks{margin-top:6px}
 .btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 @media (prefers-reduced-motion:reduce){.gcard .t::after{transition:none}}
+/* numerals + hero + crew */
+:root{--num:"Oswald","Arial Narrow",Arial,sans-serif}
+.big{font:500 64px/1 var(--num);letter-spacing:.01em}
+.stat b,.kpts b{font:500 14px var(--num);letter-spacing:.02em}
+.hero{display:grid;gap:10px;padding-block:6px 22px;border-bottom:1px solid var(--line)}
+.hero .venue{font:500 clamp(34px,8vw,56px)/1 var(--num);text-transform:uppercase;letter-spacing:.01em;text-wrap:balance}
+.hero .req{font:400 16px/1.45 var(--body);max-width:56ch;color:var(--ink)}
+.hero .acts{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.hero .done{font:400 13px var(--mono);color:var(--muted)}
+.howto{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding-block:14px;border-bottom:1px solid var(--line)}
+.howto div{display:grid;gap:2px}.howto b{font:600 14px var(--body)}.howto span{font-size:13px;color:var(--muted)}
+.sec{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:22px}
+.board{display:grid;margin-top:8px;border-top:1px solid var(--line)}
+.brow{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line)}
+.brow .r{font:500 13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.brow .n{font:500 15px var(--body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brow .v{font:500 18px var(--num);font-variant-numeric:tabular-nums}
+.brow.me .n::after{content:"  you";font:400 11px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.brow.me{box-shadow:inset 3px 0 0 var(--ink);padding-left:10px}
+.nick{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.nick input{flex:1;min-width:0;max-width:260px;padding:10px 12px;border:1px solid var(--line);border-radius:3px;background:var(--panel);color:var(--ink);font:16px var(--body)}
+.seg{display:flex;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.seg button{background:none;border:0;padding:6px 12px;font:500 13px var(--body);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.rig{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:6px;width:100%}
+.slot{border:1px solid var(--line);background:var(--panel);padding:6px;display:grid;gap:4px;justify-items:center;text-align:center;border-top:3px solid var(--good)}
+.slot.no{border-top-color:var(--bad)} .slot img,.slot .e{width:48px;height:48px;object-fit:contain;background:#fff;border-radius:2px}
+.slot .e{display:grid;place-items:center;color:var(--muted);font:500 16px var(--mono)} .slot span{font:400 11px/1.25 var(--body);color:var(--muted)}
+details.venues summary{cursor:pointer;font:400 13px var(--body);color:var(--muted);padding:4px 0}
+details.venues .picks{margin-top:8px}
+@media (max-width:560px){
+  .stat:nth-child(3){display:none}
+  .howto{grid-template-columns:1fr}
+  .hero .acts .next,.hero .acts .ghostbtn,.spin .ghostbtn{width:100%}
+  .stick{position:sticky;bottom:calc(10px + env(safe-area-inset-bottom,0px));width:100%;padding-block:14px;z-index:5}
+  .gofoot{display:grid}
+  #fb{display:contents}
+}
 </style>
 
 <div class="wrap">
@@ -289,6 +327,7 @@ details.bd .checks{margin-top:6px}
   <nav role="tablist">
     <button role="tab" data-tab="play" aria-selected="true">Play</button>
     <button role="tab" data-tab="gigs" aria-selected="false">Gigs</button>
+    <button role="tab" data-tab="crew" aria-selected="false">Crew</button>
     <button role="tab" data-tab="browse" aria-selected="false">Browse the shop</button>
   </nav>
   <main id="view"><p class="loading">Loading the inventory…</p></main>
@@ -671,7 +710,7 @@ const money = p => p==null?"Price not confirmed":"$"+(p>=100?Math.round(p).toLoc
 const shuffle = a => {for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const today = () => new Date().toISOString().slice(0,10);
 const box = id => st.box[id]||0;
-function save(){store.set("state",st);renderStats()}
+function save(){store.set("state",st);renderStats();sync()}
 function renderStats(){
   document.getElementById("xp").textContent=st.xp.toLocaleString();
   document.getElementById("streak").textContent=st.streak;
@@ -691,29 +730,49 @@ const GAMES=[["photo","Name that gear","See the photo, pick the right name."],["
   ["job","What's it for?","Match the gear to its job on a show."],["mix","Full shift","All three drills mixed together. Double XP."],
   ["gigs","Gigs","Get sent to a NJ venue. Pull the right gear for the client."],["browse","Browse the shop","Every item, with website and manual links."]];
 function setTab(t){document.querySelectorAll("nav [data-tab]").forEach(x=>x.setAttribute("aria-selected",x.dataset.tab===t))}
+const dayKey=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+function dailyGig(){const k=dayKey();let h=0;for(const c of k)h=(h*31+c.charCodeAt(0))>>>0;return GD.GIGS[h%GD.GIGS.length]}
 function home(){
   window.scrollTo(0,0); setTab("play");
+  const dg=dailyGig(), played=st.daily&&st.daily.d===dayKey();
   const depts=["Audio","Lighting","Video","Other"].map(c=>{
     const all=GEAR.filter(g=>g.c===c), m=all.filter(g=>box(g.id)>=3).length, pct=all.length?Math.round(m/all.length*100):0;
     return `<div class="dept"><div class="row"><span class="label" style="color:${CAT[c]}">${CAT_NAME[c]}</span><span>${m}/${all.length}</span></div><div class="bar"><span style="width:${pct}%;background:${CAT[c]}"></span></div></div>`}).join("");
-  view.innerHTML=`<h2>Choose your game</h2>
+  view.innerHTML=`<section class="hero">
+      <div class="label">Daily gig · ${new Date().toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})} · Medium · one shot</div>
+      <div class="venue">${esc(dg.venue)}</div>
+      <div class="req">${esc(dg.town)}, NJ · “${esc(dg.request)}”</div>
+      <div class="acts">${played?`<span class="done">You scored ${st.daily.pts.toLocaleString()} today${rankLine()}</span><button class="ghostbtn" id="spinh">Spin a random gig</button>`
+        :`<button class="next" id="daily">Play today's gig →</button><button class="ghostbtn" id="spinh">Spin a random gig</button>`}</div>
+    </section>
+    <div class="howto"><div><span class="label">01</span><b>Spin</b><span>Land at a NJ venue with a client request.</span></div>
+      <div><span class="label">02</span><b>Pull</b><span>Pick the console, PA, mics, cable, lights.</span></div>
+      <div><span class="label">03</span><b>Load in</b><span>See if the show goes off clean.</span></div></div>
+    <div class="sec"><div class="label">Crew leaderboard · today</div><button class="chg" id="tocrew">See all</button></div>
+    ${nick?"":`<div style="margin-top:10px">${nickForm()}</div>`}
+    <div id="mini"></div>
+    <div class="sec"><div class="label">More games</div></div>
     <div class="choose">${GAMES.map(([k,t,d],i)=>`<button class="gcard" data-go="${k}"><span class="label">${String(i+1).padStart(2,"0")}</span><span class="t">${t}</span><span class="d">${d}</span></button>`).join("")}</div>
     <div class="label">Mastery by department</div>
     <div class="dept-grid">${depts}</div>
     <p class="foot">An item counts as mastered after you get it right 3 times in a row. Items you miss come back sooner.</p>`;
+  const d=document.getElementById("daily"); if(d) d.onclick=()=>{diff="medium";startGig(dg.id,true)};
+  document.getElementById("spinh").onclick=()=>gigList(true);
+  document.getElementById("tocrew").onclick=crew;
+  drawMini(); bindNick();
   view.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{const k=b.dataset.go;
     if(k==="gigs") gigList(); else if(k==="browse"){setTab("browse");browse()} else drillSetup(k);});
 }
 /* stepped setup: each step collapses to a summary line once chosen */
-function flow({title,back,steps,final}){
+function flow({title,back,steps,final,start}){
   window.scrollTo(0,0);
-  const vals={}; let at=0;
+  const vals={...(start||{})}; let at=Object.keys(start||{}).length;
   const draw=()=>{
     view.innerHTML=`<button class="back" id="fback">← ${back[0]}</button><h2 style="margin-top:10px">${title}</h2><div class="flow">`+
       steps.slice(0,at+1).map((sp,i)=>i<at
         ?`<div class="step done"><span class="label">${i+1} · ${sp.label}</span><b>${esc(sp.name(vals[sp.key]))}</b><button class="chg" data-i="${i}">Change</button></div>`
         :`<section class="step pop"><div class="label">${i+1} · ${sp.label}</div>${sp.body(vals)}</section>`).join("")+
-      (at>=steps.length?`<section class="step pop"><div class="label">${steps.length+1} · ${final.label}</div><div class="gofoot"><div>${final.body(vals)}</div><button class="next" id="fgo">${final.go}</button></div></section>`:"")+`</div>`;
+      (at>=steps.length?`<section class="step pop"><div class="label">${steps.length+1} · ${final.label}</div><div class="gofoot"><div>${final.body(vals)}</div><button class="next stick" id="fgo">${final.go}</button></div></section>`:"")+`</div>`;
     document.getElementById("fback").onclick=back[1];
     view.querySelectorAll(".chg").forEach(b=>b.onclick=()=>{at=+b.dataset.i;draw()});
     const cur=steps[at];
@@ -818,7 +877,7 @@ function answer(k){
   document.getElementById("fb").innerHTML=`<div class="feedback ${ok?"ok":"no"} pop">
     <div class="h">${ok?cheers[Math.random()*cheers.length|0]+` +${(10+Math.min(R.combo-1,5)*2)*R.mult} XP`:"Not quite"}</div>
     <div><b>${esc(g.n)}</b>. ${esc(g.w)}</div><div class="facts">${facts}</div></div>
-    <button class="next" id="next">${R.lives===0||R.i+1===R.qs.length?"See results":"Continue"}</button>`;
+    <button class="next stick" id="next">${R.lives===0||R.i+1===R.qs.length?"See results":"Continue"}</button>`;
   save();
   const nx=document.getElementById("next"); nx.focus({preventScroll:true});
   nx.onclick=()=>{R.answered=false; R.i++; if(R.lives===0||R.i>=R.qs.length) finish(); else ask();};
@@ -827,11 +886,12 @@ const TIERS=[[90,"Headliner-ready"],[70,"Solid crew"],[50,"Needs a shadow shift"
 const tier=p=>TIERS.find(([m])=>p>=m)[1];
 const byMax=(a,f)=>a.reduce((m,x)=>m==null||f(x)>f(m)?x:m,null);
 const checkRow=(ok,t,d)=>`<div class="check ${ok?"ok":"no"}"><span class="i">${ok?"✓":"✗"}</span><div><b>${esc(t)}</b><br><span>${esc(d)}</span></div></div>`;
-function results({kicker,big,unit,pct,sub,best,miss,rows,btns}){
+function results({kicker,big,unit,pct,sub,best,miss,rows,btns,rig}){
   window.scrollTo(0,0);
   view.innerHTML=`<div class="card result pop"><div class="label">${kicker}</div><div class="big">${big}</div><div class="label">${unit}</div>
     <span class="tier">${tier(pct)}</span><div class="label">${sub}</div>
     ${best||miss?`<div class="hl">${best?`<div class="hlc"><span class="label">Best call</span><b>${esc(best[0])}</b><span>${esc(best[1])}</span></div>`:""}${miss?`<div class="hlc miss"><span class="label">Costliest miss</span><b>${esc(miss[0])}</b><span>${esc(miss[1])}</span></div>`:""}</div>`:""}
+    ${rig?`<div class="label">What went on the truck</div><div class="rig">${rig}</div>`:""}
     <details class="bd"><summary>Show full breakdown</summary><div class="checks">${rows}</div></details>
     <div class="btns">${btns}</div></div>`;
 }
@@ -886,7 +946,7 @@ let diff=store.get("gigdiff","easy");
 const DIFF={easy:["Easy","Quiz: one decision at a time, 4 choices of the same kind of gear. 30 seconds each."],
   medium:["Medium","Quiz: 8 choices per question, several right, and 20 seconds each."],
   hard:["Hard","The whole shop and no checklist. Just you and the client's request."]};
-function gigList(){
+function gigList(skipDiff){
   clearInterval(G&&G.tm); setTab("gigs");
   const best=store.get("gigbest",{}), G0=GD.GIGS, reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
   const gname=id=>{const g=G0.find(x=>x.id===+id);return g?g.venue:""};
@@ -895,9 +955,8 @@ function gigList(){
       {key:"diff",label:"Difficulty",name:v=>DIFF[v][0],set:v=>{diff=v;store.set("gigdiff",v)},
        body:()=>`<div class="picks">${Object.entries(DIFF).map(([k,[l,d]])=>`<button class="pk" data-v="${k}" aria-pressed="${diff===k}"><b>${l}</b><span>${d}</span></button>`).join("")}</div>`},
       {key:"gig",label:"Venue",name:gname,
-       body:v=>`<div class="spin"><button class="ghostbtn" id="spin">Spin for a gig</button><div class="reel" id="reel" aria-live="polite"><small>Random NJ venue, random client.</small></div></div>
-         <div class="or">or pick one</div>
-         <div class="picks">${G0.map(g=>`<button class="pk" data-v="${g.id}"><span>${esc(g.town)} · ${esc(g.cap)}</span><b>${esc(g.venue)}</b><span>${esc(g.request)}</span>${best[v.diff+g.id]!=null?`<span class="best">Best: ${best[v.diff+g.id]}%</span>`:""}</button>`).join("")}</div>`,
+       body:v=>`<div class="spin"><button class="next" id="spin">Spin for a gig</button><div class="reel" id="reel" aria-live="polite"><small>Random NJ venue, random client.</small></div></div>
+         <details class="venues"><summary>Or pick a venue (${G0.length})</summary><div class="picks">${G0.map(g=>`<button class="pk" data-v="${g.id}"><span>${esc(g.town)} · ${esc(g.cap)}</span><b>${esc(g.venue)}</b><span>${esc(g.request)}</span>${best[v.diff+g.id]!=null?`<span class="best">Best: ${best[v.diff+g.id]}%</span>`:""}</button>`).join("")}</div></details>`,
        after:choose=>{
          const btn=document.getElementById("spin"), reel=document.getElementById("reel");
          const show=g=>{reel.innerHTML=`<span class="label">${esc(g.town)}</span><b>${esc(g.venue)}</b><small>${esc(g.request)}</small>`};
@@ -912,11 +971,11 @@ function gigList(){
          };
        }}],
     final:{label:"Brief",go:"Load in →",body:v=>{const g=G0.find(x=>x.id===+v.gig);return `<div class="label">${esc(g.town)}, NJ · ${esc(g.cap)}</div><div class="req">“${esc(g.request)}”</div>`},
-      run:v=>startGig(+v.gig)}});
+      run:v=>startGig(+v.gig)},start:skipDiff?{diff}:null});
 }
-function startGig(id){
+function startGig(id,daily){
   const gig=GD.GIGS.find(g=>g.id===id);
-  clearInterval(G&&G.tm); G={gig,pick:{},q:"",dept:"console",diff,cats:null};
+  clearInterval(G&&G.tm); G={gig,pick:{},q:"",dept:"console",diff,cats:null,daily:!!daily};
   if(diff==="hard") gigScreen(); else quizStart();
 }
 const KCOL="ABCDEFGH".split("");
@@ -941,8 +1000,8 @@ function quizAsk(){
   const opts=sample(pool,G.diff); if(!opts.some(o=>o.ok)){G.i++; return G.i<G.qs.length?quizAsk():quizResult();}
   const T=G.diff==="easy"?30:20;
   view.innerHTML=`<div class="game"><div class="gtop"><button class="quit" id="gback">All gigs</button><div class="progress"><span style="width:${G.i/G.qs.length*100}%"></span></div><span class="label">Item ${G.i+1} of ${G.qs.length}</span></div>
-    ${G.i===0?gigBrief(g):`<div class="label">${esc(g.venue)} · ${esc(g.request)}</div>`}
-    <div class="kq pop"><div class="kqh"><span class="label">${esc(q.title)}</span><span class="kpts">${G.pts.toLocaleString()} pts${G.streak>=2?` · streak ${G.streak}`:""}</span></div>
+    ${G.i===0?gigBrief(g):`<div class="label">${G.daily?"Daily gig · ":""}${esc(g.venue)} · ${esc(g.request)}</div>`}
+    <div class="kq pop"><div class="kqh"><span class="label">${esc(q.title)}</span><span class="kpts"><b>${G.pts.toLocaleString()}</b> pts${G.streak>=2?` · streak ${G.streak}`:""}</span></div>
       <div class="prompt">${esc(q.q)}</div>
       <div class="ktimer"><span id="kt"></span></div>
       <div class="ktiles ${opts.length>4?"k8":""}">${opts.map((o,j)=>{const sh=KCOL[j];const im=optImg(o);return `<button class="ktile" data-j="${j}">
@@ -956,12 +1015,12 @@ function quizAsk(){
     const left=Math.max(0,T-(Date.now()-t0)/1000), o=j>=0?opts[j]:null, ok=!!(o&&o.ok);
     if(ok){G.right++;G.streak++;const p=Math.round(500+500*left/T)+Math.min(G.streak-1,5)*100;G.pts+=p;G.last=p;} else {G.streak=0;G.last=0;}
     if(q.key==="console"&&o&&o.x) G.state.console=o.x.id;
-    G.log.push({t:q.title,ok,p:G.last,cost:optCost(opts.find(x=>x.ok)),pick:o?optName(o):"Time ran out",why:o?o.why:"",good:opts.filter(x=>x.ok).map(optName).join(" or "),goodWhy:opts.find(x=>x.ok).why});
+    G.log.push({t:q.title,ok,p:G.last,cost:optCost(opts.find(x=>x.ok)),img:o?optImg(o):"",pick:o?optName(o):"Time ran out",why:o?o.why:"",good:opts.filter(x=>x.ok).map(optName).join(" or "),goodWhy:opts.find(x=>x.ok).why});
     view.querySelectorAll(".ktile").forEach((b,k)=>{b.disabled=true;const oo=opts[k];b.classList.add(oo.ok?"kright":k===j?"kwrong":"kdim");
       const w=b.querySelector(".kwhy");w.textContent=(oo.ok?"✓ ":"✗ ")+oo.why;w.hidden=false;});
     document.getElementById("fb").innerHTML=`<div class="feedback ${ok?"ok":"no"} pop"><div class="h">${ok?`Right call +${G.last}`:j<0?"Time's up":"Not that"}</div>
       ${ok?"":`<div>Right answer: <b>${esc(opts.filter(x=>x.ok).map(optName).join(" or "))}</b>. ${esc(opts.find(x=>x.ok).why)}</div>`}</div>
-      <button class="next" id="enext">${G.i+1<G.qs.length?"Next":"Load the truck"}</button>`;
+      <button class="next stick" id="enext">${G.i+1<G.qs.length?"Next":"Load the truck"}</button>`;
     const n=document.getElementById("enext"); n.focus({preventScroll:true});
     n.onclick=()=>{G.i++; G.i<G.qs.length?quizAsk():quizResult();};
   };
@@ -971,11 +1030,15 @@ function quizResult(){
   const g=G.gig, n=G.log.length, pct=Math.round(G.right/n*100), xp=G.right*(G.diff==="easy"?10:15)+(pct===100?30:0);
   st.xp+=xp; const best=store.get("gigbest",{}); const k=G.diff+g.id; best[k]=Math.max(best[k]||0,pct); store.set("gigbest",best); save();
   const hit=byMax(G.log.filter(c=>c.ok),c=>c.p), miss=byMax(G.log.filter(c=>!c.ok),c=>c.cost);
-  results({kicker:`${esc(g.venue)} · ${DIFF[G.diff][0]}`,big:G.pts.toLocaleString(),unit:"points",pct,sub:`+${xp} XP · ${G.right} of ${n} right`,
+  const first=G.daily&&!(st.daily&&st.daily.d===dayKey());
+  if(first){st.daily={d:dayKey(),pts:G.pts,gig:g.id};save();}
+  results({kicker:`${G.daily?(first?"Daily gig · counted":"Daily gig · practice run")+" · ":""}${esc(g.venue)} · ${DIFF[G.diff][0]}`,big:G.pts.toLocaleString(),unit:"points",pct,sub:`+${xp} XP · ${G.right} of ${n} right`,
     best:hit&&[`${hit.t}: ${hit.pick}`,`+${hit.p} pts`],
     miss:miss&&[miss.t,`You picked ${miss.pick}. Right: ${miss.good}.`],
     rows:G.log.map(c=>checkRow(c.ok,c.t,c.ok?c.pick:`You picked ${c.pick}. Right: ${c.good}.`)).join(""),
-    btns:`<button class="next" id="again">Play again</button>${G.diff!=="hard"?`<button class="chip" id="up">Try it on ${G.diff==="easy"?"Medium":"Hard"}</button>`:""}<button class="chip" id="all">All gigs</button>`});
+    rig:G.log.map(c=>`<div class="slot ${c.ok?"ok":"no"}">${c.img?`<img alt="" src="${c.img}">`:`<span class="e">${c.ok?"✓":"✗"}</span>`}<span>${esc(c.t)}</span></div>`).join(""),
+    btns:`<button class="next" id="again">Play again</button>${G.diff!=="hard"?`<button class="chip" id="up">Try it on ${G.diff==="easy"?"Medium":"Hard"}</button>`:""}<button class="chip" id="all">All gigs</button><button class="chip" id="crewb">Leaderboard</button>`});
+  document.getElementById("crewb").onclick=crew;
   document.getElementById("again").onclick=()=>startGig(g.id);
   const up=document.getElementById("up"); if(up) up.onclick=()=>{diff=G.diff==="easy"?"medium":"hard";store.set("gigdiff",diff);startGig(g.id)};
   document.getElementById("all").onclick=gigList;
@@ -1044,6 +1107,80 @@ function gigResult(){
   document.getElementById("all").onclick=gigList;
 }
 
+/* ---------- crew leaderboard (shared db; works solo when unavailable) ---------- */
+let DB=null, ME=null, BOARD=[], nick=store.get("nick",""), wq=Promise.resolve(), wt=0, boardMode="today";
+function sync(){
+  if(!DB||!ME||!nick) return;
+  clearTimeout(wt);
+  wt=setTimeout(()=>{const body={nick,xp:st.xp,dday:st.daily?st.daily.d:"",dpts:st.daily?st.daily.pts:0,dgig:st.daily?st.daily.gig:0,updated:Date.now()};
+    wq=wq.then(()=>DB.doc("players/"+ME).set(body)).catch(()=>{});},800);
+}
+function ranked(mode){
+  const t=dayKey();
+  return mode==="today"?BOARD.filter(p=>p.dday===t&&p.nick).sort((a,b)=>b.dpts-a.dpts).map(p=>({...p,v:p.dpts}))
+    :BOARD.filter(p=>p.nick).sort((a,b)=>b.xp-a.xp).map(p=>({...p,v:p.xp}));
+}
+function rankLine(){const r=ranked("today"), i=r.findIndex(p=>p.id===ME);return i>=0?` · #${i+1} of ${r.length}`:""}
+function boardRows(list,n){
+  if(!DB) return `<p class="foot">The shared leaderboard isn't available in this view. Your points still save on this device.</p>`;
+  if(!list.length) return `<p class="foot">Nobody on the board yet. Set a nickname and play the daily gig.</p>`;
+  let rows=list.slice(0,n); const mi=list.findIndex(p=>p.id===ME);
+  if(mi>=n) rows=[...rows.slice(0,n-1),list[mi]];
+  return `<div class="board">${rows.map(p=>{const r=list.indexOf(p)+1;return `<div class="brow${p.id===ME?" me":""}"><span class="r">${r}</span><span class="n">${esc(p.nick)}</span><span class="v">${Number(p.v).toLocaleString()}</span></div>`}).join("")}</div>`;
+}
+function drawMini(){const el=document.getElementById("mini"); if(el) el.innerHTML=boardRows(ranked("today"),5)}
+function nickForm(){
+  return `<form class="nick" id="nickf"><label class="label" for="nickin">Nickname</label><input id="nickin" maxlength="20" autocomplete="off" placeholder="What the crew calls you" value="${esc(nick)}"><button class="next" type="submit">${nick?"Update":"Save"}</button><span class="foot" id="nickmsg" style="margin:0"></span></form>`;
+}
+function bindNick(){
+  const f=document.getElementById("nickf"); if(!f) return;
+  f.onsubmit=e=>{e.preventDefault(); const v=document.getElementById("nickin").value.trim().replace(/\s+/g," ");
+    const m=document.getElementById("nickmsg");
+    if(v.length<2){m.textContent="Use at least 2 characters.";return}
+    nick=v; store.set("nick",nick); sync(); m.textContent=DB?"Saved. You're on the board.":"Saved on this device.";};
+}
+function crew(){
+  window.scrollTo(0,0); setTab("crew"); clearInterval(G&&G.tm);
+  const draw=()=>{
+    const list=ranked(boardMode);
+    document.getElementById("crewlist").innerHTML=boardRows(list,50);
+    view.querySelectorAll("[data-bm]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.bm===boardMode));
+  };
+  view.innerHTML=`<h2>Crew leaderboard</h2>
+    <p class="foot" style="margin-top:4px">Everyone who opens this page shares one board. Today ranks the daily gig (first try only). All time ranks total XP from every game.</p>
+    <div style="margin-top:14px">${nickForm()}</div>
+    <div class="sec"><div class="seg"><button data-bm="today">Today's gig</button><button data-bm="all">All time</button></div></div>
+    <div id="crewlist"></div>
+    <div class="acts" style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">${st.daily&&st.daily.d===dayKey()?"":`<button class="next" id="daily2">Play today's gig →</button>`}</div>`;
+  bindNick();
+  view.querySelectorAll("[data-bm]").forEach(b=>b.onclick=()=>{boardMode=b.dataset.bm;draw()});
+  const d=document.getElementById("daily2"); if(d) d.onclick=()=>{diff="medium";startGig(dailyGig().id,true)};
+  draw();
+  crew.redraw=draw;
+}
+function refreshBoard(){
+  drawMini();
+  if(document.getElementById("crewlist")&&crew.redraw) crew.redraw();
+}
+async function connect(){
+  try{
+    if(!window.claude||!window.claude.use) return;
+    const [db,user]=await Promise.all([window.claude.use("db"),window.claude.use("user")]);
+    if(!db||!user) return;
+    const id=await user.id(); if(!id) return;
+    DB=db; ME=id;
+    const me=await db.doc("players/"+id).get();
+    if(me.exists){const d=me.data();
+      if(d.xp>st.xp) st.xp=d.xp;
+      if(d.nick&&!nick){nick=d.nick;store.set("nick",nick)}
+      if(d.dday===dayKey()&&!(st.daily&&st.daily.d===d.dday)) st.daily={d:d.dday,pts:d.dpts,gig:d.dgig};
+      store.set("state",st); renderStats();}
+    if(!nick){const n=await user.name(); const i=document.getElementById("nickin"); if(n&&i&&!i.value) i.placeholder=n.split(" ")[0];}
+    db.collection("players").limit(1000).onSnapshot(sn=>{BOARD=sn.docs.map(x=>({id:x.id,...x.data()}));refreshBoard()},()=>{});
+    refreshBoard(); sync();
+  }catch(e){}
+}
+
 const host = u => {try{return new URL(u).hostname.replace(/^www\./,"")}catch(e){return ""}};
 const gsearch = q => "https://www.google.com/search?q="+encodeURIComponent(q);
 function detail(g, from){
@@ -1077,10 +1214,10 @@ function detail(g, from){
 
 document.querySelectorAll("nav [data-tab]").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("nav [data-tab]").forEach(x=>x.setAttribute("aria-selected",x===b));
-  R=null; clearInterval(G&&G.tm); ({play:home,gigs:gigList,browse:browse})[b.dataset.tab]();
+  R=null; clearInterval(G&&G.tm); ({play:home,gigs:()=>gigList(),crew,browse})[b.dataset.tab]();
 });
 
-fetch("gear.json").then(r=>r.json()).then(d=>{GEAR=d;d.forEach(g=>byId[g.id]=g);GD.setShop(d);renderStats();home()})
+fetch("gear.json").then(r=>r.json()).then(d=>{GEAR=d;d.forEach(g=>byId[g.id]=g);GD.setShop(d);renderStats();home();connect()})
   .catch(()=>{view.innerHTML=`<p>The gear list didn't load. Reload the page to try again.</p>`});
 })();
 </script>
