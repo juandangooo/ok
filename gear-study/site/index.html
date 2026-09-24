@@ -98,6 +98,27 @@ h2{font:800 26px/1.1 var(--display);text-transform:uppercase;letter-spacing:.02e
 .item .pr{font:500 13px var(--mono);color:var(--muted)}
 .item .more{font-size:13px;color:var(--muted)}
 .foot{color:var(--muted);font-size:13px;margin-top:22px}
+
+/* kahoot-style quiz */
+.kq{display:grid;gap:10px}
+.kqh{display:flex;justify-content:space-between;align-items:center}
+.kpts{font:500 14px var(--mono);color:var(--accent);font-variant-numeric:tabular-nums}
+.ktimer{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.ktimer span{display:block;height:100%;width:100%;background:var(--accent);transition:width .1s linear}
+.ktiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:560px){.ktiles.k8{grid-template-columns:1fr}.ktiles:not(.k8){grid-template-columns:1fr}}
+.ktile{display:grid;grid-template-columns:auto 56px 1fr;gap:10px;align-items:center;text-align:left;border:0;border-radius:10px;padding:10px;cursor:pointer;
+  background:var(--k);color:#fff;box-shadow:0 4px 0 color-mix(in srgb,var(--k) 60%,#000);min-height:84px}
+.ktile:hover:not(:disabled){filter:brightness(1.08)}
+.ktile .ksh{font-size:22px;width:24px;text-align:center}
+.ktile img,.ktile .kimg{width:56px;height:56px;object-fit:contain;background:#fff;border-radius:6px}
+.ktx{display:grid;gap:2px}.ktx b{font:700 15px/1.2 var(--body)}.ktx small{font-size:12px;opacity:.9;line-height:1.3}
+.kwhy{font-style:normal;font-size:13px;background:rgba(0,0,0,.25);border-radius:6px;padding:4px 6px;margin-top:4px}
+.ktile.kright{outline:4px solid #fff;box-shadow:0 0 0 7px var(--good)}
+.ktile.kwrong{opacity:.9;outline:4px solid #fff;box-shadow:0 0 0 7px var(--bad)}
+.ktile.kdim{opacity:.55}
+@media (prefers-reduced-motion:reduce){.ktimer span{transition:none}}
+
 /* gigs */
 .gigs{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:12px}
 .gig{text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;color:var(--ink);display:grid;gap:4px;box-shadow:var(--shadow)}
@@ -360,8 +381,8 @@ function browse(){
 const GD=window.GIG_DATA;
 let G=null;
 let diff=store.get("gigdiff","easy");
-const DIFF={easy:["Easy","One decision at a time: pick the right gear from 3–4 choices."],
-  medium:["Medium","Pull sheet with only this gig's categories and a checklist of what the show needs."],
+const DIFF={easy:["Easy","Quiz: one decision at a time, 4 choices of the same kind of gear. 30 seconds each."],
+  medium:["Medium","Quiz: 8 choices per question, several right, and 20 seconds each."],
   hard:["Hard","The whole shop and no checklist. Just you and the client's request."]};
 function gigList(){
   const best=store.get("gigbest",{});
@@ -378,42 +399,67 @@ function gigList(){
 }
 function startGig(id){
   const gig=GD.GIGS.find(g=>g.id===id);
-  G={gig,pick:{},q:"",dept:"console",diff,cats:diff==="medium"?GD.mediumCats(gig):null};
-  if(diff==="easy"){G.slots=GD.easy(gig);G.i=0;G.right=0;G.log=[];easyAsk();} else gigScreen();
+  clearInterval(G&&G.tm); G={gig,pick:{},q:"",dept:"console",diff,cats:null};
+  if(diff==="hard") gigScreen(); else quizStart();
 }
-function easyAsk(){
+const KCOL=[["#e21b3c","▲"],["#1368ce","◆"],["#d89e00","●"],["#26890c","■"]];
+function quizStart(){
+  G.qs=GD.questions(G.gig); G.i=0; G.right=0; G.pts=0; G.streak=0; G.log=[]; G.state={}; quizAsk();
+}
+function sample(pool,level){
+  const good=shuffle(pool.filter(o=>o.ok)), bad=shuffle(pool.filter(o=>!o.ok));
+  const nGood=level==="easy"?1:Math.min(2,good.length), nTot=level==="easy"?4:8;
+  const seen=new Set(), wrong=[];
+  for(const o of bad){const t=o.x?o.x.t:o.name; if(!seen.has(t)){seen.add(t);wrong.push(o);} if(wrong.length>=nTot-nGood)break;}
+  for(const o of bad){if(wrong.length>=nTot-nGood)break; if(!wrong.includes(o))wrong.push(o);}
+  return shuffle([...good.slice(0,nGood),...wrong]);
+}
+function optName(o){ if(o.x) return o.x.n; return o.name; }
+function optImg(o){ const x=o.x||byId[Object.keys(o.bundle)[0]]; return x&&x.img&&!x.sub?x.img:""; }
+function optDesc(o){ if(o.x){const w=(o.x.w||"").replace(/Skip this one.*$/,"").trim(); return `${o.x.t}${w?" · "+w:""}`;} return Object.entries(o.bundle).map(([id,n])=>`${n} × ${byId[id].n}`).join(" + "); }
+function quizAsk(){
   window.scrollTo(0,0);
-  const g=G.gig, sl=G.slots[G.i], opts=shuffle(sl.opts.map((o,k)=>({...o,k})));
-  const label=o=>{const e=Object.entries(o.items);return e.length?e.map(([id,n])=>`${n} × ${byId[id].n}`).join(" + "):"Nothing. Leave it at the shop."};
-  const pic=o=>{const id=Object.keys(o.items)[0];return id&&byId[id].img&&!byId[id].sub?`<img alt="" src="${byId[id].img}">`:`<span class="none">—</span>`};
-  view.innerHTML=`<div class="game"><div class="gtop"><button class="quit" id="gback">All gigs</button><div class="progress"><span style="width:${G.i/G.slots.length*100}%"></span></div><span class="label">${G.i+1}/${G.slots.length}</span></div>
+  const g=G.gig, q=G.qs[G.i]; let pool=q.pool(G.state);
+  const opts=sample(pool,G.diff); if(!opts.some(o=>o.ok)){G.i++; return G.i<G.qs.length?quizAsk():quizResult();}
+  const T=G.diff==="easy"?30:20;
+  view.innerHTML=`<div class="game"><div class="gtop"><button class="quit" id="gback">All gigs</button><div class="progress"><span style="width:${G.i/G.qs.length*100}%"></span></div><span class="label">${G.i+1}/${G.qs.length}</span></div>
     ${G.i===0?gigBrief(g):`<div class="label">${esc(g.venue)} · ${esc(g.request)}</div>`}
-    <div class="card pop"><div class="label">${esc(sl.title)}</div><div class="prompt">${esc(sl.q)}</div>
-      <div class="opts">${opts.map((o,j)=>`<button class="opt eopt" data-j="${j}">${pic(o)}<span>${esc(label(o))}</span></button>`).join("")}</div>
+    <div class="kq pop"><div class="kqh"><span class="label">${esc(q.title)}</span><span class="kpts">${G.pts.toLocaleString()} pts${G.streak>=2?` · 🔥${G.streak}`:""}</span></div>
+      <div class="prompt">${esc(q.q)}</div>
+      <div class="ktimer"><span id="kt"></span></div>
+      <div class="ktiles ${opts.length>4?"k8":""}">${opts.map((o,j)=>{const [c,sh]=KCOL[j%4];const im=optImg(o);return `<button class="ktile" data-j="${j}" style="--k:${c}">
+        <span class="ksh">${sh}</span>${im?`<img alt="" src="${im}">`:`<span class="kimg"></span>`}
+        <span class="ktx"><b>${esc(optName(o))}</b><small>${esc(optDesc(o))}</small><em class="kwhy" hidden></em></span></button>`}).join("")}</div>
       <div id="fb"></div></div></div>`;
-  document.getElementById("gback").onclick=gigList;
-  let done=false;
-  view.querySelectorAll(".eopt").forEach(b=>b.onclick=()=>{ if(done)return; done=true;
-    const o=opts[+b.dataset.j]; if(o.ok)G.right++; G.log.push({t:sl.title,ok:o.ok,why:o.why,pick:label(o),good:label(sl.opts.find(x=>x.ok))});
-    view.querySelectorAll(".eopt").forEach((x,j)=>{x.disabled=true;if(opts[j].ok)x.classList.add("right");else if(x===b)x.classList.add("wrong")});
-    const good=opts.find(x=>x.ok);
-    document.getElementById("fb").innerHTML=`<div class="feedback ${o.ok?"ok":"no"} pop"><div class="h">${o.ok?"Right call":"Not that"}</div><div>${esc(o.why)}</div>${o.ok?"":`<div class="facts">Right answer: ${esc(label(good))}. ${esc(good.why)}</div>`}</div>
-      <button class="next" id="enext">${G.i+1<G.slots.length?"Next item":"Load the truck"}</button>`;
+  document.getElementById("gback").onclick=()=>{clearInterval(G.tm);gigList()};
+  const t0=Date.now(), bar=document.getElementById("kt"); let done=false;
+  G.tm=setInterval(()=>{const left=Math.max(0,T-(Date.now()-t0)/1000); bar.style.width=(left/T*100)+"%"; if(left<=0) pick(-1);},100);
+  const pick=j=>{ if(done)return; done=true; clearInterval(G.tm);
+    const left=Math.max(0,T-(Date.now()-t0)/1000), o=j>=0?opts[j]:null, ok=!!(o&&o.ok);
+    if(ok){G.right++;G.streak++;const p=Math.round(500+500*left/T)+Math.min(G.streak-1,5)*100;G.pts+=p;G.last=p;} else {G.streak=0;G.last=0;}
+    if(q.key==="console"&&o&&o.x) G.state.console=o.x.id;
+    G.log.push({t:q.title,ok,pick:o?optName(o):"Time ran out",why:o?o.why:"",good:opts.filter(x=>x.ok).map(optName).join(" or "),goodWhy:opts.find(x=>x.ok).why});
+    view.querySelectorAll(".ktile").forEach((b,k)=>{b.disabled=true;const oo=opts[k];b.classList.add(oo.ok?"kright":k===j?"kwrong":"kdim");
+      const w=b.querySelector(".kwhy");w.textContent=(oo.ok?"✓ ":"✗ ")+oo.why;w.hidden=false;});
+    document.getElementById("fb").innerHTML=`<div class="feedback ${ok?"ok":"no"} pop"><div class="h">${ok?`Right call +${G.last}`:j<0?"Time's up":"Not that"}</div>
+      ${ok?"":`<div>Right answer: <b>${esc(opts.filter(x=>x.ok).map(optName).join(" or "))}</b>. ${esc(opts.find(x=>x.ok).why)}</div>`}</div>
+      <button class="next" id="enext">${G.i+1<G.qs.length?"Next":"Load the truck"}</button>`;
     const n=document.getElementById("enext"); n.focus({preventScroll:true});
-    n.onclick=()=>{G.i++; G.i<G.slots.length?easyAsk():easyResult();};
-  });
+    n.onclick=()=>{G.i++; G.i<G.qs.length?quizAsk():quizResult();};
+  };
+  view.querySelectorAll(".ktile").forEach(b=>b.onclick=()=>pick(+b.dataset.j));
 }
-function easyResult(){
+function quizResult(){
   window.scrollTo(0,0);
-  const g=G.gig, pct=Math.round(G.right/G.slots.length*100), xp=G.right*10+(pct===100?30:0);
-  st.xp+=xp; const best=store.get("gigbest",{}); best["easy"+g.id]=Math.max(best["easy"+g.id]||0,pct); store.set("gigbest",best); save();
-  view.innerHTML=`<div class="card result pop"><div class="label">${esc(g.venue)} · Easy</div><div class="big">${pct}%</div>
+  const g=G.gig, n=G.log.length, pct=Math.round(G.right/n*100), xp=G.right*(G.diff==="easy"?10:15)+(pct===100?30:0);
+  st.xp+=xp; const best=store.get("gigbest",{}); const k=G.diff+g.id; best[k]=Math.max(best[k]||0,pct); store.set("gigbest",best); save();
+  view.innerHTML=`<div class="card result pop"><div class="label">${esc(g.venue)} · ${DIFF[G.diff][0]}</div><div class="big">${G.pts.toLocaleString()}</div><div class="label">points</div>
     <h2>${pct===100?"Show went off clean":pct>=70?"Show happened, with a few scrambles":"Truck's coming back to the shop"}</h2>
-    <div class="label">+${xp} XP · ${G.right} of ${G.slots.length} right</div>
-    <div class="checks">${G.log.map(c=>`<div class="check ${c.ok?"ok":"no"}"><span class="i">${c.ok?"✓":"✗"}</span><div><b>${esc(c.t)}</b><br><span>${c.ok?esc(c.pick):`You pulled ${esc(c.pick)}. Right: ${esc(c.good)}.`}</span></div></div>`).join("")}</div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><button class="next" id="again">Play again</button><button class="chip" id="up">Try it on Medium</button><button class="chip" id="all">All gigs</button></div></div>`;
+    <div class="label">+${xp} XP · ${G.right} of ${n} right</div>
+    <div class="checks">${G.log.map(c=>`<div class="check ${c.ok?"ok":"no"}"><span class="i">${c.ok?"✓":"✗"}</span><div><b>${esc(c.t)}</b><br><span>${c.ok?esc(c.pick):`You picked ${esc(c.pick)}. Right: ${esc(c.good)}.`}</span></div></div>`).join("")}</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center"><button class="next" id="again">Play again</button>${G.diff!=="hard"?`<button class="chip" id="up">Try it on ${G.diff==="easy"?"Medium":"Hard"}</button>`:""}<button class="chip" id="all">All gigs</button></div></div>`;
   document.getElementById("again").onclick=()=>startGig(g.id);
-  document.getElementById("up").onclick=()=>{diff="medium";store.set("gigdiff",diff);startGig(g.id)};
+  const up=document.getElementById("up"); if(up) up.onclick=()=>{diff=G.diff==="easy"?"medium":"hard";store.set("gigdiff",diff);startGig(g.id)};
   document.getElementById("all").onclick=gigList;
 }
 function gigBrief(g){
@@ -421,7 +467,7 @@ function gigBrief(g){
     <div class="req">“${esc(g.request)}”</div>
     <dl><dt>Room</dt><dd>${esc(g.cap)}</dd><dt>House has</dt><dd>${esc(g.house)}</dd>${g.note?`<dt>Note</dt><dd>${esc(g.note)}</dd>`:""}</dl>
     ${g.twist?`<div class="twist"><b>Change from the client:</b> ${esc(g.twist)}</div>`:""}
-    ${G&&G.diff==="medium"?`<div class="label" style="margin-top:4px">The show needs</div><ul class="need">${GD.checklist(g).map(l=>`<li>${esc(l)}</li>`).join("")}</ul>`:""}</div>`;
+    ${false?`<div class="label" style="margin-top:4px">The show needs</div><ul class="need">${GD.checklist(g).map(l=>`<li>${esc(l)}</li>`).join("")}</ul>`:""}</div>`;
 }
 function gigScreen(){
   window.scrollTo(0,0);
@@ -514,10 +560,10 @@ function detail(g, from){
 
 document.querySelectorAll("nav [data-tab]").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("nav [data-tab]").forEach(x=>x.setAttribute("aria-selected",x===b));
-  R=null; ({play:home,gigs:gigList,browse:browse})[b.dataset.tab]();
+  R=null; clearInterval(G&&G.tm); ({play:home,gigs:gigList,browse:browse})[b.dataset.tab]();
 });
 
-fetch("gear.json").then(r=>r.json()).then(d=>{GEAR=d;d.forEach(g=>byId[g.id]=g);GD.setStock(Object.fromEntries(d.map(x=>[x.id,x.q])));renderStats();home()})
+fetch("gear.json").then(r=>r.json()).then(d=>{GEAR=d;d.forEach(g=>byId[g.id]=g);GD.setShop(d);renderStats();home()})
   .catch(()=>{view.innerHTML=`<p>The gear list didn't load. Reload the page to try again.</p>`});
 })();
 </script>
