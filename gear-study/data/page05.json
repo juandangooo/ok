@@ -67,7 +67,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/OvaRevE3IP--chauvet-pro-ovation-reve-e-3-ip-ers-style-lighting-fixture",
   "what": "Same fixture as above, listed as a sub-rental for when you need more than your own 4.",
   "specs": "Multi-color LED; IP65",
-  "manual": "",
+  "manual": "https://www.chauvetprofessional.com/wp-content/uploads/2022/08/Ovation-Reve-E-3-IP_UM_Rev6.pdf",
   "notes": "SUB-RENTAL."
  },
  {
@@ -81,7 +81,7 @@
   "price_src": "https://www.bhphotovideo.com/c/product/1493696-REG/chauvet_dj_xpress512s_xpress_512s_dmx_interface_for.html",
   "what": "Plugs into a laptop's USB and outputs DMX, so ShowXpress software on the computer becomes your lighting console.",
   "specs": "USB to 3-pin DMX; 512 channels",
-  "manual": "",
+  "manual": "https://www.chauvetdj.com/wp-content/uploads/2019/05/XPRESS-512S-XPRESS-1024_UM_Rev2.pdf",
   "notes": ""
  },
  {
@@ -137,7 +137,7 @@
   "price_src": "https://www.conferenceroomav.com/p/community-r.5hp",
   "what": "Weatherproof horn-loaded speaker built to live outdoors (stadiums, pools, outdoor venues). Horns throw sound far and focused.",
   "specs": "12\" horn-loaded; weather-resistant",
-  "manual": "",
+  "manual": "https://downloads.biamp.com/assets/docs/default-source/manuals/biamp_manual_community_r-5_r-25.pdf",
   "notes": "Exact R.5 model unknown; priced as the R.5HP. Check the label."
  },
  {
@@ -165,7 +165,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/B3W4FF05LSR--countryman-b3-omnidirectional-lavalier-microphone-for-sennheiser-wireless-light-beige",
   "what": "Pro lav mic, tiny and skin-colored so it hides on actors and presenters. Plugs into Sennheiser bodypacks.",
   "specs": "Omni; standard sensitivity; locking 3.5 mm (Sennheiser)",
-  "manual": "",
+  "manual": "https://countryman.com/wp-content/uploads/2017/07/b3_lavalier_datasheet.pdf",
   "notes": "Beige hides on skin/light clothes; black hides on dark clothes."
  },
  {
@@ -179,7 +179,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/B3W4FF05BSR--countryman-b3-omnidirectional-lavalier-microphone-for-sennheiser-wireless-black",
   "what": "Same B3 lav in black, for dark clothing.",
   "specs": "Omni; locking 3.5 mm (Sennheiser)",
-  "manual": "",
+  "manual": "https://countryman.com/wp-content/uploads/2017/07/b3_lavalier_datasheet.pdf",
   "notes": ""
  },
  {
@@ -263,7 +263,7 @@
   "price_src": "https://www.musiciansfriend.com/pro-audio/crown-pcc-160-boundary-microphone",
   "what": "A flat 'boundary' mic that lies on the stage floor or a table to pick up a whole play, a panel or a conference table, with no stands.",
   "specs": "Supercardioid condenser; boundary/plate design; phantom power",
-  "manual": "",
+  "manual": "https://tcfurlong.com/wp-content/uploads/Crown-PCC-160-Rental-Manual.pdf",
   "notes": ""
  },
  {

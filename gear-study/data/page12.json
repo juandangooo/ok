@@ -332,7 +332,7 @@
   "price_src": "https://www.harborfreight.com/3500-watt-super-quiet-inverter-generator-with-co-secure-technology-49-state-compliant-71358.html",
   "what": "Quiet gas generator for outdoor power.",
   "specs": "3500 W peak; inverter",
-  "manual": "",
+  "manual": "https://manuals.harborfreight.com/manuals/59000-59999/59137-193175456229.pdf",
   "notes": "Price from www.harborfreight.com."
  },
  {
@@ -346,7 +346,7 @@
   "price_src": "https://www.harborfreight.com/5000-watt-dual-fuel-super-quiet-inverter-generator-with-remote-start-and-co-secure-technology-49-state-compliant-71367.html",
   "what": "Quiet gas/propane generator.",
   "specs": "5000 W; inverter",
-  "manual": "",
+  "manual": "https://manuals.harborfreight.com/manuals/71000-71999/71367-193175546364.pdf",
   "notes": "Price from www.harborfreight.com."
  },
  {
@@ -556,7 +556,7 @@
   "price_src": "https://astroavl.com/qsc-k10-2-active-10-loudspeaker.html",
   "what": "Powered 10\" speaker.",
   "specs": "10\"; 2000 W",
-  "manual": "",
+  "manual": "https://www.qscaudio.com/resource-files/productresources/spk/k.2/q_spk_k2_usermanual.pdf",
   "notes": "Price from astroavl.com."
  }
 ]

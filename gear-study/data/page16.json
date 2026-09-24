@@ -10,7 +10,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/Beta58a--shure-beta-58a-supercardioid-dynamic-vocal-microphone",
   "what": "Supercardioid handheld vocal mic.",
   "specs": "Supercardioid dynamic",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/BETA58A",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -24,7 +24,7 @@
   "price_src": "https://www.hermesmusic.com/products/shure-beta-91a-half-cardioid-condensor-kick-drum-microphone",
   "what": "Flat mic that goes inside a kick drum or on a floor/table.",
   "specs": "Half-cardioid condenser",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/BETA91A",
   "notes": "Price from www.hermesmusic.com."
  },
  {
@@ -38,7 +38,7 @@
   "price_src": "",
   "what": "Directional paddle antenna for wireless mics.",
   "specs": "UHF",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/PA805SWB",
   "notes": "PRICE NOT CONFIRMED.",
   "category": "Audio"
  },
@@ -53,7 +53,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/KSM137--shure-ksm137-small-diaphragm-condenser-microphone",
   "what": "Pencil condenser for overheads/acoustic instruments.",
   "specs": "Cardioid",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/KSM137",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -67,7 +67,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/KSM32SL--shure-ksm32-large-diaphragm-condenser-microphone-champagne",
   "what": "Large-diaphragm studio/stage condenser.",
   "specs": "Cardioid",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/KSM32",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -95,7 +95,7 @@
   "price_src": "https://bobbyowsinskiblog.com/new-music-gear-monday-shure-mvx2u-gen-2-digital-audio-interface/",
   "what": "Plugs an XLR mic straight into a computer via USB-C.",
   "specs": "XLR to USB-C; phantom power",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/MVX2U",
   "notes": "Price from bobbyowsinskiblog.com."
  },
  {
@@ -109,7 +109,7 @@
   "price_src": "",
   "what": "Tiny earset mic for wireless packs.",
   "specs": "Omni; tan",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/MX153",
   "notes": "PRICE NOT CONFIRMED."
  },
  {
@@ -123,7 +123,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/MX418DS--shure-mx418d-s-18-inch-supercardioid-gooseneck-microphone-with-desktop-base-and-preamp",
   "what": "Gooseneck podium mic on a desk base.",
   "specs": "18\" gooseneck; cardioid",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/MX400",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -151,7 +151,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/QLXD258-G50--shure-qlxd2-sm58-wireless-handheld-microphone-transmitter-g50-band",
   "what": "Digital wireless handheld mic.",
   "specs": "SM58 capsule",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/QLXD",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -165,7 +165,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/QLXD4-G50--shure-qlxd4-digital-wireless-receiver-g50-band",
   "what": "Digital wireless receiver.",
   "specs": "G50: 470–534 MHz",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/QLXD",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -193,7 +193,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/SLXD1pG57--shure-slxd1-wireless-bodypack-transmitter-g57-band",
   "what": "Digital belt pack for lav/headset.",
   "specs": "558–616 MHz",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/SLXD",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -207,7 +207,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/SLXD258-G58--shure-slxd2-sm58-wireless-handheld-microphone-transmitter-g58-band",
   "what": "Digital wireless handheld mic.",
   "specs": "SM58 capsule",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/SLXD",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -221,7 +221,7 @@
   "price_src": "https://equipboard.com/items/shure-slxd4",
   "what": "Digital wireless receiver.",
   "specs": "J52",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/SLXD",
   "notes": "Price from equipboard.com."
  },
  {
@@ -249,7 +249,7 @@
   "price_src": "",
   "what": "Sweat-proof fitness headset mic.",
   "specs": "Cardioid condenser",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/SM31FH",
   "notes": "PRICE NOT CONFIRMED."
  },
  {
@@ -263,7 +263,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/SM35TQG--shure-sm35-headworn-microphone-for-shure-wireless",
   "what": "Headworn mic for presenters/performers.",
   "specs": "Cardioid condenser",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/SM35",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -277,7 +277,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/SM57--shure-sm57-cardioid-dynamic-instrument-microphone",
   "what": "Classic mic for snare and guitar amps.",
   "specs": "Cardioid dynamic",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/SM57",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -291,7 +291,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/SM58S--shure-sm58s-cardioid-dynamic-vocal-microphone-with-on-off-switch",
   "what": "Classic handheld vocal mic.",
   "specs": "Cardioid dynamic",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/SM58",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -305,7 +305,7 @@
   "price_src": "https://www.perfectcircuit.com/shure-sm81.html",
   "what": "Pencil condenser for acoustic instruments/cymbals.",
   "specs": "Cardioid",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/SM81",
   "notes": "Price from www.perfectcircuit.com."
  },
  {
@@ -319,7 +319,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/Super55--shure-super-55-deluxe",
   "what": "Retro \"Elvis\" style vocal mic.",
   "specs": "Supercardioid dynamic",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/Super-55",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -333,7 +333,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/ULXD1-G50--shure-ulxd1-wireless-bodypack-transmitter-g50-band",
   "what": "Digital belt pack for lav/headset.",
   "specs": "G50",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/ULXD",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -347,7 +347,7 @@
   "price_src": "https://www.shure.com/en-US/products/wireless-systems/ulx-d_digital_wireless/ulxd2_beta_87a",
   "what": "Digital wireless handheld with Beta 87A condenser capsule.",
   "specs": "Beta 87A",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/ULXD",
   "notes": "Price from www.shure.com."
  },
  {
@@ -361,7 +361,7 @@
   "price_src": "https://equipboard.com/items/shure-ulxd2-b87c-g50",
   "what": "Digital wireless handheld, Beta 87C capsule.",
   "specs": "Beta 87C",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/ULXD",
   "notes": "Price from equipboard.com."
  },
  {
@@ -375,7 +375,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/ULXD2SM58G57--shure-ulxd2-digital-handheld-transmitter-sm58-cartridge",
   "what": "Digital wireless handheld mic.",
   "specs": "SM58 capsule",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/ULXD",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -389,7 +389,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/ULXD4DG57--shure-ulxd4d-wireless-digital-receiver-g57-band",
   "what": "2-channel digital wireless receiver.",
   "specs": "2 ch; Dante",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/ULXD",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -403,7 +403,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/ULXD4QG57--shure-ulxd4q-wireless-digital-receiver-g57-band",
   "what": "4-channel digital wireless receiver.",
   "specs": "4 ch; Dante",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/ULXD",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -431,7 +431,7 @@
   "price_src": "https://www.ebay.com/itm/191495013753",
   "what": "1-channel digital wireless receiver.",
   "specs": "1 ch",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/ULXD",
   "notes": "Price from www.ebay.com."
  },
  {

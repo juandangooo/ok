@@ -1,0 +1,105 @@
+# ref-prefix | manual url
+Shure UA844+SWB/LC|
+Shure Beta 52A|https://www.shure.com/en-US/docs/guide/BETA52A
+Shure Beta 57A|https://www.shure.com/en-US/docs/guide/BETA57A
+Shure Beta 58A|https://www.shure.com/en-US/docs/guide/BETA58A
+Shure Beta 91A|https://www.shure.com/en-US/docs/guide/BETA91A
+Shure KSM137|https://www.shure.com/en-US/docs/guide/KSM137
+Shure KSM32|https://www.shure.com/en-US/docs/guide/KSM32
+Shure MVX2U|https://www.shure.com/en-US/docs/guide/MVX2U
+Shure MX418|https://www.shure.com/en-US/docs/guide/MX400
+Shure QLXD|https://www.shure.com/en-US/docs/guide/QLXD
+Shure SLXD|https://www.shure.com/en-US/docs/guide/SLXD
+Shure SM35|https://www.shure.com/en-US/docs/guide/SM35
+Shure SM57|https://www.shure.com/en-US/docs/guide/SM57
+Shure SM58|https://www.shure.com/en-US/docs/guide/SM58
+Shure SM81|https://www.shure.com/en-US/docs/guide/SM81
+Shure Super 55|https://www.shure.com/en-US/docs/guide/Super-55
+Shure ULXD|https://www.shure.com/en-US/docs/guide/ULXD
+Shure SM31FH|https://www.shure.com/en-US/docs/guide/SM31FH
+Shure MX153|https://www.shure.com/en-US/docs/guide/MX153
+Shure PA805SWB|https://www.shure.com/en-US/docs/guide/PA805SWB
+Shure UL4|https://www.shure.com/en-US/docs/guide/UL4
+Shure A56D|https://www.shure.com/en-US/docs/guide/A56D
+JBL SRX9|https://www.jbl.com/on/demandware.static/-/Sites-masterCatalog_Harman/default/dwdbc78cbc/pdfs/JBL_SRX900_Series_User_Manual-1000365021A-EN.pdf
+JBL PRX715|https://jblpro.com/en-US/site_elements/prx700-users-guide
+JBL PRX615M|https://www.manualslib.com/products/Jbl-Prx615m-3170705.html
+JBL VRX932|https://www.manualslib.com/manual/708265/Jbl-Vrx932la-1.html
+QSC K10.2|https://www.qscaudio.com/resource-files/productresources/spk/k.2/q_spk_k2_usermanual.pdf
+QSC K12.2|https://www.qscaudio.com/resource-files/productresources/spk/k.2/q_spk_k2_usermanual.pdf
+QSC KS118|https://www.qscaudio.com/resource-files/productresources/spk/ks/q_spk_ks_usermanual.pdf
+QSC KW181|https://www.qscaudio.com/resource-files/productresources/spk/kw/q_spk_kw_usermanual.pdf
+QSC PL340|https://www.qscaudio.com/resource-files/productresources/amp/pl3/q_amp_pl3_usermanual.pdf
+Sennheiser e835|https://assets.sennheiser.com/global-downloads/file/11699/e835_Manual_01_2019_EN.pdf
+Sennheiser e 835|https://assets.sennheiser.com/global-downloads/file/11699/e835_Manual_01_2019_EN.pdf
+Sennheiser e604|https://www.sennheiser.com/globalassets/digizuite/40608-en-e604_manual_03_2024_en.pdf
+Sennheiser e 604|https://www.sennheiser.com/globalassets/digizuite/40608-en-e604_manual_03_2024_en.pdf
+Sennheiser e904|https://docs.cloud.sennheiser.com/en-us/evolution-wired/evolution-wired/manual-e904.html
+Sennheiser e 904|https://docs.cloud.sennheiser.com/en-us/evolution-wired/evolution-wired/manual-e904.html
+Sennheiser e609|https://assets.sennheiser.com/global-downloads/file/11672/e609_Manual_01_2019_EN.pdf
+Sennheiser e 609|https://assets.sennheiser.com/global-downloads/file/11672/e609_Manual_01_2019_EN.pdf
+Sennheiser EK IEM G4|https://www.sennheiser.com/globalassets/digizuite/40953-en-ew_iem_g4_manual_v2-2_10_2019_en.pdf
+Sennheiser SR IEM G4|https://www.sennheiser.com/globalassets/digizuite/40953-en-ew_iem_g4_manual_v2-2_10_2019_en.pdf
+Sennheiser SK 100 G4|https://docs.cloud.sennheiser.com/en-us/ew-g4/ew-g4_bedienungsanleitung_12_2025_en.pdf
+Sennheiser EW-DX|https://docs.cloud.sennheiser.com/en-us/ew-d/ew-d/ew-dx-em4dante-rack-receiver.html
+Sennheiser MD 421|https://www.sennheiser.com/globalassets/digizuite/41237-en-quick_guide_md_421_ii_11_2022.pdf
+Sennheiser MKH 416|https://www.sennheiser.com/globalassets/digizuite/41136-en-mkh-416_manual_10_2025_en.pdf.pdf
+Sennheiser AC 41|https://assets.sennheiser.com/global-downloads/file/9959/AC_41_Quick_Guide_03_2018.pdf
+Sennheiser AC41|https://assets.sennheiser.com/global-downloads/file/9959/AC_41_Quick_Guide_03_2018.pdf
+Radial J48|https://www.radialeng.com/wp-content/uploads/2025/05/J48-Manual-WEB-05-25.pdf
+Radial ProDI|https://www.radialeng.com/wp-content/uploads/2025/03/ProDI-ProD2-Manual-WEB-02-2025.pdf
+Radial ProD2|https://www.radialeng.com/wp-content/uploads/2025/03/ProDI-ProD2-Manual-WEB-02-2025.pdf
+Radial ProAV2|https://www.radialeng.com/wp-content/uploads/2021/09/ProAV2-manual-WEB-08-2021.pdf
+Radial JDI Stereo|https://www.radialeng.com/wp-content/uploads/2026/02/JDI-Stereo-Manual-WEB-02-2026.pdf
+Midas M32 LIVE|https://www.manualslib.com/products/Midas-M32-Live-3331841.html
+Midas M32C|https://www.manualslib.com/manual/982165/Midas-M32c.html
+Midas DL32|https://www.bhphotovideo.com/lit_files/1119220.pdf
+Yamaha QL5|https://usa.yamaha.com/files/download/other_assets/5/392825/ql5_en_om_c0.pdf
+Yamaha DM3|https://www.manualslib.com/manual/3066508/Yamaha-Dm3.html
+Yamaha MG10XU|https://data.yamaha.com/files/download/other_assets/8/1506958/MG10XU_owners_manual_En_B0.pdf
+Yamaha MG12XU|https://usa.yamaha.com/files/download/other_assets/8/1506928/mg16x_en_om_a0.pdf
+Yamaha MG16XU|https://usa.yamaha.com/files/download/other_assets/8/1506928/mg16x_en_om_a0.pdf
+Yamaha MG06X|https://data.yamaha.com/files/download/other_assets/0/330990/VHM5420_MG06X_OM_En_D0_views.pdf
+Yamaha HS5|https://www.manualslib.com/manual/1749422/Yamaha-Hs-Series.html
+Obsidian NX1|https://www.fullcompass.com/common/files/73282-NX1InstallationGuide.pdf
+Obsidian Netron EN4|https://www.bhphotovideo.com/lit_files/840743.pdf
+Obsidian NX DMX|https://shop.bmisupply.com/Resources/en/ItemDocuments/36I40001/BMI.Obsidian.Control.NXDMX.InstallGuide.pdf
+Obsidian NX-K|https://shop.bmisupply.com/Resources/en/ItemDocuments/45257005/BMI.Obsidian.Control.NXK.InstallGuide.pdf
+Roland V-160HD|https://proav.roland.com/global/support/by_product/v-160hd/owners_manuals/
+Roland V-02HD|https://proav.roland.com/global/support/by_product/v-02hd_mk_ii/owners_manuals/
+RCF EVOX 12|https://www.manualslib.com/manual/1041462/Rcf-Evox-12.html
+RF Venue DISTRO9|https://www.rfvenue.com/hubfs/Spec%20Sheets/DISTRO9_spec_REV1.pdf
+RF Venue DISTRO4|https://info.rfvenue.com/hubfs/Spec%20Sheets/DISTRO4%20Specifications.pdf
+RF Venue CP Beam|https://www.rfvenue.com/all-products/cp-beam
+RF Venue CP Stage|https://www.rfvenue.com/all-products/cp-stage
+RF Venue Diversity Fin|https://www.rfvenue.com/all-products/diversity-fin
+Mackie SRM450|https://mackie.com/img/file_resources/SRMv3_OM.pdf
+Mackie SRM150|https://www.manualslib.com/manual/822141/Mackie-Srm150.html
+Mackie 402VLZ4|https://mackie.com/img/file_resources/402VLZ4_OM.pdf
+Behringer X32 Rack|https://cdn.mediavalet.com/aunsw/musictribe/IzBxMjc_gEeQhNLIdo58oA/kZ5qrv38DEa7dCuKYdoqeg/Original/8849854726174.pdf
+Behringer Powerplay P2|https://www.manualslib.com/manual/1669869/Behringer-Powerplay-P2.html
+Turbosound iQ12|https://www.manualslib.com/manual/1834016/Turbosound-Iq-Series.html
+Electro-Voice EKX-15P|https://products.electrovoice.com/binary/EKX%20Powered_IM_en.pdf
+Electro-Voice RE20|https://recordinghacks.com/pdf/ev/RE20-EDS.pdf
+Electro-Voice N/D767a|https://products.electrovoice.com/binary/NDYM767A_User_Manual.pdf
+Rode NT5|https://cdn1.rode.com/nt5-mp_product_manual.pdf
+Chauvet DJ Obey 10|https://www.chauvetdj.com/wp-content/uploads/2015/12/Obey_10_UM_Rev9_ML5.pdf
+Chauvet DJ Data Stream 4|https://www.chauvetdj.com/wp-content/uploads/2015/12/Data_Stream_4_UM_Rev3_WO.pdf
+Chauvet Professional Ovation Reve E-3|https://www.chauvetprofessional.com/wp-content/uploads/2022/08/Ovation-Reve-E-3-IP_UM_Rev6.pdf
+Chauvet DJ Xpress-512S|https://www.chauvetdj.com/wp-content/uploads/2019/05/XPRESS-512S-XPRESS-1024_UM_Rev2.pdf
+Crown PCC-160|https://tcfurlong.com/wp-content/uploads/Crown-PCC-160-Rental-Manual.pdf
+Countryman B3|https://countryman.com/wp-content/uploads/2017/07/b3_lavalier_datasheet.pdf
+Hollyland Solidcom C1 Pro|https://www.hollyland.com/download/manual/solidcom-c1-pro
+Honda EU3000iS|https://cdn.powerequipment.honda.com/pe/pdf/manuals/31ZT7601.pdf
+Honda EU7000iS|https://cdn.powerequipment.honda.com/pe/pdf/manuals/00X31Z376200.pdf
+Community R.5|https://downloads.biamp.com/assets/docs/default-source/manuals/biamp_manual_community_r-5_r-25.pdf
+Magewell USB Capture|https://www.magewell.com/files/documents/User_Manual/USB_Capture_Plus&Pro_User_Manual_en_US.pdf
+Lilliput A11|https://www.manualslib.com/manual/1626528/Lilliput-A11.html
+Nanlite FS-300B|https://cdn-aliyun.nanlite.com/release/1691034914745-279573-1-FS-150B%EF%BC%8FFS-200B%EF%BC%8FFS-300B+Manual%EF%BC%88NANLITE%EF%BC%89V1+20220928+W.pdf
+Jackery Explorer 2000 Pro|https://www.manualslib.com/manual/2581492/Jackery-Explorer-2000-Pro.html
+Predator 3500|https://manuals.harborfreight.com/manuals/59000-59999/59137-193175456229.pdf
+Predator 5000|https://manuals.harborfreight.com/manuals/71000-71999/71367-193175546364.pdf
+Lewitt Beat Kit Pro|https://www.lewitt-audio.com/support-downloads
+LR Baggs Para|https://www.lrbaggs.com/support/para-di-users-guide
+Traktor S4 MK2|https://docs.native-instruments.com/pdf-guides/traktor/traktor_kontrol_s4_mk2_manual_english.pdf
+Native Instruments Traktor Kontrol S4|https://docs.native-instruments.com/pdf-guides/traktor/traktor_kontrol_s4_mk2_manual_english.pdf

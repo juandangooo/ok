@@ -403,7 +403,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/DM3-D--yamaha-dm3-d-22-channel-digital-mixer-with-dante",
   "what": "Compact 22-channel digital mixer with Dante.",
   "specs": "16 mic in; Dante",
-  "manual": "",
+  "manual": "https://www.manualslib.com/manual/3066508/Yamaha-Dm3.html",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -417,7 +417,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/HS5--yamaha-hs5-5-inch-powered-studio-monitor",
   "what": "Small powered studio speaker.",
   "specs": "5\"; 70 W",
-  "manual": "",
+  "manual": "https://www.manualslib.com/manual/1749422/Yamaha-Hs-Series.html",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -431,7 +431,7 @@
   "price_src": "https://www.musiciansfriend.com/pro-audio/yamaha-mg06x-6-channel-mixer/j06376000000000",
   "what": "6-channel analog mixer with effects.",
   "specs": "6 ch",
-  "manual": "",
+  "manual": "https://data.yamaha.com/files/download/other_assets/0/330990/VHM5420_MG06X_OM_En_D0_views.pdf",
   "notes": "Price from www.musiciansfriend.com."
  },
  {
@@ -445,7 +445,7 @@
   "price_src": "https://www.musiciansfriend.com/pro-audio/yamaha-mg10xu-10-channel-mixer-with-effects/j06370000000000",
   "what": "10-channel mixer with effects and USB.",
   "specs": "10 ch; USB",
-  "manual": "",
+  "manual": "https://data.yamaha.com/files/download/other_assets/8/1506958/MG10XU_owners_manual_En_B0.pdf",
   "notes": "Price from www.musiciansfriend.com."
  },
  {
@@ -459,7 +459,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/MG12XU--yamaha-mg12xu-12-channel-mixer-with-usb-and-effects",
   "what": "12-channel mixer with effects and USB.",
   "specs": "12 ch; USB",
-  "manual": "",
+  "manual": "https://usa.yamaha.com/files/download/other_assets/8/1506928/mg16x_en_om_a0.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -473,7 +473,7 @@
   "price_src": "https://www.megamusicstore.net/product/mg16xu/",
   "what": "16-channel mixer with effects and USB.",
   "specs": "16 ch; USB",
-  "manual": "",
+  "manual": "https://usa.yamaha.com/files/download/other_assets/8/1506928/mg16x_en_om_a0.pdf",
   "notes": "Price from www.megamusicstore.net."
  },
  {
@@ -487,7 +487,7 @@
   "price_src": "https://muzeekworld.com/products/yamaha-ql5-32-channel-digital-mixer-for-live-applications",
   "what": "Large 64-channel digital console with Dante.",
   "specs": "64 mono + 8 stereo ch",
-  "manual": "",
+  "manual": "https://usa.yamaha.com/files/download/other_assets/5/392825/ql5_en_om_c0.pdf",
   "notes": "Price from muzeekworld.com."
  },
  {

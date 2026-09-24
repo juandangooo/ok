@@ -52,7 +52,7 @@
   "price_src": "https://www.jackery.com/products/solar-generator-2000-pro",
   "what": "Battery power station that runs gear where there is no wall power.",
   "specs": "~2160 Wh; 2200 W AC out",
-  "manual": "",
+  "manual": "https://www.manualslib.com/manual/2581492/Jackery-Explorer-2000-Pro.html",
   "notes": "Price from www.jackery.com."
  },
  {
@@ -95,7 +95,7 @@
   "price_src": "",
   "what": "Base plate to stack SRX906LA line array boxes on the ground or on a sub.",
   "specs": "For SRX906LA",
-  "manual": "",
+  "manual": "https://www.jbl.com/on/demandware.static/-/Sites-masterCatalog_Harman/default/dwdbc78cbc/pdfs/JBL_SRX900_Series_User_Manual-1000365021A-EN.pdf",
   "notes": "PRICE NOT CONFIRMED."
  },
  {
@@ -124,7 +124,7 @@
   "price_src": "https://www.studiogears.com/jbl-prx615m-2-way-powered-speaker-1000-watts.htm",
   "what": "Powered 15\" two-way PA speaker/monitor.",
   "specs": "15\" woofer; 1000 W class-D",
-  "manual": "",
+  "manual": "https://www.manualslib.com/products/Jbl-Prx615m-3170705.html",
   "notes": "Price from www.studiogears.com."
  },
  {
@@ -138,7 +138,7 @@
   "price_src": "https://www.amazon.com/s?k=JBL+PRX715",
   "what": "Powered 15\" two-way PA speaker.",
   "specs": "15\" woofer; 1500 W",
-  "manual": "",
+  "manual": "https://jblpro.com/en-US/site_elements/prx700-users-guide",
   "notes": "Price from www.amazon.com."
  },
  {
@@ -152,7 +152,7 @@
   "price_src": "https://www.bhphotovideo.com/c/product/1704817-REG/jbl_srx906la_af_array_frame.html",
   "what": "Flying frame to hang SRX906LA line arrays.",
   "specs": "For SRX906LA",
-  "manual": "",
+  "manual": "https://www.jbl.com/on/demandware.static/-/Sites-masterCatalog_Harman/default/dwdbc78cbc/pdfs/JBL_SRX900_Series_User_Manual-1000365021A-EN.pdf",
   "notes": "Price from www.bhphotovideo.com."
  },
  {
@@ -166,7 +166,7 @@
   "price_src": "",
   "what": "Mounts a small SRX906LA array on a speaker pole.",
   "specs": "For SRX906LA",
-  "manual": "",
+  "manual": "https://www.jbl.com/on/demandware.static/-/Sites-masterCatalog_Harman/default/dwdbc78cbc/pdfs/JBL_SRX900_Series_User_Manual-1000365021A-EN.pdf",
   "notes": "PRICE NOT CONFIRMED."
  },
  {
@@ -180,7 +180,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/SRX906LA--jbl-srx906la-880w-powered-speaker-array",
   "what": "Powered dual-6.5\" line array box.",
   "specs": "2x6.5\" + HF; 1750 W; DSP",
-  "manual": "",
+  "manual": "https://www.jbl.com/on/demandware.static/-/Sites-masterCatalog_Harman/default/dwdbc78cbc/pdfs/JBL_SRX900_Series_User_Manual-1000365021A-EN.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -194,7 +194,7 @@
   "price_src": "https://www.americanmusical.com/p/jbl-srx910la-af-array-frame-for-srx910la",
   "what": "Flying frame to hang SRX910LA line arrays.",
   "specs": "For SRX910LA",
-  "manual": "",
+  "manual": "https://www.jbl.com/on/demandware.static/-/Sites-masterCatalog_Harman/default/dwdbc78cbc/pdfs/JBL_SRX900_Series_User_Manual-1000365021A-EN.pdf",
   "notes": "Price from www.americanmusical.com.",
   "category": "Audio"
  },
@@ -209,7 +209,7 @@
   "price_src": "",
   "what": "Base plate to ground-stack SRX910LA boxes.",
   "specs": "For SRX910LA",
-  "manual": "",
+  "manual": "https://www.jbl.com/on/demandware.static/-/Sites-masterCatalog_Harman/default/dwdbc78cbc/pdfs/JBL_SRX900_Series_User_Manual-1000365021A-EN.pdf",
   "notes": "PRICE NOT CONFIRMED."
  },
  {
@@ -223,7 +223,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/SRX910LA--jbl-srx910la-880w-powered-line-array-loudspeaker",
   "what": "Powered dual-10\" line array box.",
   "specs": "2x10\" + HF; 2000 W; DSP",
-  "manual": "",
+  "manual": "https://www.jbl.com/on/demandware.static/-/Sites-masterCatalog_Harman/default/dwdbc78cbc/pdfs/JBL_SRX900_Series_User_Manual-1000365021A-EN.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -237,7 +237,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/SRX918S--jbl-srx918s-2500-watt-18-inch-powered-subwoofer",
   "what": "Powered 18\" subwoofer.",
   "specs": "1x18\"; 2000 W",
-  "manual": "",
+  "manual": "https://www.jbl.com/on/demandware.static/-/Sites-masterCatalog_Harman/default/dwdbc78cbc/pdfs/JBL_SRX900_Series_User_Manual-1000365021A-EN.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -251,7 +251,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/SRX928S--jbl-srx928s-2500-watt-2-by-18-inch-powered-subwoofer",
   "what": "Powered dual-18\" subwoofer.",
   "specs": "2x18\"; 2000 W",
-  "manual": "",
+  "manual": "https://www.jbl.com/on/demandware.static/-/Sites-masterCatalog_Harman/default/dwdbc78cbc/pdfs/JBL_SRX900_Series_User_Manual-1000365021A-EN.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -280,7 +280,7 @@
   "price_src": "https://www.shi.com/product/34803027/JBL-Professional-VRX900-Series-VRX932LA-1",
   "what": "Passive 12\" compact line array box.",
   "specs": "12\" + 3x1\" HF; 800 W",
-  "manual": "",
+  "manual": "https://www.manualslib.com/manual/708265/Jbl-Vrx932la-1.html",
   "notes": "Price from www.shi.com."
  },
  {
@@ -294,7 +294,7 @@
   "price_src": "https://www.shi.com/product/34803027/JBL-Professional-VRX900-Series-VRX932LA-1",
   "what": "Passive 12\" compact line array box.",
   "specs": "12\" + 3x1\" HF; 800 W",
-  "manual": "",
+  "manual": "https://www.manualslib.com/manual/708265/Jbl-Vrx932la-1.html",
   "notes": "Price from www.shi.com."
  },
  {
@@ -520,7 +520,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/BeatkitPro--lewitt-beatkit-pro-7-piece-drum-mic-kit",
   "what": "Complete set of mics for a drum kit.",
   "specs": "7 mics: kick, snare/toms, overheads",
-  "manual": "",
+  "manual": "https://www.lewitt-audio.com/support-downloads",
   "notes": "Price from www.sweetwater.com."
  },
  {

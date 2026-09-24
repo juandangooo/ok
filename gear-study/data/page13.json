@@ -10,7 +10,7 @@
   "price_src": "",
   "what": "Rain cover.",
   "specs": "",
-  "manual": "",
+  "manual": "https://www.qscaudio.com/resource-files/productresources/spk/k.2/q_spk_k2_usermanual.pdf",
   "notes": "PRICE NOT CONFIRMED."
  },
  {
@@ -38,7 +38,7 @@
   "price_src": "https://equipboard.com/items/qsc-k12-2-active-loudspeaker",
   "what": "Powered 12\" speaker.",
   "specs": "12\"; 2000 W",
-  "manual": "",
+  "manual": "https://www.qscaudio.com/resource-files/productresources/spk/k.2/q_spk_k2_usermanual.pdf",
   "notes": "Price from equipboard.com."
  },
  {
@@ -52,7 +52,7 @@
   "price_src": "",
   "what": "Rain cover.",
   "specs": "",
-  "manual": "",
+  "manual": "https://www.qscaudio.com/resource-files/productresources/spk/k.2/q_spk_k2_usermanual.pdf",
   "notes": "PRICE NOT CONFIRMED."
  },
  {
@@ -66,7 +66,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/KS118--qsc-ks118-3600w-18-inch-powered-subwoofer",
   "what": "Powered 18\" subwoofer.",
   "specs": "18\"; 3600 W",
-  "manual": "",
+  "manual": "https://www.qscaudio.com/resource-files/productresources/spk/ks/q_spk_ks_usermanual.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -122,7 +122,7 @@
   "price_src": "https://equipboard.com/items/qsc-kw181-powered-sub-woofer-18-1000w",
   "what": "Powered 18\" subwoofer.",
   "specs": "18\"; 1000 W",
-  "manual": "",
+  "manual": "https://www.qscaudio.com/resource-files/productresources/spk/kw/q_spk_kw_usermanual.pdf",
   "notes": "Price from equipboard.com."
  },
  {
@@ -136,7 +136,7 @@
   "price_src": "",
   "what": "Rain cover.",
   "specs": "",
-  "manual": "",
+  "manual": "https://www.qscaudio.com/resource-files/productresources/spk/kw/q_spk_kw_usermanual.pdf",
   "notes": "PRICE NOT CONFIRMED."
  },
  {
@@ -150,7 +150,7 @@
   "price_src": "",
   "what": "Rain skirt.",
   "specs": "",
-  "manual": "",
+  "manual": "https://www.qscaudio.com/resource-files/productresources/spk/kw/q_spk_kw_usermanual.pdf",
   "notes": "PRICE NOT CONFIRMED."
  },
  {
@@ -164,7 +164,7 @@
   "price_src": "https://www.musiciansfriend.com/pro-audio/qsc-pl340-power-amp",
   "what": "Two-channel power amp for passive speakers.",
   "specs": "2x 2000 W @ 4Ω",
-  "manual": "",
+  "manual": "https://www.qscaudio.com/resource-files/productresources/amp/pl3/q_amp_pl3_usermanual.pdf",
   "notes": "Price from www.musiciansfriend.com."
  },
  {
@@ -192,7 +192,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/JDIStereo--radial-jdi-stereo-jensen-equipped-2-channel-passive-instrument-direct-box",
   "what": "Two-channel passive DI with Jensen transformers.",
   "specs": "2 ch; passive",
-  "manual": "",
+  "manual": "https://www.radialeng.com/wp-content/uploads/2026/02/JDI-Stereo-Manual-WEB-02-2026.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -206,7 +206,7 @@
   "price_src": "https://www.musiciansfriend.com/pro-audio/radial-engineering-proav2-stereo-direct-box",
   "what": "Stereo DI for laptops/playback (RCA, 3.5 mm, 1/4\").",
   "specs": "2 ch; passive",
-  "manual": "",
+  "manual": "https://www.radialeng.com/wp-content/uploads/2021/09/ProAV2-manual-WEB-08-2021.pdf",
   "notes": "Price from www.musiciansfriend.com."
  },
  {
@@ -220,7 +220,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/ProD2--radial-prod2-2-channel-passive-instrument-direct-box",
   "what": "Stereo passive DI for keyboards.",
   "specs": "2 ch; passive",
-  "manual": "",
+  "manual": "https://www.radialeng.com/wp-content/uploads/2025/03/ProDI-ProD2-Manual-WEB-02-2025.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -234,7 +234,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/ProDI--radial-prodi-1-channel-passive-instrument-direct-box",
   "what": "Single passive DI for bass/keys.",
   "specs": "1 ch; passive",
-  "manual": "",
+  "manual": "https://www.radialeng.com/wp-content/uploads/2025/03/ProDI-ProD2-Manual-WEB-02-2025.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -248,7 +248,7 @@
   "price_src": "https://www.palenmusic.com/products/radial-j48-active-direct-box",
   "what": "Active DI powered by phantom power.",
   "specs": "1 ch; active",
-  "manual": "",
+  "manual": "https://www.radialeng.com/wp-content/uploads/2025/05/J48-Manual-WEB-05-25.pdf",
   "notes": "Price from www.palenmusic.com."
  },
  {
@@ -318,7 +318,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/EVOX12--rcf-evox-12-column-speaker-array-system",
   "what": "Column speaker + 15\" sub in one system.",
   "specs": "2x 1400 W; column + sub",
-  "manual": "",
+  "manual": "https://www.manualslib.com/manual/1041462/Rcf-Evox-12.html",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -332,7 +332,7 @@
   "price_src": "",
   "what": "Rolling case for EVOX 12.",
   "specs": "",
-  "manual": "",
+  "manual": "https://www.manualslib.com/manual/1041462/Rcf-Evox-12.html",
   "notes": "PRICE NOT CONFIRMED."
  },
  {
@@ -374,7 +374,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/CPB--rf-venue-cpb-beam-antenna",
   "what": "Circular-polarized directional antenna for wireless mics.",
   "specs": "470–698 MHz",
-  "manual": "",
+  "manual": "https://www.rfvenue.com/all-products/cp-beam",
   "notes": "Price from www.sweetwater.com.",
   "category": "Audio"
  },
@@ -389,7 +389,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/CP-STAGE--rf-venue-cp-stage-weather-resistant-ip-rated-antenna-for-wireless-systems",
   "what": "Wide-band stage antenna for wireless.",
   "specs": "470–928 MHz",
-  "manual": "",
+  "manual": "https://www.rfvenue.com/all-products/cp-stage",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -403,7 +403,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/DISTRO4--rf-venue-distro4-antenna-distribution-system",
   "what": "Shares one antenna pair with 4 wireless receivers.",
   "specs": "4 receivers",
-  "manual": "",
+  "manual": "https://info.rfvenue.com/hubfs/Spec%20Sheets/DISTRO4%20Specifications.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -417,7 +417,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/DISTRO9HDR--rf-venue-distro9-hdr-antenna-distribution-system",
   "what": "Shares antennas with 9 receivers.",
   "specs": "9 receivers",
-  "manual": "",
+  "manual": "https://www.rfvenue.com/hubfs/Spec%20Sheets/DISTRO9_spec_REV1.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -431,7 +431,7 @@
   "price_src": "https://www.rfvenue.com/all-products/diversity-fin",
   "what": "Diversity antenna in one paddle.",
   "specs": "470–698 MHz",
-  "manual": "",
+  "manual": "https://www.rfvenue.com/all-products/diversity-fin",
   "notes": "Price from www.rfvenue.com.",
   "category": "Audio"
  },
@@ -489,7 +489,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/NT5Sing--rode-nt5-s-small-diaphragm-condenser-microphone",
   "what": "Pencil condenser for overheads/instruments.",
   "specs": "Cardioid; phantom power",
-  "manual": "",
+  "manual": "https://cdn1.rode.com/nt5-mp_product_manual.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -503,7 +503,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/V02HDmk2--roland-v-02hd-mk-ii-streaming-video-mixer",
   "what": "2-input HDMI video switcher for streaming.",
   "specs": "2x HDMI in",
-  "manual": "",
+  "manual": "https://proav.roland.com/global/support/by_product/v-02hd_mk_ii/owners_manuals/",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -517,7 +517,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/V160HD--roland-v-160hd-streaming-video-switcher",
   "what": "16-input HDMI/SDI video switcher.",
   "specs": "8 SDI + 8 HDMI in",
-  "manual": "",
+  "manual": "https://proav.roland.com/global/support/by_product/v-160hd/owners_manuals/",
   "notes": "Price from www.sweetwater.com."
  },
  {

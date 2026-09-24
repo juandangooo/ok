@@ -332,7 +332,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/Obey10--chauvet-dj-obey-10-rackmount-128-ch-dmx-controller",
   "what": "Basic DMX controller for up to 8 fixtures x 16 channels. Program scenes and chases with sliders.",
   "specs": "128 channels (8 fixtures x 16 ch); scenes/chases; rack mount",
-  "manual": "",
+  "manual": "https://www.chauvetdj.com/wp-content/uploads/2015/12/Obey_10_UM_Rev9_ML5.pdf",
   "notes": "Retailers range $139.99-$179.99."
  },
  {
@@ -529,7 +529,7 @@
   "price_src": "https://www.chauvetdj.com/products/data-stream-4/",
   "what": "Same DMX splitter as the Data Stream 4 above (DS4 = Data Stream 4), kept as a sub-rental.",
   "specs": "1 in / 4 isolated out",
-  "manual": "",
+  "manual": "https://www.chauvetdj.com/wp-content/uploads/2015/12/Data_Stream_4_UM_Rev3_WO.pdf",
   "notes": "SUB-RENTAL."
  },
  {

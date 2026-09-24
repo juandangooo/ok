@@ -388,7 +388,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/EKX15P--electro-voice-ekx-15p-1500w-15-inch-powered-speaker",
   "what": "A powered (amp built in) 15-inch PA speaker for main sound at medium events.",
   "specs": "15\" 2-way; 1500W; DSP",
-  "manual": "",
+  "manual": "https://products.electrovoice.com/binary/EKX%20Powered_IM_en.pdf",
   "notes": ""
  },
  {
@@ -416,7 +416,7 @@
   "price_src": "https://www.musiciansfriend.com/pro-audio/electro-voice-n-d767a-dynamic-supercardioid-vocal-microphone",
   "what": "Dynamic vocal mic for live singing. Supercardioid = tight pickup that helps avoid feedback.",
   "specs": "Dynamic; supercardioid; XLR",
-  "manual": "",
+  "manual": "https://products.electrovoice.com/binary/NDYM767A_User_Manual.pdf",
   "notes": ""
  },
  {
@@ -430,7 +430,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/RE20--electro-voice-re20-broadcast-microphone-with-variable-d",
   "what": "The classic radio/podcast voice mic. Also great on kick drum. 'Variable-D' = your voice doesn't get boomy when you lean in close.",
   "specs": "Dynamic; cardioid; Variable-D; internal pop filter",
-  "manual": "",
+  "manual": "https://recordinghacks.com/pdf/ev/RE20-EDS.pdf",
   "notes": ""
  },
  {

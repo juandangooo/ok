@@ -67,7 +67,7 @@
   "price_src": "https://www.zackelectronics.com/lilliput-10-1-4k-hdmi-monitor-a11.html",
   "what": "Camera-top monitor to check picture.",
   "specs": "10.1\"; 4K HDMI/3G-SDI",
-  "manual": "",
+  "manual": "https://www.manualslib.com/manual/1626528/Lilliput-A11.html",
   "notes": "Price from www.zackelectronics.com."
  },
  {
@@ -109,7 +109,7 @@
   "price_src": "https://stringsandthingsmusic.com/products/ay6ws5a46sjy4pldi3k4sk3u",
   "what": "Passive DI: turns instrument signal into mic level for the mixer.",
   "specs": "Passive; 1/4\" in, XLR out",
-  "manual": "",
+  "manual": "https://www.lrbaggs.com/support/para-di-users-guide",
   "notes": "Price from stringsandthingsmusic.com."
  },
  {
@@ -221,7 +221,7 @@
   "price_src": "",
   "what": "Preamp + DI with EQ for acoustic guitar.",
   "specs": "5-band EQ; XLR out",
-  "manual": "",
+  "manual": "https://www.lrbaggs.com/support/para-di-users-guide",
   "notes": "PRICE NOT CONFIRMED."
  },
  {
@@ -264,7 +264,7 @@
   "price_src": "https://vintageking.com/mackie-402-vlz4",
   "what": "Tiny 4-channel analog mixer.",
   "specs": "4 ch; 2 mic pre",
-  "manual": "",
+  "manual": "https://mackie.com/img/file_resources/402VLZ4_OM.pdf",
   "notes": "Price from vintageking.com."
  },
  {
@@ -278,7 +278,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/SRM150--mackie-srm150-compact-150w-powered-pa-system",
   "what": "Small powered PA/monitor.",
   "specs": "5.25\"; 150 W",
-  "manual": "",
+  "manual": "https://www.manualslib.com/manual/822141/Mackie-Srm150.html",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -292,7 +292,7 @@
   "price_src": "https://www.fullcompass.com/prod/258896-mackie-srm450v3-12-portable-powered-loudspeaker-1000w",
   "what": "Powered 12\" two-way PA speaker.",
   "specs": "12\"; 1000 W",
-  "manual": "",
+  "manual": "https://mackie.com/img/file_resources/SRMv3_OM.pdf",
   "notes": "Price from www.fullcompass.com."
  },
  {
@@ -306,7 +306,7 @@
   "price_src": "https://www.fullcompass.com/prod/600792-magewell-usb-capture-hdmi-plus-one-channel-2k-hdmi-capture-device",
   "what": "Brings HDMI video into a computer over USB (for streaming/recording).",
   "specs": "HDMI in; USB 3.0",
-  "manual": "",
+  "manual": "https://www.magewell.com/files/documents/User_Manual/USB_Capture_Plus&Pro_User_Manual_en_US.pdf",
   "notes": "Price from www.fullcompass.com."
  },
  {

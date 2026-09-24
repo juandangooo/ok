@@ -112,7 +112,7 @@
   "price_src": "https://djtechtools.com/2013/09/12/kontrol-s2-s4-mk2-new-traktor-dj-compatible-controllers/",
   "what": "4-deck DJ controller with built-in audio interface.",
   "specs": "4 decks",
-  "manual": "",
+  "manual": "https://docs.native-instruments.com/pdf-guides/traktor/traktor_kontrol_s4_mk2_manual_english.pdf",
   "notes": "Price from djtechtools.com."
  },
  {
@@ -426,7 +426,7 @@
   "price_src": "https://reverb.com/p/turbosound-iq12-2-way-2500-watt-12-powered-pa-speaker",
   "what": "Powered 12\" speaker.",
   "specs": "12\"; 2500 W",
-  "manual": "",
+  "manual": "https://www.manualslib.com/manual/1834016/Turbosound-Iq-Series.html",
   "notes": "Price from reverb.com."
  },
  {
@@ -440,7 +440,7 @@
   "price_src": "",
   "what": "Replacement speaker driver.",
   "specs": "12\"",
-  "manual": "",
+  "manual": "https://www.manualslib.com/manual/1834016/Turbosound-Iq-Series.html",
   "notes": "PRICE NOT CONFIRMED."
  },
  {
@@ -496,7 +496,7 @@
   "price_src": "",
   "what": "Cardioid lav mic.",
   "specs": "Cardioid; TA4F",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/UL4",
   "notes": "PRICE NOT CONFIRMED."
  },
  {

@@ -277,7 +277,7 @@
   "price_src": "https://www.avalive.com/Hollyland/Solidcom-C1-Pro-8S/338051/productDetail.php",
   "what": "Wireless headset intercom (\"com\"): crew talk hands-free, all at once (full-duplex), no beltpacks. 8 headsets.",
   "specs": "8 headsets; full-duplex; 1.9 GHz DECT; noise cancelling",
-  "manual": "",
+  "manual": "https://www.hollyland.com/download/manual/solidcom-c1-pro",
   "notes": "Priced as the C1 Pro-8S kit."
  },
  {
@@ -291,7 +291,7 @@
   "price_src": "",
   "what": "Extra single-ear C1 Pro headset that joins the master.",
   "specs": "Single ear; 1.9 GHz",
-  "manual": "",
+  "manual": "https://www.hollyland.com/download/manual/solidcom-c1-pro",
   "notes": "PRICE NOT CONFIRMED."
  },
  {
@@ -305,7 +305,7 @@
   "price_src": "",
   "what": "The master headset that the other C1 headsets connect to.",
   "specs": "Master; 1.9 GHz",
-  "manual": "",
+  "manual": "https://www.hollyland.com/download/manual/solidcom-c1-pro",
   "notes": "PRICE NOT CONFIRMED."
  },
  {
@@ -375,7 +375,7 @@
   "price_src": "https://www.ebay.com/p/16048631970",
   "what": "Quiet 3,000 W inverter generator for small setups (a few speakers/lights).",
   "specs": "3000 W; 120V; inverter (clean power)",
-  "manual": "",
+  "manual": "https://cdn.powerequipment.honda.com/pe/pdf/manuals/31ZT7601.pdf",
   "notes": "You own 0."
  },
  {
@@ -389,7 +389,7 @@
   "price_src": "https://www.machinerytrader.com/listings/for-sale/honda/eu7000is/construction-equipment",
   "what": "Big quiet inverter generator: 7,000 W, 120/240V. Powers a small stage off-grid.",
   "specs": "7000 W; 120/240V; inverter; electric start",
-  "manual": "",
+  "manual": "https://cdn.powerequipment.honda.com/pe/pdf/manuals/00X31Z376200.pdf",
   "notes": "Price = average market listing."
  },
  {

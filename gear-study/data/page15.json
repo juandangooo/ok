@@ -25,7 +25,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/E604--sennheiser-e-604-dynamic-cardioid-tom-snare-percussion-microphone",
   "what": "Clip-on dynamic mic for toms/snare.",
   "specs": "Cardioid",
-  "manual": "",
+  "manual": "https://www.sennheiser.com/globalassets/digizuite/40608-en-e604_manual_03_2024_en.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -39,7 +39,7 @@
   "price_src": "https://easymusiccenter.com/products/e609",
   "what": "Flat dynamic mic for guitar cabinets.",
   "specs": "Supercardioid",
-  "manual": "",
+  "manual": "https://assets.sennheiser.com/global-downloads/file/11672/e609_Manual_01_2019_EN.pdf",
   "notes": "Price from easymusiccenter.com."
  },
  {
@@ -53,7 +53,7 @@
   "price_src": "https://www.walmart.com/ip/Sennheiser-E835-Dynamic-Vocal-Microphone/21765837",
   "what": "Handheld vocal mic.",
   "specs": "Cardioid",
-  "manual": "",
+  "manual": "https://assets.sennheiser.com/global-downloads/file/11699/e835_Manual_01_2019_EN.pdf",
   "notes": "Price from www.walmart.com."
  },
  {
@@ -67,7 +67,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/E835S--sennheiser-e-835-s-dynamic-cardioid-vocal-microphone-with-on-off-switch",
   "what": "Vocal mic with on/off switch.",
   "specs": "Cardioid; switch",
-  "manual": "",
+  "manual": "https://assets.sennheiser.com/global-downloads/file/11699/e835_Manual_01_2019_EN.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -81,7 +81,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/e904--sennheiser-e-904-dynamic-drum-microphone",
   "what": "Clip-on dynamic drum mic.",
   "specs": "Cardioid",
-  "manual": "",
+  "manual": "https://docs.cloud.sennheiser.com/en-us/evolution-wired/evolution-wired/manual-e904.html",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -95,7 +95,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/EKIEMG4-G--sennheiser-ek-iem-g4-wireless-in-ear-monitor-receiver-g-band",
   "what": "Belt receiver for in-ear monitors.",
   "specs": "UHF",
-  "manual": "",
+  "manual": "https://www.sennheiser.com/globalassets/digizuite/40953-en-ew_iem_g4_manual_v2-2_10_2019_en.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -165,7 +165,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/SRIEMG4-A--sennheiser-sr-iem-g4-wireless-in-ear-monitor-transmitter-a-band",
   "what": "Sends in-ear monitor mix to bodypacks.",
   "specs": "Stereo UHF",
-  "manual": "",
+  "manual": "https://www.sennheiser.com/globalassets/digizuite/40953-en-ew_iem_g4_manual_v2-2_10_2019_en.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -221,7 +221,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/EWDXEM4Da-Q--sennheiser-ew-dx-em-4-dante-wireless-receiver-q1-9-band",
   "what": "Digital 4-channel wireless receiver with Dante.",
   "specs": "4 ch; Dante",
-  "manual": "",
+  "manual": "https://docs.cloud.sennheiser.com/en-us/ew-d/ew-d/ew-dx-em4dante-rack-receiver.html",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -235,7 +235,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/EWDXSK-R--sennheiser-ew-dw-sk-wireless-bodypack-transmitter-r1-9-band",
   "what": "Digital belt pack for lav/headset.",
   "specs": "Digital UHF",
-  "manual": "",
+  "manual": "https://docs.cloud.sennheiser.com/en-us/ew-d/ew-d/ew-dx-em4dante-rack-receiver.html",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -263,7 +263,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/SRIEMG4-A--sennheiser-sr-iem-g4-wireless-in-ear-monitor-transmitter-a-band",
   "what": "In-ear transmitter.",
   "specs": "Stereo UHF",
-  "manual": "",
+  "manual": "https://www.sennheiser.com/globalassets/digizuite/40953-en-ew_iem_g4_manual_v2-2_10_2019_en.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -333,7 +333,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/MD421--sennheiser-md-421-ii-cardioid-dynamic-microphone",
   "what": "Classic mic for toms, amps and horns.",
   "specs": "Cardioid; 5-pos bass roll-off",
-  "manual": "",
+  "manual": "https://www.sennheiser.com/globalassets/digizuite/41237-en-quick_guide_md_421_ii_11_2022.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -361,7 +361,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/MKH416--sennheiser-mkh-416-shotgun-condenser-microphone",
   "what": "Directional shotgun mic for film/broadcast.",
   "specs": "Supercardioid/lobar",
-  "manual": "",
+  "manual": "https://www.sennheiser.com/globalassets/digizuite/41136-en-mkh-416_manual_10_2025_en.pdf.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -389,7 +389,7 @@
   "price_src": "https://www.cdw.com/product/sennheiser-evolution-wireless-g4-sk-100-g4-a-wireless-bodypack-transmitte/6565181",
   "what": "Belt pack for lav/headset.",
   "specs": "UHF",
-  "manual": "",
+  "manual": "https://docs.cloud.sennheiser.com/en-us/ew-g4/ew-g4_bedienungsanleitung_12_2025_en.pdf",
   "notes": "Price from www.cdw.com."
  },
  {
@@ -403,7 +403,7 @@
   "price_src": "https://www.cdw.com/product/sennheiser-evolution-wireless-g4-sk-100-g4-a-wireless-bodypack-transmitte/6565181",
   "what": "Belt pack for lav/headset.",
   "specs": "UHF",
-  "manual": "",
+  "manual": "https://docs.cloud.sennheiser.com/en-us/ew-g4/ew-g4_bedienungsanleitung_12_2025_en.pdf",
   "notes": "Price from www.cdw.com."
  },
  {
@@ -473,7 +473,7 @@
   "price_src": "",
   "what": "Podium gooseneck mic.",
   "specs": "Cardioid",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/MX400",
   "notes": "PRICE NOT CONFIRMED."
  },
  {
@@ -487,7 +487,7 @@
   "price_src": "",
   "what": "Clamps a mic onto a drum rim.",
   "specs": "Universal",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/A56D",
   "notes": "PRICE NOT CONFIRMED."
  },
  {
@@ -545,7 +545,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/Beta52--shure-beta-52a-supercardioid-dynamic-kick-drum-microphone",
   "what": "Kick drum mic.",
   "specs": "Supercardioid",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/BETA52A",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -559,7 +559,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/Beta57A--shure-beta-57a-supercardioid-dynamic-instrument-microphone",
   "what": "Snare/instrument mic.",
   "specs": "Supercardioid",
-  "manual": "",
+  "manual": "https://www.shure.com/en-US/docs/guide/BETA57A",
   "notes": "Price from www.sweetwater.com."
  }
 ]

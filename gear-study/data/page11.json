@@ -52,7 +52,7 @@
   "price_src": "",
   "what": "32-in/16-out digital stage box for the M32.",
   "specs": "32 mic pre; AES50",
-  "manual": "",
+  "manual": "https://www.bhphotovideo.com/lit_files/1119220.pdf",
   "notes": "PRICE NOT CONFIRMED."
  },
  {
@@ -66,7 +66,7 @@
   "price_src": "https://www.samash.com/midas-m32-live-digital-mixer-mm32livex",
   "what": "40-channel digital mixing console.",
   "specs": "40 inputs; 25 buses",
-  "manual": "",
+  "manual": "https://www.manualslib.com/products/Midas-M32-Live-3331841.html",
   "notes": "Price from www.samash.com."
  },
  {
@@ -80,7 +80,7 @@
   "price_src": "https://equipboard.com/items/midas-m32c",
   "what": "Rack-mount M32 engine controlled by tablet/computer.",
   "specs": "40 ch; rack",
-  "manual": "",
+  "manual": "https://www.manualslib.com/manual/982165/Midas-M32c.html",
   "notes": "Price from equipboard.com."
  },
  {
@@ -178,7 +178,7 @@
   "price_src": "https://www.bhphotovideo.com/c/product/1710116-REG/nanlite_fs_300b_bi_color_led_spot.html",
   "what": "Bi-color LED spotlight for video.",
   "specs": "350 W; 2700–6500K",
-  "manual": "",
+  "manual": "https://cdn-aliyun.nanlite.com/release/1691034914745-279573-1-FS-150B%EF%BC%8FFS-200B%EF%BC%8FFS-300B+Manual%EF%BC%88NANLITE%EF%BC%89V1+20220928+W.pdf",
   "notes": "Price from www.bhphotovideo.com."
  },
  {
@@ -334,7 +334,7 @@
   "price_src": "https://www.obsidiancontrol.com/products/en4",
   "what": "Turns network lighting data into 4 DMX lines.",
   "specs": "4 DMX ports",
-  "manual": "",
+  "manual": "https://www.bhphotovideo.com/lit_files/840743.pdf",
   "notes": "Price from www.obsidiancontrol.com."
  },
  {
@@ -348,7 +348,7 @@
   "price_src": "https://www.obsidiancontrol.com/products/nx1-16",
   "what": "Lighting console running ONYX.",
   "specs": "4 universes onboard",
-  "manual": "",
+  "manual": "https://www.fullcompass.com/common/files/73282-NX1InstallationGuide.pdf",
   "notes": "Price from www.obsidiancontrol.com."
  },
  {
@@ -362,7 +362,7 @@
   "price_src": "https://www.sweetwater.com/store/detail/NXDMX--obsidian-nx-dmx-usb-2-port-dmx-node",
   "what": "USB interface outputting 2 DMX lines.",
   "specs": "2 DMX ports",
-  "manual": "",
+  "manual": "https://shop.bmisupply.com/Resources/en/ItemDocuments/36I40001/BMI.Obsidian.Control.NXDMX.InstallGuide.pdf",
   "notes": "Price from www.sweetwater.com."
  },
  {
@@ -376,7 +376,7 @@
   "price_src": "https://obsidiancontrol.com/nx-k",
   "what": "Extra buttons/faders for ONYX.",
   "specs": "USB",
-  "manual": "",
+  "manual": "https://shop.bmisupply.com/Resources/en/ItemDocuments/45257005/BMI.Obsidian.Control.NXK.InstallGuide.pdf",
   "notes": "Price from obsidiancontrol.com."
  },
  {
