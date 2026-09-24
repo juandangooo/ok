@@ -1,7 +1,7 @@
 <meta charset="utf-8">
 <title>Load-In Drills</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{
   --bg:#e9ecef; --panel:#f8f9fa; --ink:#15191e; --muted:#5b6570; --line:#cfd5db;
@@ -169,6 +169,76 @@ h2{font:800 26px/1.1 var(--display);text-transform:uppercase;letter-spacing:.02e
 .lnk span{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
 .lnk.search b::after{content:" (search)";font-weight:600;color:var(--muted)}
 .loading{padding:40px 0;color:var(--muted)}
+
+/* ---- quiet theme: warm neutrals, one muted accent, thin rules ---- */
+:root{
+  --bg:#f3f1ec; --panel:#fbfaf7; --ink:#1d1d1b; --muted:#6f6c66; --line:#dcd8d0;
+  --accent:#c2623a; --accent-ink:#fbfaf7; --good:#4d7a58; --bad:#b0503c;
+  --audio:#5b7a99; --lighting:#a8843f; --video:#7d6f96; --other:#8a877f;
+  --shadow:none;
+  --display:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  color-scheme:dark; --bg:#161615; --panel:#1e1e1c; --ink:#ecebe6; --muted:#9b978f; --line:#34332f; --accent:#d57a4f; --accent-ink:#161615; --good:#7fae88; --bad:#d9826d;
+}}
+:root[data-theme="dark"]{color-scheme:dark; --bg:#161615; --panel:#1e1e1c; --ink:#ecebe6; --muted:#9b978f; --line:#34332f; --accent:#d57a4f; --accent-ink:#161615; --good:#7fae88; --bad:#d9826d;}
+body{font:15px/1.5 var(--body);-webkit-font-smoothing:antialiased}
+.brand{font:600 20px/1 var(--body);letter-spacing:-.01em;text-transform:none;gap:8px}
+.brand .tape{background:none;color:var(--ink);padding:0;transform:none;box-shadow:none;display:flex;align-items:center;gap:8px}
+.brand .tape::before{content:"";width:10px;height:10px;background:var(--accent);display:inline-block}
+.stat{border-radius:3px;background:transparent;font:400 12px var(--mono)}
+.stat b{font-weight:500;color:var(--ink)}
+nav{border-bottom:1px solid var(--line)}
+nav button{font:500 14px var(--body);letter-spacing:0;text-transform:none;border-bottom-width:2px;padding:10px 12px}
+nav button[aria-selected="true"]{border-bottom-color:var(--ink)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.label{font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h2{font:600 22px/1.2 var(--body);letter-spacing:-.01em;text-transform:none}
+.card,.mode,.dept,.item,.gig,.prow,.check,.feedback,.opt,.lnk,.miss div{border-radius:4px;box-shadow:none}
+.mode .t,.gig .v{font:600 17px/1.2 var(--body);text-transform:none;letter-spacing:-.01em}
+.mode:hover,.gig:hover,.item:hover{border-color:var(--ink)}
+.chip{border-radius:3px;font:500 13px var(--body);padding:6px 12px}
+.prompt{font:600 20px/1.3 var(--body);text-transform:none;letter-spacing:-.01em}
+.name-tape{background:none;color:var(--ink);font:600 18px/1.3 var(--body);padding:0;transform:none;box-shadow:none}
+.tag{border-radius:2px;font:500 10px var(--mono);letter-spacing:.08em;padding:2px 6px}
+.next{border-radius:3px;background:var(--ink);color:var(--bg);font:500 14px var(--body);letter-spacing:0;text-transform:none;padding:10px 22px;box-shadow:none}
+.next:hover{background:var(--accent);color:var(--accent-ink)}
+.quit{border-radius:3px;font-size:13px}
+.gtop .progress,.bar,.ktimer{height:4px;border-radius:0}
+.gtop .progress span,.ktimer span{background:var(--ink)}
+.feedback{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--line)}
+.feedback.ok{background:var(--panel);border-color:var(--line);border-left-color:var(--good)}
+.feedback.no{background:var(--panel);border-color:var(--line);border-left-color:var(--bad)}
+.feedback .h{font:600 16px var(--body);text-transform:none}
+.opt{border-width:1px;border-bottom-width:1px}
+.opt.right{background:var(--panel);border-color:var(--good)} .opt.wrong{background:var(--panel);border-color:var(--bad)}
+.big{font:600 56px/1 var(--body);letter-spacing:-.03em;color:var(--ink)}
+.check.ok .i{color:var(--good)} .check.no .i{color:var(--bad)} .check .i{font:500 15px var(--mono)}
+.truck{border-radius:4px;box-shadow:none}
+.truck .t{font:500 14px var(--body);text-transform:none;letter-spacing:0}
+.truck button{border-radius:3px;font:500 14px var(--body);text-transform:none;letter-spacing:0;background:var(--bg);color:var(--ink)}
+.truck .ghost{background:none;color:var(--bg)}
+.twist{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:3px}
+.brief .req{font:500 17px/1.4 var(--body)}
+.lnk{border-width:1px;border-bottom-width:1px;background:var(--panel)}
+.lnk b{font:600 14px var(--body);text-transform:none;letter-spacing:0}
+.photo,.item .photo{border-radius:2px}
+.qty button{border-radius:3px;font:500 16px var(--body)}
+.gig .best,.kpts{color:var(--muted)}
+/* quiz tiles */
+.kq{gap:12px}
+.ktiles{gap:8px}
+.ktile{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px;box-shadow:none;min-height:76px;padding:10px 12px;grid-template-columns:22px 52px 1fr}
+.ktile:hover:not(:disabled){filter:none;border-color:var(--ink)}
+.ktile .ksh{font:500 12px var(--mono);color:var(--muted);width:22px;height:22px;border:1px solid var(--line);display:grid;place-items:center}
+.ktile img,.ktile .kimg{width:52px;height:52px;border-radius:2px}
+.ktx b{font:600 14px/1.3 var(--body)} .ktx small{color:var(--muted);opacity:1}
+.kwhy{background:none;border-top:1px solid var(--line);border-radius:0;padding:6px 0 0;margin-top:6px;color:var(--ink);font-size:13px}
+.ktile.kright{outline:none;box-shadow:none;border-color:var(--good);border-left:3px solid var(--good)}
+.ktile.kwrong{outline:none;box-shadow:none;opacity:1;border-color:var(--bad);border-left:3px solid var(--bad)}
+.ktile.kdim{opacity:.6}
 </style>
 
 <div class="wrap">
@@ -758,7 +828,7 @@ function startGig(id){
   clearInterval(G&&G.tm); G={gig,pick:{},q:"",dept:"console",diff,cats:null};
   if(diff==="hard") gigScreen(); else quizStart();
 }
-const KCOL=[["#e21b3c","▲"],["#1368ce","◆"],["#d89e00","●"],["#26890c","■"]];
+const KCOL="ABCDEFGH".split("");
 function quizStart(){
   G.qs=GD.questions(G.gig); G.i=0; G.right=0; G.pts=0; G.streak=0; G.log=[]; G.state={}; quizAsk();
 }
@@ -780,10 +850,10 @@ function quizAsk(){
   const T=G.diff==="easy"?30:20;
   view.innerHTML=`<div class="game"><div class="gtop"><button class="quit" id="gback">All gigs</button><div class="progress"><span style="width:${G.i/G.qs.length*100}%"></span></div><span class="label">${G.i+1}/${G.qs.length}</span></div>
     ${G.i===0?gigBrief(g):`<div class="label">${esc(g.venue)} · ${esc(g.request)}</div>`}
-    <div class="kq pop"><div class="kqh"><span class="label">${esc(q.title)}</span><span class="kpts">${G.pts.toLocaleString()} pts${G.streak>=2?` · 🔥${G.streak}`:""}</span></div>
+    <div class="kq pop"><div class="kqh"><span class="label">${esc(q.title)}</span><span class="kpts">${G.pts.toLocaleString()} pts${G.streak>=2?` · streak ${G.streak}`:""}</span></div>
       <div class="prompt">${esc(q.q)}</div>
       <div class="ktimer"><span id="kt"></span></div>
-      <div class="ktiles ${opts.length>4?"k8":""}">${opts.map((o,j)=>{const [c,sh]=KCOL[j%4];const im=optImg(o);return `<button class="ktile" data-j="${j}" style="--k:${c}">
+      <div class="ktiles ${opts.length>4?"k8":""}">${opts.map((o,j)=>{const sh=KCOL[j];const im=optImg(o);return `<button class="ktile" data-j="${j}">
         <span class="ksh">${sh}</span>${im?`<img alt="" src="${im}">`:`<span class="kimg"></span>`}
         <span class="ktx"><b>${esc(optName(o))}</b><small>${esc(optDesc(o))}</small><em class="kwhy" hidden></em></span></button>`}).join("")}</div>
       <div id="fb"></div></div></div>`;
