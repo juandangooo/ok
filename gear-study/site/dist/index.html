@@ -290,6 +290,13 @@ details.bd .checks{margin-top:6px}
 .qsheet td.n,.qsheet th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 .qsheet .off{color:var(--bad)} .qsheet tfoot td{font-weight:600;border-bottom:0}
 @media (max-width:560px){.lab{grid-template-columns:1fr auto}.lab .hrs{grid-column:2}}
+.qfacts .bud{color:var(--ink);font-weight:500}
+.qbar{display:grid;gap:8px}.qbar .qrow{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.qhint{display:grid;gap:4px;font:400 13px/1.4 var(--body)} .qhint small{font:400 11px var(--mono);opacity:.7;margin-left:4px}
+.truck .qhint .chg{background:none;border:0;padding:0;color:var(--bg);opacity:.8;justify-self:start;font:400 12px var(--body);text-decoration:underline} .qhint .over{color:#f0a58f} .qhint .ok{opacity:.85}
+.meter{height:4px;background:color-mix(in srgb,var(--bg) 25%,transparent)} .meter span{display:block;height:100%;background:var(--bg);transition:width .2s}
+.meter span.over{background:#e0826b}
+@media (prefers-reduced-motion:reduce){.meter span{transition:none}}
 .btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 @media (prefers-reduced-motion:reduce){.gcard .t::after{transition:none}}
 /* numerals + hero + crew */
@@ -795,55 +802,74 @@ window.QUOTE_DATA = (() => {
     gen:     [x => GD.cat(x)==="power" && /Generator/.test(x.n), "Generator"],
   };
 
+  // ---------- crew chief hints (asked as questions, never the answer) ----------
+  const HINT = {
+    mains:"Where's the PA? You need main speakers.", wedge:"A band needs mains and monitor wedges.",
+    linearray:"That crowd is big and outside. Party speakers won't throw that far. Line array?",
+    sub:"Are you forgetting a sub?", console:"What's mixing all this? Add a console.",
+    hh:"They asked for handheld wireless.", pack:"Hands-free mics for the presenters? That's bodypacks.",
+    lav:"Those bodypacks need a lav or headset plugged in.", rxch:"Every wireless mic needs its own receiver channel.",
+    lectern:"Mic on the podium?", podium:"Podium?", tv55:"TVs? Check the size they asked for.", tv65:"TVs? Check the size they asked for.",
+    tv70:"TVs? Check the size they asked for.", tvstand:"What are the TVs standing on?", projector:"Projector?",
+    screen:"What are you projecting onto?", uplight:"Uplights: count what they asked for.", lightctl:"Who's running the lights? Add a controller.",
+    dmx:"The lights need DMX cable.", camera:"Cameras for the stream?", switcher:"Something has to cut between the cameras.",
+    sdi:"The cameras need SDI runs to the switcher.", intercom:"How does the crew talk to each other?",
+    stereodi:"How does the laptop get into the board? Stereo DI.", di:"Bass and keys need DI boxes.", vocal:"Mics for the singers?",
+    instmic:"Drums and amps need mics.", micstand:"What are the mics standing on?", spkstand:"Speakers on stands?",
+    xlr:"You need cables.", gen:"Is there power out there? Generator.",
+  };
+  const LHINT = {a1:"Who's mixing? Book an A1.", av:"Who's running video and the laptop? Book an A/V tech.", ld:"Who's running the lights? Book a lighting op.",
+    vo:"Who's cutting cameras? Book a video operator.", hand:"Who's loading in? Book stagehands."};
+
   // ---------- the calls ----------
   // need: [key, n, why]; labor: [role, people, hours per day]; ref: the shop's own quote [id, qty]
   const CALLS = [
-    {id:1, who:"Dana, HR events", org:"a pharma company", town:"New Brunswick", room:"Hotel ballroom", ppl:400, days:1,
+    {id:1, budget:3500, who:"Dana, HR events", org:"a pharma company", town:"New Brunswick", room:"Hotel ballroom", ppl:400, days:1,
      call:"Hey, we're doing a town hall for about 400 employees. Our CEO talks from a podium, then there's Q&A with a couple of mics in the audience. We want TVs on both sides of the stage so the back of the room can see the slides. What would that run us?",
      need:[["mains",4,"400 people in a flat ballroom: four tops on stands, two front and two delays."],["spkstand",4,"Every top needs a stand."],["console",1,"Something has to mix the lectern, wireless and laptop."],["lectern",1,"The CEO talks from a podium."],["podium",1,"They asked for a podium."],["hh",2,"Two audience Q&A mics."],["rxch",2,"Each handheld needs a receiver channel."],["tv65",2,"Back of a 400-person room: 65\" minimum."],["tvstand",2,"The TVs need floor stands."],["stereodi",1,"Laptop audio for the slide deck."],["xlr",8,"Cable runs to the speakers and lectern."]],
      labor:[["a1",1,8],["av",1,8],["hand",2,4]],
      ref:[["p13-03",4],["p18-37",4],["p03-12",1],["p16-09",1],["p10-17",1],["p16-27",2],["p16-28",1],["p14-09",2],["p12-26",2],["p13-15",1],["p01-09",10]]},
-    {id:2, who:"Maria, the bride", org:"a wedding", town:"Asbury Park", room:"Reception hall", ppl:150, days:1,
+    {id:2, budget:2000, who:"Maria, the bride", org:"a wedding", town:"Asbury Park", room:"Reception hall", ppl:150, days:1,
      call:"Hi! Our DJ has the music covered, but the hall is pretty dark. Can you do uplighting around the room, like 16 lights? Also one wireless mic for toasts that plugs into the DJ, and a TV for a photo slideshow at cocktail hour.",
      need:[["uplight",16,"She asked for 16 uplights."],["hh",1,"One toast mic."],["rxch",1,"The toast mic needs a receiver to plug into the DJ."],["tv55",1,"One TV for the slideshow."],["tvstand",1,"The TV needs a stand."],["xlr",1,"Receiver to the DJ mixer."]],
      labor:[["av",1,5],["hand",1,4]],
      ref:[["p04-26",16],["p16-15",1],["p16-16",1],["p18-05",1],["p12-26",1],["p01-09",1]]},
-    {id:3, who:"Mr. Alvarez, vice principal", org:"a high school", town:"Toms River", room:"Football field, outdoors", ppl:800, days:1,
+    {id:3, budget:3250, who:"Mr. Alvarez, vice principal", org:"a high school", town:"Toms River", room:"Football field, outdoors", ppl:800, days:1,
      call:"We need sound for graduation on the football field. About 800 people in the stands. Speeches from a podium, two wireless mics for the class president and the reader, and walk-in music from a laptop. There's no power out on the field.",
      need:[["linearray",4,"800 people outdoors needs real throw: line array boxes, not party tops."],["console",1,"Mix the speeches and walk-in music."],["lectern",1,"Speeches from a podium."],["podium",1,"They need a podium on the field."],["hh",2,"Class president and reader."],["rxch",2,"Receiver channels for both handhelds."],["gen",1,"No power on the field."],["stereodi",1,"Walk-in music from a laptop."],["xlr",10,"Long runs from the console to the PA."]],
      labor:[["a1",1,6],["hand",2,6]],
      ref:[["p09-13",4],["p09-11",2],["p09-17",2],["p19-29",1],["p16-09",1],["p10-17",1],["p16-27",2],["p16-28",1],["p08-28",1],["p13-15",1],["p01-09",12]]},
-    {id:4, who:"Priya, comms director", org:"a university think tank", town:"Princeton", room:"Lecture hall", ppl:120, days:1,
+    {id:4, budget:3750, who:"Priya, comms director", org:"a university think tank", town:"Princeton", room:"Lecture hall", ppl:120, days:1,
      call:"We're hosting a panel: a moderator and four speakers on stage, and we're livestreaming it. We need everyone mic'd, a mic for audience questions, two cameras, and a screen up front for slides.",
      need:[["mains",2,"120 people: a pair of tops is plenty."],["spkstand",2,"Stands for the tops."],["console",1,"Mix five panel mics, Q&A and a stream feed."],["pack",5,"Moderator plus four panelists, hands free."],["lav",5,"Each pack needs a lav."],["hh",1,"Audience Q&A mic."],["rxch",6,"One receiver channel per transmitter."],["camera",2,"They asked for two cameras."],["switcher",1,"Cut between cameras for the stream."],["sdi",2,"Camera runs to the switcher."],["tv55",1,"Screen up front for slides."],["tvstand",1,"Stand for that screen."],["stereodi",1,"Laptop audio."]],
      labor:[["a1",1,8],["vo",1,8],["hand",1,4]],
      ref:[["p12-40",2],["p18-37",2],["p19-29",1],["p16-24",5],["p16-39",5],["p16-27",1],["p16-29",1],["p16-28",1],["p03-18",2],["p03-27",1],["p04-12",2],["p14-09",1],["p12-26",1],["p13-15",1],["p01-09",6]]},
-    {id:5, who:"Sal, owner", org:"a brewery", town:"Jersey City", room:"Taproom", ppl:180, days:1,
+    {id:5, budget:1800, who:"Sal, owner", org:"a brewery", town:"Jersey City", room:"Taproom", ppl:180, days:1,
      call:"I've got a four-piece band Saturday: drums, bass, guitar, keys, three of them sing. Our room holds 180. I need the whole thing, PA and monitors and mics. Ballpark?",
      need:[["wedge",5,"Two mains plus three monitor wedges."],["sub",2,"A band with drums needs low end."],["console",1,"Mix the band."],["vocal",3,"Three singers."],["instmic",4,"Kick, snare, overhead and guitar amp at least."],["di",2,"Bass and keys go direct."],["stereodi",1,"Keys are stereo."],["micstand",7,"Three vocal stands plus the instrument mics."],["spkstand",2,"The mains go on stands (or sub poles)."],["xlr",14,"Every mic and wedge needs a cable."]],
      labor:[["a1",1,6]],
      ref:[["p13-03",2],["p10-21",3],["p13-09",2],["p03-12",1],["p16-21",3],["p15-39",1],["p15-40",2],["p13-35",2],["p13-17",1],["p13-16",1],["p06-05",7],["p18-37",2],["p01-09",16]]},
-    {id:6, who:"Jordan, marketing", org:"a sneaker brand", town:"Hoboken", room:"Loft event space", ppl:250, days:2,
+    {id:6, budget:8000, who:"Jordan, marketing", org:"a sneaker brand", town:"Hoboken", room:"Loft event space", ppl:250, days:2,
      call:"Product launch, two days. We want four big TVs, like 70 inches or more, around the room looping the video. Two presenters in headset mics, one handheld for a guest, music, and some color on the walls. Maybe 12 lights?",
      need:[["tv70",4,"Four TVs, 70\" or bigger."],["tvstand",4,"Floor stands for all four."],["pack",2,"Two presenters, hands free."],["lav",2,"Headset mics for the packs."],["hh",1,"One guest handheld."],["rxch",3,"A channel for every transmitter."],["mains",2,"A pair of tops for 250."],["spkstand",2,"Stands for the tops."],["sub",1,"Music for a launch wants some low end."],["uplight",12,"12 wall lights."],["console",1,"Mix mics and music."],["stereodi",1,"Music from a laptop."]],
      labor:[["a1",1,8],["av",1,8],["hand",2,4]],
      ref:[["p14-11",2],["p14-12",2],["p12-26",4],["p16-24",2],["p16-19",2],["p16-27",1],["p16-29",1],["p12-40",2],["p18-37",2],["p13-05",1],["p02-13",12],["p19-29",1],["p13-15",1]]},
-    {id:7, who:"Pastor Reggie", org:"a church conference", town:"Atlantic City", room:"Convention hall", ppl:600, days:3,
+    {id:7, budget:15000, who:"Pastor Reggie", org:"a church conference", town:"Atlantic City", room:"Convention hall", ppl:600, days:3,
      call:"Three-day conference, 600 people. Worship band each morning, then speakers. We'll need handhelds for the band's singers, headsets for the speakers, a projector and big screen for lyrics, some lighting, and the team needs to talk to each other.",
      need:[["mains",4,"600 people: four mains at minimum."],["sub",2,"A worship band needs subs."],["console",1,"Band plus speakers: a real digital desk."],["hh",4,"Four singers."],["pack",2,"Two speakers in headsets."],["lav",2,"Headsets for the packs."],["rxch",6,"A channel for every transmitter."],["projector",1,"Lyrics on a big screen."],["screen",1,"Something to project on."],["uplight",12,"Stage and wall color."],["lightctl",1,"Someone runs the lights."],["dmx",8,"Cable the lights."],["intercom",1,"The team talks to each other."],["stereodi",1,"Laptop for lyrics and walk-in."]],
      labor:[["a1",1,10],["ld",1,10],["av",1,10],["hand",2,4]],
      ref:[["p09-10",4],["p18-37",4],["p09-17",2],["p02-24",1],["p16-27",4],["p16-24",2],["p16-19",2],["p16-29",1],["p16-28",1],["p19-08",1],["p17-33",1],["p04-34",12],["p02-17",1],["p01-21",12],["p08-20",1],["p13-15",1],["p01-09",12]]},
-    {id:8, who:"Evelyn, gala chair", org:"a hospital foundation", town:"Morristown", room:"Estate ballroom", ppl:300, days:1,
+    {id:8, budget:4500, who:"Evelyn, gala chair", org:"a hospital foundation", town:"Morristown", room:"Estate ballroom", ppl:300, days:1,
      call:"Our gala is 300 guests. We want the room washed in color, about 30 uplights. Speeches from a podium, two wireless for the auctioneer and emcee, and two TVs showing the donor video.",
      need:[["uplight",30,"About 30 uplights."],["lectern",1,"Speeches from a podium."],["podium",1,"They need a podium."],["hh",2,"Auctioneer and emcee."],["rxch",2,"A channel for each handheld."],["mains",2,"A pair of tops for 300 seated."],["spkstand",2,"Stands for the tops."],["console",1,"Mix it all."],["tv65",2,"Two TVs for the donor video, 65\" or bigger."],["tvstand",2,"Stands for the TVs."],["stereodi",1,"Video audio from a laptop."]],
      labor:[["a1",1,8],["av",1,8],["hand",2,4]],
      ref:[["p04-26",20],["p02-13",10],["p16-09",1],["p10-17",1],["p16-27",2],["p16-28",1],["p13-03",2],["p18-37",2],["p19-33",1],["p14-09",2],["p12-26",2],["p13-15",1],["p01-09",6]]},
-    {id:9, who:"Kevin, trade show manager", org:"a flooring supplier", town:"Edison", room:"Convention center booth", ppl:0, days:2,
+    {id:9, budget:2000, who:"Kevin, trade show manager", org:"a flooring supplier", town:"Edison", room:"Convention center booth", ppl:0, days:2,
      call:"Two-day trade show booth. Two TVs, 55-inch or bigger, a small speaker, and one wireless mic for demos. Nothing crazy.",
      need:[["tv55",2,"Two TVs, 55\" or bigger."],["tvstand",2,"Stands for both."],["mains",1,"One small speaker."],["spkstand",1,"A stand for it."],["hh",1,"One demo mic."],["rxch",1,"A receiver for the mic."],["console",1,"A small mixer to combine mic and laptop."],["stereodi",1,"Laptop audio."]],
      labor:[["av",1,4]],
      ref:[["p14-07",2],["p12-26",2],["p12-40",1],["p18-37",1],["p16-15",1],["p16-16",1],["p19-32",1],["p13-15",1]]},
-    {id:10, who:"Chris, parks & rec", org:"the town", town:"Montclair", room:"Park lawn, outdoors", ppl:200, days:1,
+    {id:10, budget:1750, who:"Chris, parks & rec", org:"the town", town:"Montclair", room:"Park lawn, outdoors", ppl:200, days:1,
      call:"Summer movie night in the park, about 200 people on blankets. We need a big screen, a projector, and sound that actually sounds like a movie. No power out there.",
      need:[["projector",1,"A projector."],["screen",1,"A big screen."],["mains",2,"A pair of tops for 200 people."],["spkstand",2,"Stands for the tops."],["sub",2,"Movies need low end."],["console",1,"Small mixer for the feed."],["stereodi",1,"Stereo audio from the laptop or player."],["gen",1,"No power in the park."],["xlr",4,"Mixer to speakers."]],
      labor:[["av",1,5],["hand",1,4]],
@@ -866,6 +892,14 @@ window.QUOTE_DATA = (() => {
     return lines.reduce((a,[id,q]) => a + (f(BY[id]) ? q : 0), 0);
   }
   const needLabel = k => k === "rxch" ? "Wireless receiver channels" : IS[k][1];
+  function hints(call, lines, labor, delivery, total){
+    const out = [];
+    for(const [k,n] of call.need){ const have = count(k, lines); if(have < n) out.push({t: HINT[k], c: `${needLabel(k)}: ${have} of ${n}`}); }
+    for(const [k,n,h] of call.labor){ const m = labor.find(l => l[0] === k); if(!m || m[1] < n) out.push({t: LHINT[k], c: `${LAB[k].l}: ${m?m[1]:0} of ${n}`}); }
+    if(!delivery) out.push({t: "How's it getting there? Add delivery.", c: "Truck"});
+    if(total > call.budget) out.push({t: `You're ${usd(total - call.budget)} over budget. Could cheaper gear or fewer crew hours do the job?`, c: "Budget", over: true});
+    return out;
+  }
   function grade(call, lines, labor, delivery, myRates){
     const checks = [];
     for(const [k,n,why] of call.need){
@@ -887,20 +921,20 @@ window.QUOTE_DATA = (() => {
     }
     const rateOf = id => myRates ? (myRates[id] || 0) : rate(BY[id]);
     const mine = totals(call, lines, labor, delivery, rateOf), ref = refTotals(call);
-    const r = mine.total / ref.total;
-    const verdict = r > 1.5 ? ["Lost the bid", "Way over what the shop would charge. The client calls someone else."]
-      : r > 1.25 ? ["A little rich", "Higher than the shop's number. You might keep it if the client loves you."]
-      : r >= .8 ? ["On the money", "Right around the shop's own quote."]
-      : r >= .65 ? ["Tight margin", "Under the shop's number. You'd win it, but check you didn't forget anything."]
-      : ["Money left on the table", "Far under the shop's number. Something is missing or underpriced."];
-    checks.push({ok: r >= .8 && r <= 1.25, label: `Total: ${verdict[0]}`, detail: `${verdict[1]} Yours ${usd(mine.total)} vs shop ${usd(ref.total)}.`});
+    const r = mine.total / ref.total, over = mine.total - call.budget;
+    const verdict = over > 0 ? ["Over budget", `${usd(over)} over the client's ${usd(call.budget)}. They'll shop it around.`]
+      : r < .65 ? ["Money left on the table", "Inside budget, but far under the shop's number. Something is missing or underpriced."]
+      : r < .8 ? ["Tight margin", "Inside budget and under the shop's number. Check you didn't forget anything."]
+      : ["On budget", `Inside the client's ${usd(call.budget)} and close to the shop's own number.`];
+    checks.push({ok: over <= 0, label: "Within the client's budget", detail: over > 0 ? `${usd(mine.total)} is ${usd(over)} over ${usd(call.budget)}.` : `${usd(mine.total)} of ${usd(call.budget)}. ${usd(-over)} to spare.`});
+    checks.push({ok: r >= .8, label: "Priced to make money", detail: r >= .8 ? `Yours ${usd(mine.total)}, shop ${usd(ref.total)}.` : `Yours ${usd(mine.total)} vs the shop's ${usd(ref.total)}. Too low to be real.`});
     const passed = checks.filter(c => c.ok).length;
     return {checks, passed, total: checks.length, mine, ref, ratio: r, verdict, rateScore};
   }
   const usd = v => "$" + Math.round(v).toLocaleString();
 
   return {
-    CALLS, LABOR, DELIVERY, MIN_HRS, dayFactor, rate, grade, totals, refTotals, usd,
+    CALLS, LABOR, DELIVERY, MIN_HRS, dayFactor, rate, grade, hints, totals, refTotals, usd,
     setShop(g){ SHOP = g; BY = Object.fromEntries(g.map(x => [x.id, x])); },
   };
 })();
@@ -1335,7 +1369,7 @@ function quoteList(skipMode){
        body:()=>`<div class="picks">${Object.entries(QMODE).map(([k,[l,d]])=>`<button class="pk" data-v="${k}" aria-pressed="${qmode===k}"><b>${l}</b><span>${d}</span></button>`).join("")}</div>`},
       {key:"call",label:"The call",name:id=>{const c=C.find(x=>x.id===+id);return c?`${c.who}, ${c.town}`:""},
        body:v=>`<div class="spin"><button class="next" id="spin">Pick up the phone</button><div class="reel" id="reel" aria-live="polite"><small>A random client calls the shop.</small></div></div>
-         <details class="venues"><summary>Or choose a call (${C.length})</summary><div class="picks">${C.map(c=>`<button class="pk" data-v="${c.id}"><span>${esc(c.town)} · ${c.ppl?c.ppl+" people · ":""}${c.days} day${c.days>1?"s":""}</span><b>${esc(c.who)}</b><span>${esc(c.org)} · ${esc(c.room)}</span>${best[v.mode+c.id]!=null?`<span class="best">Best: ${best[v.mode+c.id]}%</span>`:""}</button>`).join("")}</div></details>`,
+         <details class="venues"><summary>Or choose a call (${C.length})</summary><div class="picks">${C.map(c=>`<button class="pk" data-v="${c.id}"><span>${esc(c.town)} · ${c.ppl?c.ppl+" people · ":""}${c.days} day${c.days>1?"s":""} · ${QD.usd(c.budget)}</span><b>${esc(c.who)}</b><span>${esc(c.org)} · ${esc(c.room)}</span>${best[v.mode+c.id]!=null?`<span class="best">Best: ${best[v.mode+c.id]}%</span>`:""}</button>`).join("")}</div></details>`,
        after:choose=>{
          const btn=document.getElementById("spin"), reel=document.getElementById("reel");
          const show=c=>{reel.innerHTML=`<span class="label">${esc(c.town)}</span><b>${esc(c.who)}</b><small>${esc(c.org)} · ${esc(c.room)}</small>`};
@@ -1343,7 +1377,7 @@ function quoteList(skipMode){
            if(reduce){show(t);reel.classList.add("land");setTimeout(()=>reel.isConnected&&choose(String(t.id)),350);return}
            let k=0; const tick=()=>{if(!reel.isConnected)return; if(k<14){show(C[Math.random()*C.length|0]);k++;setTimeout(tick,40+k*k*1.2)} else {show(t);reel.classList.add("land");setTimeout(()=>reel.isConnected&&choose(String(t.id)),600)}}; tick();};
        }}],
-    final:{label:"On the phone",go:"Take the call →",body:v=>{const c=C.find(x=>x.id===+v.call);return `<div class="label">${esc(c.org)} · ${esc(c.town)}, NJ</div><div class="req">${esc(c.who)} is calling about ${c.ppl?c.ppl+" people, ":""}${c.days} day${c.days>1?"s":""}.</div>`},
+    final:{label:"On the phone",go:"Take the call →",body:v=>{const c=C.find(x=>x.id===+v.call);return `<div class="label">${esc(c.org)} · ${esc(c.town)}, NJ</div><div class="req">${esc(c.who)} is calling about ${c.ppl?c.ppl+" people, ":""}${c.days} day${c.days>1?"s":""}. Budget: ${QD.usd(c.budget)}.</div>`},
       run:v=>startQuote(+v.call)},start:skipMode?{mode:qmode}:null});
 }
 function startQuote(id){
@@ -1363,7 +1397,7 @@ function quoteScreen(){
   view.innerHTML=`<div class="game"><div class="gtop"><button class="quit" id="qback">All calls</button><span class="label" style="flex:1">Quote · ${QMODE[QT.mode][0]}</span></div>
     <div class="qcall"><div class="label">Incoming call · ${esc(c.who)}, ${esc(c.org)}</div>
       <div class="say">“${esc(c.call)}”</div>
-      <div class="qfacts"><span>${esc(c.town)}, NJ</span><span>${esc(c.room)}</span>${c.ppl?`<span>${c.ppl} people</span>`:""}<span>${c.days} day${c.days>1?"s":""}</span></div></div>
+      <div class="qfacts"><span>${esc(c.town)}, NJ</span><span>${esc(c.room)}</span>${c.ppl?`<span>${c.ppl} people</span>`:""}<span>${c.days} day${c.days>1?"s":""}</span><span class="bud">Budget ${QD.usd(c.budget)}</span></div></div>
     <p class="foot" style="margin:0">${open?"Day rates come from the shop's rate card.":"Add gear, then type your day rate on each line."} ${c.days>1?`Day 1 bills in full; each extra day bills at 50% (×${QD.dayFactor(c.days)}). `:""}Labor has a ${QD.MIN_HRS}-hour minimum per person per day.</p>
     <div class="label">Equipment</div>
     <div class="tools" style="margin:0"><input id="qq" type="search" placeholder="Search the shop (try “K12”, “65”, “lav”)" aria-label="Search the shop" value="${esc(QT.q)}"></div>
@@ -1372,8 +1406,8 @@ function quoteScreen(){
     <div class="label" style="margin-top:8px">Crew</div>
     <div id="qlab"></div>
     <label class="chk"><input type="checkbox" id="qdel" ${QT.delivery?"checked":""}> Delivery &amp; pickup, local NJ box truck · ${QD.usd(QD.DELIVERY)}</label>
-    <div class="truck"><div><div class="t" id="qt"></div><div class="s" id="qs"></div></div>
-      <div style="display:flex;gap:8px"><button class="ghost" id="qclear">Clear</button><button id="qsend">Send quote</button></div></div></div>`;
+    <div class="truck qbar"><div id="qhint" class="qhint" aria-live="polite"></div><div class="meter"><span id="qm"></span></div><div class="qrow"><div><div class="t" id="qt"></div><div class="s" id="qs"></div></div>
+      <div style="display:flex;gap:8px"><button class="ghost" id="qclear">Clear</button><button id="qsend">Send quote</button></div></div></div></div>`;
   document.getElementById("qback").onclick=()=>quoteList(true);
   const q=document.getElementById("qq"); q.oninput=()=>{QT.q=q.value;drawQ()};
   document.getElementById("qdel").onchange=e=>{QT.delivery=e.target.checked;qBar()};
@@ -1415,8 +1449,16 @@ function drawLab(){
     QT.labor[k]=cur; drawLab(); qBar();});
 }
 function qBar(){
-  const t=qTotal(), n=qLines().reduce((a,[,n])=>a+n,0);
-  document.getElementById("qt").textContent=`Quote: ${QD.usd(t.total)}`;
+  const t=qTotal(), n=qLines().reduce((a,[,n])=>a+n,0), B=QT.call.budget, over=t.total>B;
+  document.getElementById("qt").textContent=`${QD.usd(t.total)} of ${QD.usd(B)} budget`;
+  const m=document.getElementById("qm"); m.style.width=Math.min(100,t.total/B*100)+"%"; m.classList.toggle("over",over);
+  const H=QD.hints(QT.call,qLines(),qLabor(),QT.delivery,t.total), hb=document.getElementById("qhint");
+  QT.hintAll=QT.hintAll&&H.length>1;
+  hb.innerHTML=!H.length?`<span class="ok">Crew chief: looks complete. Send it.</span>`
+    :`<div class="hl1${H[0].over?" over":""}"><b>Crew chief:</b> ${esc(H[0].t)} <small>${esc(H[0].c)}</small></div>`+
+     (QT.hintAll?H.slice(1).map(h=>`<div class="hl1${h.over?" over":""}">${esc(h.t)} <small>${esc(h.c)}</small></div>`).join(""):"")+
+     (H.length>1?`<button class="chg" id="qhmore">${QT.hintAll?"Fewer hints":`${H.length-1} more hint${H.length>2?"s":""}`}</button>`:"");
+  const mb=document.getElementById("qhmore"); if(mb) mb.onclick=()=>{QT.hintAll=!QT.hintAll;qBar()};
   document.getElementById("qs").textContent=`Gear ${QD.usd(t.eq)} · Crew ${QD.usd(t.lab)} · Truck ${QD.usd(t.del)} · ${n} item${n===1?"":"s"}`;
 }
 function quoteResult(){
@@ -1436,7 +1478,7 @@ function quoteResult(){
       ${c.labor.map(([k,n,h])=>{const L=QD.LABOR.find(l=>l[0]===k);return `<tr><td>${esc(L[1])}<small>${n} × ${h}h × ${QD.usd(L[2])}/hr${c.days>1?` × ${c.days} days`:""}</small></td><td class="n">${QD.usd(L[2]*n*Math.max(QD.MIN_HRS,h)*c.days)}</td></tr>`}).join("")}
       <tr><td>Delivery &amp; pickup</td><td class="n">${QD.usd(QD.DELIVERY)}</td></tr><tr><td><b>Shop total</b></td><td class="n"><b>${QD.usd(r.ref.total)}</b></td></tr></tbody></table></div></details>`;
   const hit=r.checks.find(k=>k.ok), miss=r.checks.find(k=>!k.ok);
-  results({kicker:`${esc(c.who)} · ${esc(c.town)} · ${QMODE[QT.mode][0]}`,big:QD.usd(r.mine.total),unit:`your quote · shop says ${QD.usd(r.ref.total)}`,pct,
+  results({kicker:`${esc(c.who)} · ${esc(c.town)} · ${QMODE[QT.mode][0]}`,big:QD.usd(r.mine.total),unit:`your quote · budget ${QD.usd(c.budget)} · shop ${QD.usd(r.ref.total)}`,pct,
     sub:`${r.verdict[0]} · +${xp} XP · ${r.passed} of ${r.total} checks`,
     best:hit&&[hit.label,hit.detail],miss:miss&&[miss.label,miss.detail],extra:sheet,
     rows:r.checks.map(k=>checkRow(k.ok,k.label,k.detail)).join(""),

@@ -290,6 +290,13 @@ details.bd .checks{margin-top:6px}
 .qsheet td.n,.qsheet th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
 .qsheet .off{color:var(--bad)} .qsheet tfoot td{font-weight:600;border-bottom:0}
 @media (max-width:560px){.lab{grid-template-columns:1fr auto}.lab .hrs{grid-column:2}}
+.qfacts .bud{color:var(--ink);font-weight:500}
+.qbar{display:grid;gap:8px}.qbar .qrow{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.qhint{display:grid;gap:4px;font:400 13px/1.4 var(--body)} .qhint small{font:400 11px var(--mono);opacity:.7;margin-left:4px}
+.truck .qhint .chg{background:none;border:0;padding:0;color:var(--bg);opacity:.8;justify-self:start;font:400 12px var(--body);text-decoration:underline} .qhint .over{color:#f0a58f} .qhint .ok{opacity:.85}
+.meter{height:4px;background:color-mix(in srgb,var(--bg) 25%,transparent)} .meter span{display:block;height:100%;background:var(--bg);transition:width .2s}
+.meter span.over{background:#e0826b}
+@media (prefers-reduced-motion:reduce){.meter span{transition:none}}
 .btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 @media (prefers-reduced-motion:reduce){.gcard .t::after{transition:none}}
 /* numerals + hero + crew */
@@ -787,7 +794,7 @@ function quoteList(skipMode){
        body:()=>`<div class="picks">${Object.entries(QMODE).map(([k,[l,d]])=>`<button class="pk" data-v="${k}" aria-pressed="${qmode===k}"><b>${l}</b><span>${d}</span></button>`).join("")}</div>`},
       {key:"call",label:"The call",name:id=>{const c=C.find(x=>x.id===+id);return c?`${c.who}, ${c.town}`:""},
        body:v=>`<div class="spin"><button class="next" id="spin">Pick up the phone</button><div class="reel" id="reel" aria-live="polite"><small>A random client calls the shop.</small></div></div>
-         <details class="venues"><summary>Or choose a call (${C.length})</summary><div class="picks">${C.map(c=>`<button class="pk" data-v="${c.id}"><span>${esc(c.town)} · ${c.ppl?c.ppl+" people · ":""}${c.days} day${c.days>1?"s":""}</span><b>${esc(c.who)}</b><span>${esc(c.org)} · ${esc(c.room)}</span>${best[v.mode+c.id]!=null?`<span class="best">Best: ${best[v.mode+c.id]}%</span>`:""}</button>`).join("")}</div></details>`,
+         <details class="venues"><summary>Or choose a call (${C.length})</summary><div class="picks">${C.map(c=>`<button class="pk" data-v="${c.id}"><span>${esc(c.town)} · ${c.ppl?c.ppl+" people · ":""}${c.days} day${c.days>1?"s":""} · ${QD.usd(c.budget)}</span><b>${esc(c.who)}</b><span>${esc(c.org)} · ${esc(c.room)}</span>${best[v.mode+c.id]!=null?`<span class="best">Best: ${best[v.mode+c.id]}%</span>`:""}</button>`).join("")}</div></details>`,
        after:choose=>{
          const btn=document.getElementById("spin"), reel=document.getElementById("reel");
          const show=c=>{reel.innerHTML=`<span class="label">${esc(c.town)}</span><b>${esc(c.who)}</b><small>${esc(c.org)} · ${esc(c.room)}</small>`};
@@ -795,7 +802,7 @@ function quoteList(skipMode){
            if(reduce){show(t);reel.classList.add("land");setTimeout(()=>reel.isConnected&&choose(String(t.id)),350);return}
            let k=0; const tick=()=>{if(!reel.isConnected)return; if(k<14){show(C[Math.random()*C.length|0]);k++;setTimeout(tick,40+k*k*1.2)} else {show(t);reel.classList.add("land");setTimeout(()=>reel.isConnected&&choose(String(t.id)),600)}}; tick();};
        }}],
-    final:{label:"On the phone",go:"Take the call →",body:v=>{const c=C.find(x=>x.id===+v.call);return `<div class="label">${esc(c.org)} · ${esc(c.town)}, NJ</div><div class="req">${esc(c.who)} is calling about ${c.ppl?c.ppl+" people, ":""}${c.days} day${c.days>1?"s":""}.</div>`},
+    final:{label:"On the phone",go:"Take the call →",body:v=>{const c=C.find(x=>x.id===+v.call);return `<div class="label">${esc(c.org)} · ${esc(c.town)}, NJ</div><div class="req">${esc(c.who)} is calling about ${c.ppl?c.ppl+" people, ":""}${c.days} day${c.days>1?"s":""}. Budget: ${QD.usd(c.budget)}.</div>`},
       run:v=>startQuote(+v.call)},start:skipMode?{mode:qmode}:null});
 }
 function startQuote(id){
@@ -815,7 +822,7 @@ function quoteScreen(){
   view.innerHTML=`<div class="game"><div class="gtop"><button class="quit" id="qback">All calls</button><span class="label" style="flex:1">Quote · ${QMODE[QT.mode][0]}</span></div>
     <div class="qcall"><div class="label">Incoming call · ${esc(c.who)}, ${esc(c.org)}</div>
       <div class="say">“${esc(c.call)}”</div>
-      <div class="qfacts"><span>${esc(c.town)}, NJ</span><span>${esc(c.room)}</span>${c.ppl?`<span>${c.ppl} people</span>`:""}<span>${c.days} day${c.days>1?"s":""}</span></div></div>
+      <div class="qfacts"><span>${esc(c.town)}, NJ</span><span>${esc(c.room)}</span>${c.ppl?`<span>${c.ppl} people</span>`:""}<span>${c.days} day${c.days>1?"s":""}</span><span class="bud">Budget ${QD.usd(c.budget)}</span></div></div>
     <p class="foot" style="margin:0">${open?"Day rates come from the shop's rate card.":"Add gear, then type your day rate on each line."} ${c.days>1?`Day 1 bills in full; each extra day bills at 50% (×${QD.dayFactor(c.days)}). `:""}Labor has a ${QD.MIN_HRS}-hour minimum per person per day.</p>
     <div class="label">Equipment</div>
     <div class="tools" style="margin:0"><input id="qq" type="search" placeholder="Search the shop (try “K12”, “65”, “lav”)" aria-label="Search the shop" value="${esc(QT.q)}"></div>
@@ -824,8 +831,8 @@ function quoteScreen(){
     <div class="label" style="margin-top:8px">Crew</div>
     <div id="qlab"></div>
     <label class="chk"><input type="checkbox" id="qdel" ${QT.delivery?"checked":""}> Delivery &amp; pickup, local NJ box truck · ${QD.usd(QD.DELIVERY)}</label>
-    <div class="truck"><div><div class="t" id="qt"></div><div class="s" id="qs"></div></div>
-      <div style="display:flex;gap:8px"><button class="ghost" id="qclear">Clear</button><button id="qsend">Send quote</button></div></div></div>`;
+    <div class="truck qbar"><div id="qhint" class="qhint" aria-live="polite"></div><div class="meter"><span id="qm"></span></div><div class="qrow"><div><div class="t" id="qt"></div><div class="s" id="qs"></div></div>
+      <div style="display:flex;gap:8px"><button class="ghost" id="qclear">Clear</button><button id="qsend">Send quote</button></div></div></div></div>`;
   document.getElementById("qback").onclick=()=>quoteList(true);
   const q=document.getElementById("qq"); q.oninput=()=>{QT.q=q.value;drawQ()};
   document.getElementById("qdel").onchange=e=>{QT.delivery=e.target.checked;qBar()};
@@ -867,8 +874,16 @@ function drawLab(){
     QT.labor[k]=cur; drawLab(); qBar();});
 }
 function qBar(){
-  const t=qTotal(), n=qLines().reduce((a,[,n])=>a+n,0);
-  document.getElementById("qt").textContent=`Quote: ${QD.usd(t.total)}`;
+  const t=qTotal(), n=qLines().reduce((a,[,n])=>a+n,0), B=QT.call.budget, over=t.total>B;
+  document.getElementById("qt").textContent=`${QD.usd(t.total)} of ${QD.usd(B)} budget`;
+  const m=document.getElementById("qm"); m.style.width=Math.min(100,t.total/B*100)+"%"; m.classList.toggle("over",over);
+  const H=QD.hints(QT.call,qLines(),qLabor(),QT.delivery,t.total), hb=document.getElementById("qhint");
+  QT.hintAll=QT.hintAll&&H.length>1;
+  hb.innerHTML=!H.length?`<span class="ok">Crew chief: looks complete. Send it.</span>`
+    :`<div class="hl1${H[0].over?" over":""}"><b>Crew chief:</b> ${esc(H[0].t)} <small>${esc(H[0].c)}</small></div>`+
+     (QT.hintAll?H.slice(1).map(h=>`<div class="hl1${h.over?" over":""}">${esc(h.t)} <small>${esc(h.c)}</small></div>`).join(""):"")+
+     (H.length>1?`<button class="chg" id="qhmore">${QT.hintAll?"Fewer hints":`${H.length-1} more hint${H.length>2?"s":""}`}</button>`:"");
+  const mb=document.getElementById("qhmore"); if(mb) mb.onclick=()=>{QT.hintAll=!QT.hintAll;qBar()};
   document.getElementById("qs").textContent=`Gear ${QD.usd(t.eq)} · Crew ${QD.usd(t.lab)} · Truck ${QD.usd(t.del)} · ${n} item${n===1?"":"s"}`;
 }
 function quoteResult(){
@@ -888,7 +903,7 @@ function quoteResult(){
       ${c.labor.map(([k,n,h])=>{const L=QD.LABOR.find(l=>l[0]===k);return `<tr><td>${esc(L[1])}<small>${n} × ${h}h × ${QD.usd(L[2])}/hr${c.days>1?` × ${c.days} days`:""}</small></td><td class="n">${QD.usd(L[2]*n*Math.max(QD.MIN_HRS,h)*c.days)}</td></tr>`}).join("")}
       <tr><td>Delivery &amp; pickup</td><td class="n">${QD.usd(QD.DELIVERY)}</td></tr><tr><td><b>Shop total</b></td><td class="n"><b>${QD.usd(r.ref.total)}</b></td></tr></tbody></table></div></details>`;
   const hit=r.checks.find(k=>k.ok), miss=r.checks.find(k=>!k.ok);
-  results({kicker:`${esc(c.who)} · ${esc(c.town)} · ${QMODE[QT.mode][0]}`,big:QD.usd(r.mine.total),unit:`your quote · shop says ${QD.usd(r.ref.total)}`,pct,
+  results({kicker:`${esc(c.who)} · ${esc(c.town)} · ${QMODE[QT.mode][0]}`,big:QD.usd(r.mine.total),unit:`your quote · budget ${QD.usd(c.budget)} · shop ${QD.usd(r.ref.total)}`,pct,
     sub:`${r.verdict[0]} · +${xp} XP · ${r.passed} of ${r.total} checks`,
     best:hit&&[hit.label,hit.detail],miss:miss&&[miss.label,miss.detail],extra:sheet,
     rows:r.checks.map(k=>checkRow(k.ok,k.label,k.detail)).join(""),
