@@ -273,6 +273,23 @@ h2{font:600 22px/1.2 var(--body);letter-spacing:-.01em;text-transform:none}
 details.bd{width:100%;text-align:left} details.bd summary{cursor:pointer;list-style:none;font:400 13px var(--body);color:var(--muted);padding:6px 0;text-align:center}
 details.bd summary::-webkit-details-marker{display:none} details.bd summary::after{content:" ▾"} details.bd[open] summary::after{content:" ▴"}
 details.bd .checks{margin-top:6px}
+.qcall{display:grid;gap:8px;padding:14px;border:1px solid var(--line);background:var(--panel);border-left:3px solid var(--ink)}
+.qcall .say{font:400 16px/1.5 var(--body);max-width:62ch}
+.qfacts{display:flex;gap:6px 16px;flex-wrap:wrap;font:400 12px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.qrate{font:500 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--ink)}
+.rin{width:84px;padding:6px 8px;border:1px solid var(--line);border-radius:3px;background:var(--bg);color:var(--ink);font:500 14px var(--mono)}
+.lab{display:grid;grid-template-columns:1fr auto auto;gap:8px 14px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.lab .nm{font:500 14px var(--body)} .lab .sub{font-size:12px;color:var(--muted)}
+.lab .qty span{min-width:34px;text-align:center}
+.chk{display:flex;gap:10px;align-items:center;padding:10px 0;font:500 14px var(--body)} .chk input{width:18px;height:18px;accent-color:var(--ink)}
+.qsheet{width:100%;overflow-x:auto;text-align:left}
+.qsheet table{width:100%;border-collapse:collapse;font-size:13px}
+.qsheet td small{display:block;color:var(--muted);font:400 12px var(--mono);margin-top:2px}
+.qsheet th{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:6px;border-bottom:1px solid var(--ink)}
+.qsheet td{padding:6px;border-bottom:1px solid var(--line);vertical-align:top}
+.qsheet td.n,.qsheet th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.qsheet .off{color:var(--bad)} .qsheet tfoot td{font-weight:600;border-bottom:0}
+@media (max-width:560px){.lab{grid-template-columns:1fr auto}.lab .hrs{grid-column:2}}
 .btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 @media (prefers-reduced-motion:reduce){.gcard .t::after{transition:none}}
 /* numerals + hero + crew */
@@ -327,8 +344,9 @@ details.venues .picks{margin-top:8px}
   <nav role="tablist">
     <button role="tab" data-tab="play" aria-selected="true">Play</button>
     <button role="tab" data-tab="gigs" aria-selected="false">Gigs</button>
+    <button role="tab" data-tab="quotes" aria-selected="false">Quotes</button>
     <button role="tab" data-tab="crew" aria-selected="false">Crew</button>
-    <button role="tab" data-tab="browse" aria-selected="false">Browse the shop</button>
+    <button role="tab" data-tab="browse" aria-selected="false">Shop</button>
   </nav>
   <main id="view"><p class="loading">Loading the inventory…</p></main>
   <p class="foot">757 products from the Current RMS export. Packages, cases and billing lines are left out. Prices are new retail from real listings; items without a confirmed price only show up in the photo and job drills.</p>
@@ -336,6 +354,9 @@ details.venues .picks{margin-top:8px}
 
 <script>
 /*GIGS*/
+</script>
+<script>
+/*QUOTES*/
 </script>
 <script>
 (() => {
@@ -372,7 +393,7 @@ const MODES = {
 /* ---------- home: choose your game ---------- */
 const GAMES=[["photo","Name that gear","See the photo, pick the right name."],["price","Price is right","Guess what it costs new."],
   ["job","What's it for?","Match the gear to its job on a show."],["mix","Full shift","All three drills mixed together. Double XP."],
-  ["gigs","Gigs","Get sent to a NJ venue. Pull the right gear for the client."],["browse","Browse the shop","Every item, with website and manual links."]];
+  ["gigs","Gigs","Get sent to a NJ venue. Pull the right gear for the client."],["quote","Make the quote","A client calls. Build the rental quote and price it."],["browse","Browse the shop","Every item, with website and manual links."]];
 function setTab(t){document.querySelectorAll("nav [data-tab]").forEach(x=>x.setAttribute("aria-selected",x.dataset.tab===t))}
 const dayKey=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
 function dailyGig(){const k=dayKey();let h=0;for(const c of k)h=(h*31+c.charCodeAt(0))>>>0;return GD.GIGS[h%GD.GIGS.length]}
@@ -405,7 +426,7 @@ function home(){
   document.getElementById("tocrew").onclick=crew;
   drawMini(); bindNick();
   view.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{const k=b.dataset.go;
-    if(k==="gigs") gigList(); else if(k==="browse"){setTab("browse");browse()} else drillSetup(k);});
+    if(k==="gigs") gigList(); else if(k==="quote") quoteList(); else if(k==="browse"){setTab("browse");browse()} else drillSetup(k);});
 }
 /* stepped setup: each step collapses to a summary line once chosen */
 function flow({title,back,steps,final,start}){
@@ -530,11 +551,12 @@ const TIERS=[[90,"Headliner-ready"],[70,"Solid crew"],[50,"Needs a shadow shift"
 const tier=p=>TIERS.find(([m])=>p>=m)[1];
 const byMax=(a,f)=>a.reduce((m,x)=>m==null||f(x)>f(m)?x:m,null);
 const checkRow=(ok,t,d)=>`<div class="check ${ok?"ok":"no"}"><span class="i">${ok?"✓":"✗"}</span><div><b>${esc(t)}</b><br><span>${esc(d)}</span></div></div>`;
-function results({kicker,big,unit,pct,sub,best,miss,rows,btns,rig}){
+function results({kicker,big,unit,pct,sub,best,miss,rows,btns,rig,extra}){
   window.scrollTo(0,0);
   view.innerHTML=`<div class="card result pop"><div class="label">${kicker}</div><div class="big">${big}</div><div class="label">${unit}</div>
     <span class="tier">${tier(pct)}</span><div class="label">${sub}</div>
     ${best||miss?`<div class="hl">${best?`<div class="hlc"><span class="label">Best call</span><b>${esc(best[0])}</b><span>${esc(best[1])}</span></div>`:""}${miss?`<div class="hlc miss"><span class="label">Costliest miss</span><b>${esc(miss[0])}</b><span>${esc(miss[1])}</span></div>`:""}</div>`:""}
+    ${extra||""}
     ${rig?`<div class="label">What went on the truck</div><div class="rig">${rig}</div>`:""}
     <details class="bd"><summary>Show full breakdown</summary><div class="checks">${rows}</div></details>
     <div class="btns">${btns}</div></div>`;
@@ -751,6 +773,131 @@ function gigResult(){
   document.getElementById("all").onclick=gigList;
 }
 
+/* ---------- quotes ---------- */
+const QD=window.QUOTE_DATA;
+let QT=null, qmode=store.get("qmode","open");
+const QMODE={open:["Rate card open","Day rates are shown. You pick the gear, the crew and the hours."],
+  memory:["From memory","No rate card. Type the day rate you'd charge for every line. Within 35% counts."]};
+function quoteList(skipMode){
+  clearInterval(G&&G.tm); setTab("quotes");
+  const best=store.get("qbest",{}), C=QD.CALLS, reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  flow({title:"Make the quote",back:["All games",home],
+    steps:[
+      {key:"mode",label:"Rate card",name:v=>QMODE[v][0],set:v=>{qmode=v;store.set("qmode",v)},
+       body:()=>`<div class="picks">${Object.entries(QMODE).map(([k,[l,d]])=>`<button class="pk" data-v="${k}" aria-pressed="${qmode===k}"><b>${l}</b><span>${d}</span></button>`).join("")}</div>`},
+      {key:"call",label:"The call",name:id=>{const c=C.find(x=>x.id===+id);return c?`${c.who}, ${c.town}`:""},
+       body:v=>`<div class="spin"><button class="next" id="spin">Pick up the phone</button><div class="reel" id="reel" aria-live="polite"><small>A random client calls the shop.</small></div></div>
+         <details class="venues"><summary>Or choose a call (${C.length})</summary><div class="picks">${C.map(c=>`<button class="pk" data-v="${c.id}"><span>${esc(c.town)} · ${c.ppl?c.ppl+" people · ":""}${c.days} day${c.days>1?"s":""}</span><b>${esc(c.who)}</b><span>${esc(c.org)} · ${esc(c.room)}</span>${best[v.mode+c.id]!=null?`<span class="best">Best: ${best[v.mode+c.id]}%</span>`:""}</button>`).join("")}</div></details>`,
+       after:choose=>{
+         const btn=document.getElementById("spin"), reel=document.getElementById("reel");
+         const show=c=>{reel.innerHTML=`<span class="label">${esc(c.town)}</span><b>${esc(c.who)}</b><small>${esc(c.org)} · ${esc(c.room)}</small>`};
+         btn.onclick=()=>{const t=C[Math.random()*C.length|0]; btn.disabled=true;
+           if(reduce){show(t);reel.classList.add("land");setTimeout(()=>reel.isConnected&&choose(String(t.id)),350);return}
+           let k=0; const tick=()=>{if(!reel.isConnected)return; if(k<14){show(C[Math.random()*C.length|0]);k++;setTimeout(tick,40+k*k*1.2)} else {show(t);reel.classList.add("land");setTimeout(()=>reel.isConnected&&choose(String(t.id)),600)}}; tick();};
+       }}],
+    final:{label:"On the phone",go:"Take the call →",body:v=>{const c=C.find(x=>x.id===+v.call);return `<div class="label">${esc(c.org)} · ${esc(c.town)}, NJ</div><div class="req">${esc(c.who)} is calling about ${c.ppl?c.ppl+" people, ":""}${c.days} day${c.days>1?"s":""}.</div>`},
+      run:v=>startQuote(+v.call)},start:skipMode?{mode:qmode}:null});
+}
+function startQuote(id){
+  const call=QD.CALLS.find(c=>c.id===id);
+  QT={call,mode:qmode,lines:{},rates:{},labor:{},delivery:false,dept:"speaker",q:""};
+  quoteScreen();
+}
+function qLines(){return Object.entries(QT.lines).filter(([,n])=>n>0)}
+function qLabor(){return Object.entries(QT.labor).filter(([,[n]])=>n>0).map(([k,[n,h]])=>[k,n,h])}
+function qTotal(){
+  const rateOf=id=>QT.mode==="open"?QD.rate(byId[id]):(+QT.rates[id]||0);
+  return QD.totals(QT.call,qLines(),qLabor(),QT.delivery,rateOf);
+}
+function quoteScreen(){
+  window.scrollTo(0,0);
+  const c=QT.call, open=QT.mode==="open";
+  view.innerHTML=`<div class="game"><div class="gtop"><button class="quit" id="qback">All calls</button><span class="label" style="flex:1">Quote · ${QMODE[QT.mode][0]}</span></div>
+    <div class="qcall"><div class="label">Incoming call · ${esc(c.who)}, ${esc(c.org)}</div>
+      <div class="say">“${esc(c.call)}”</div>
+      <div class="qfacts"><span>${esc(c.town)}, NJ</span><span>${esc(c.room)}</span>${c.ppl?`<span>${c.ppl} people</span>`:""}<span>${c.days} day${c.days>1?"s":""}</span></div></div>
+    <p class="foot" style="margin:0">${open?"Day rates come from the shop's rate card.":"Add gear, then type your day rate on each line."} ${c.days>1?`Day 1 bills in full; each extra day bills at 50% (×${QD.dayFactor(c.days)}). `:""}Labor has a ${QD.MIN_HRS}-hour minimum per person per day.</p>
+    <div class="label">Equipment</div>
+    <div class="tools" style="margin:0"><input id="qq" type="search" placeholder="Search the shop (try “K12”, “65”, “lav”)" aria-label="Search the shop" value="${esc(QT.q)}"></div>
+    <div class="chips cats" id="qcats"></div>
+    <div class="pull" id="qlist"></div>
+    <div class="label" style="margin-top:8px">Crew</div>
+    <div id="qlab"></div>
+    <label class="chk"><input type="checkbox" id="qdel" ${QT.delivery?"checked":""}> Delivery &amp; pickup, local NJ box truck · ${QD.usd(QD.DELIVERY)}</label>
+    <div class="truck"><div><div class="t" id="qt"></div><div class="s" id="qs"></div></div>
+      <div style="display:flex;gap:8px"><button class="ghost" id="qclear">Clear</button><button id="qsend">Send quote</button></div></div></div>`;
+  document.getElementById("qback").onclick=()=>quoteList(true);
+  const q=document.getElementById("qq"); q.oninput=()=>{QT.q=q.value;drawQ()};
+  document.getElementById("qdel").onchange=e=>{QT.delivery=e.target.checked;qBar()};
+  document.getElementById("qclear").onclick=()=>{QT.lines={};QT.rates={};QT.labor={};QT.delivery=false;quoteScreen()};
+  document.getElementById("qsend").onclick=quoteResult;
+  drawQ(); drawLab();
+}
+function drawQ(){
+  const s=QT.q.trim().toLowerCase(), open=QT.mode==="open";
+  const onQ=k=>qLines().filter(([id])=>GD.cat(byId[id])===k).reduce((a,[,n])=>a+n,0);
+  const chips=[["quoted","On the quote"],...GD.CATS];
+  const cats=document.getElementById("qcats"), sx=cats.scrollLeft;
+  cats.innerHTML=chips.map(([k,l])=>{const n=k==="quoted"?qLines().reduce((a,[,n])=>a+n,0):onQ(k);return `<button class="chip" data-qc="${k}" aria-pressed="${QT.dept===k}">${esc(l)}${n?` <b>${n}</b>`:""}</button>`}).join("");
+  cats.scrollLeft=sx;
+  cats.querySelectorAll("[data-qc]").forEach(b=>b.onclick=()=>{QT.dept=b.dataset.qc;QT.q="";document.getElementById("qq").value="";drawQ()});
+  let list=GEAR.filter(x=>x.q>0);
+  if(s) list=list.filter(x=>(x.n+" "+x.t+" "+x.r).toLowerCase().includes(s));
+  else if(QT.dept==="quoted") list=list.filter(x=>QT.lines[x.id]);
+  else list=list.filter(x=>GD.cat(x)===QT.dept);
+  const el=document.getElementById("qlist");
+  el.innerHTML=list.length?list.slice(0,120).map(x=>{const n=QT.lines[x.id]||0;return `<div class="prow${n?" on":""}" data-id="${x.id}">
+      ${x.img&&!x.sub?`<img alt="" src="${x.img}" loading="lazy">`:`<span></span>`}
+      <div><div class="nm">${esc(x.n)}</div><div class="sub">${esc(x.t)} · shop has ${x.q}${open?` · <span class="qrate">${QD.usd(QD.rate(x))}/day</span>`:""}</div>
+        ${!open&&n?`<label class="sub" style="display:flex;gap:6px;align-items:center;margin-top:4px">Your day rate $<input class="rin" type="number" min="0" inputmode="decimal" id="r-${x.id}" value="${esc(QT.rates[x.id]??"")}" aria-label="Day rate for ${esc(x.n)}"></label>`:""}</div>
+      <div class="qty"><button data-d="-1" ${n?"":"disabled"} aria-label="Remove one">−</button><span>${n}</span><button data-d="1" ${n>=x.q?"disabled":""} aria-label="Add one">+</button></div></div>`}).join("")
+    :`<p class="foot">${QT.dept==="quoted"&&!s?"Nothing on the quote yet. Pick a category above.":"No matches. Try another word."}</p>`;
+  el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{const id=b.closest(".prow").dataset.id,x=byId[id];
+    QT.lines[id]=Math.max(0,Math.min(x.q,(QT.lines[id]||0)+ +b.dataset.d)); if(!QT.lines[id]){delete QT.lines[id];delete QT.rates[id]} drawQ();});
+  el.querySelectorAll(".rin").forEach(i=>i.oninput=()=>{QT.rates[i.id.slice(2)]=i.value;qBar()});
+  qBar();
+}
+function drawLab(){
+  const el=document.getElementById("qlab");
+  el.innerHTML=QD.LABOR.map(([k,l,r])=>{const [n,h]=QT.labor[k]||[0,8];return `<div class="lab" data-k="${k}"><div><div class="nm">${esc(l)}</div><div class="sub">${QD.usd(r)}/hr per person</div></div>
+    <div class="qty"><button data-f="n" data-d="-1" ${n?"":"disabled"} aria-label="One fewer ${esc(l)}">−</button><span>${n}</span><button data-f="n" data-d="1" aria-label="One more ${esc(l)}">+</button></div>
+    <div class="qty hrs"><button data-f="h" data-d="-1" ${h>1?"":"disabled"} aria-label="One hour less">−</button><span>${h}h</span><button data-f="h" data-d="1" ${h<16?"":"disabled"} aria-label="One hour more">+</button></div></div>`}).join("");
+  el.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{const k=b.closest(".lab").dataset.k, cur=QT.labor[k]||[0,8];
+    if(b.dataset.f==="n") cur[0]=Math.max(0,Math.min(9,cur[0]+ +b.dataset.d)); else cur[1]=Math.max(1,Math.min(16,cur[1]+ +b.dataset.d));
+    QT.labor[k]=cur; drawLab(); qBar();});
+}
+function qBar(){
+  const t=qTotal(), n=qLines().reduce((a,[,n])=>a+n,0);
+  document.getElementById("qt").textContent=`Quote: ${QD.usd(t.total)}`;
+  document.getElementById("qs").textContent=`Gear ${QD.usd(t.eq)} · Crew ${QD.usd(t.lab)} · Truck ${QD.usd(t.del)} · ${n} item${n===1?"":"s"}`;
+}
+function quoteResult(){
+  const c=QT.call, lines=qLines(), labor=qLabor();
+  const r=QD.grade(c,lines,labor,QT.delivery,QT.mode==="memory"?Object.fromEntries(Object.entries(QT.rates).map(([k,v])=>[k,+v])):null);
+  const pct=Math.round(r.passed/r.total*100), xp=r.passed*10+(pct===100?40:0);
+  st.xp+=xp; const best=store.get("qbest",{}); best[QT.mode+c.id]=Math.max(best[QT.mode+c.id]||0,pct); store.set("qbest",best); save();
+  const f=QD.dayFactor(c.days), mem=QT.mode==="memory";
+  const row=(id,q)=>{const x=byId[id], card=QD.rate(x), mine=mem?(+QT.rates[id]||0):card, off=mem&&(!mine||Math.abs(mine-card)/card>.35);
+    return `<tr><td>${esc(x.n)}<small${off?' class="off"':""}>${q} × ${QD.usd(mine)}/day${mem?` · card ${QD.usd(card)}`:""}${c.days>1?` × ${f}`:""}</small></td><td class="n">${QD.usd(mine*q*f)}</td></tr>`};
+  const labRows=labor.map(([k,n,h])=>{const L=QD.LABOR.find(l=>l[0]===k);const hh=Math.max(QD.MIN_HRS,h);return `<tr><td>${esc(L[1])}<small>${n} × ${hh}h × ${QD.usd(L[2])}/hr${c.days>1?` × ${c.days} days`:""}</small></td><td class="n">${QD.usd(L[2]*n*hh*c.days)}</td></tr>`}).join("");
+  const sheet=`<div class="label">Your quote</div><div class="qsheet"><table>
+    <thead><tr><th>Line</th><th class="n">Total</th></tr></thead>
+    <tbody>${lines.map(([id,q])=>row(id,q)).join("")||`<tr><td colspan="2">No gear quoted.</td></tr>`}${labRows}${QT.delivery?`<tr><td>Delivery &amp; pickup</td><td class="n">${QD.usd(QD.DELIVERY)}</td></tr>`:""}</tbody>
+    <tfoot><tr><td>Your total</td><td class="n">${QD.usd(r.mine.total)}</td></tr><tr><td style="color:var(--muted);font-weight:400">Shop's quote for this call</td><td class="n" style="color:var(--muted);font-weight:400">${QD.usd(r.ref.total)}</td></tr></tfoot></table></div>
+    <details class="bd"><summary>How the shop would quote it</summary><div class="qsheet"><table><tbody>${c.ref.map(([id,q])=>{const x=byId[id],v=QD.rate(x);return `<tr><td>${esc(x.n)}<small>${q} × ${QD.usd(v)}/day${c.days>1?` × ${f}`:""}</small></td><td class="n">${QD.usd(v*q*f)}</td></tr>`}).join("")}
+      ${c.labor.map(([k,n,h])=>{const L=QD.LABOR.find(l=>l[0]===k);return `<tr><td>${esc(L[1])}<small>${n} × ${h}h × ${QD.usd(L[2])}/hr${c.days>1?` × ${c.days} days`:""}</small></td><td class="n">${QD.usd(L[2]*n*Math.max(QD.MIN_HRS,h)*c.days)}</td></tr>`}).join("")}
+      <tr><td>Delivery &amp; pickup</td><td class="n">${QD.usd(QD.DELIVERY)}</td></tr><tr><td><b>Shop total</b></td><td class="n"><b>${QD.usd(r.ref.total)}</b></td></tr></tbody></table></div></details>`;
+  const hit=r.checks.find(k=>k.ok), miss=r.checks.find(k=>!k.ok);
+  results({kicker:`${esc(c.who)} · ${esc(c.town)} · ${QMODE[QT.mode][0]}`,big:QD.usd(r.mine.total),unit:`your quote · shop says ${QD.usd(r.ref.total)}`,pct,
+    sub:`${r.verdict[0]} · +${xp} XP · ${r.passed} of ${r.total} checks`,
+    best:hit&&[hit.label,hit.detail],miss:miss&&[miss.label,miss.detail],extra:sheet,
+    rows:r.checks.map(k=>checkRow(k.ok,k.label,k.detail)).join(""),
+    btns:`<button class="next" id="qfix">Revise the quote</button><button class="chip" id="qnext">Next call</button><button class="chip" id="qall">All calls</button>`});
+  document.getElementById("qfix").onclick=quoteScreen;
+  document.getElementById("qnext").onclick=()=>{let n;do{n=QD.CALLS[Math.random()*QD.CALLS.length|0].id}while(n===c.id);startQuote(n)};
+  document.getElementById("qall").onclick=()=>quoteList(true);
+}
+
 /* ---------- crew leaderboard (shared db; works solo when unavailable) ---------- */
 let DB=null, ME=null, BOARD=[], nick=store.get("nick",""), wq=Promise.resolve(), wt=0, boardMode="today";
 function sync(){
@@ -858,10 +1005,10 @@ function detail(g, from){
 
 document.querySelectorAll("nav [data-tab]").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("nav [data-tab]").forEach(x=>x.setAttribute("aria-selected",x===b));
-  R=null; clearInterval(G&&G.tm); ({play:home,gigs:()=>gigList(),crew,browse})[b.dataset.tab]();
+  R=null; clearInterval(G&&G.tm); ({play:home,gigs:()=>gigList(),quotes:quoteList,crew,browse})[b.dataset.tab]();
 });
 
-fetch("gear.json").then(r=>r.json()).then(d=>{GEAR=d;d.forEach(g=>byId[g.id]=g);GD.setShop(d);renderStats();home();connect()})
+fetch("gear.json").then(r=>r.json()).then(d=>{GEAR=d;d.forEach(g=>byId[g.id]=g);GD.setShop(d);QD.setShop(d);renderStats();home();connect()})
   .catch(()=>{view.innerHTML=`<p>The gear list didn't load. Reload the page to try again.</p>`});
 })();
 </script>

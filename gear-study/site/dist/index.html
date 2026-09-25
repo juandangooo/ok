@@ -273,6 +273,23 @@ h2{font:600 22px/1.2 var(--body);letter-spacing:-.01em;text-transform:none}
 details.bd{width:100%;text-align:left} details.bd summary{cursor:pointer;list-style:none;font:400 13px var(--body);color:var(--muted);padding:6px 0;text-align:center}
 details.bd summary::-webkit-details-marker{display:none} details.bd summary::after{content:" ▾"} details.bd[open] summary::after{content:" ▴"}
 details.bd .checks{margin-top:6px}
+.qcall{display:grid;gap:8px;padding:14px;border:1px solid var(--line);background:var(--panel);border-left:3px solid var(--ink)}
+.qcall .say{font:400 16px/1.5 var(--body);max-width:62ch}
+.qfacts{display:flex;gap:6px 16px;flex-wrap:wrap;font:400 12px var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.qrate{font:500 13px var(--mono);font-variant-numeric:tabular-nums;color:var(--ink)}
+.rin{width:84px;padding:6px 8px;border:1px solid var(--line);border-radius:3px;background:var(--bg);color:var(--ink);font:500 14px var(--mono)}
+.lab{display:grid;grid-template-columns:1fr auto auto;gap:8px 14px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.lab .nm{font:500 14px var(--body)} .lab .sub{font-size:12px;color:var(--muted)}
+.lab .qty span{min-width:34px;text-align:center}
+.chk{display:flex;gap:10px;align-items:center;padding:10px 0;font:500 14px var(--body)} .chk input{width:18px;height:18px;accent-color:var(--ink)}
+.qsheet{width:100%;overflow-x:auto;text-align:left}
+.qsheet table{width:100%;border-collapse:collapse;font-size:13px}
+.qsheet td small{display:block;color:var(--muted);font:400 12px var(--mono);margin-top:2px}
+.qsheet th{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:6px;border-bottom:1px solid var(--ink)}
+.qsheet td{padding:6px;border-bottom:1px solid var(--line);vertical-align:top}
+.qsheet td.n,.qsheet th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.qsheet .off{color:var(--bad)} .qsheet tfoot td{font-weight:600;border-bottom:0}
+@media (max-width:560px){.lab{grid-template-columns:1fr auto}.lab .hrs{grid-column:2}}
 .btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 @media (prefers-reduced-motion:reduce){.gcard .t::after{transition:none}}
 /* numerals + hero + crew */
@@ -327,8 +344,9 @@ details.venues .picks{margin-top:8px}
   <nav role="tablist">
     <button role="tab" data-tab="play" aria-selected="true">Play</button>
     <button role="tab" data-tab="gigs" aria-selected="false">Gigs</button>
+    <button role="tab" data-tab="quotes" aria-selected="false">Quotes</button>
     <button role="tab" data-tab="crew" aria-selected="false">Crew</button>
-    <button role="tab" data-tab="browse" aria-selected="false">Browse the shop</button>
+    <button role="tab" data-tab="browse" aria-selected="false">Shop</button>
   </nav>
   <main id="view"><p class="loading">Loading the inventory…</p></main>
   <p class="foot">757 products from the Current RMS export. Packages, cases and billing lines are left out. Prices are new retail from real listings; items without a confirmed price only show up in the photo and job drills.</p>
@@ -694,6 +712,201 @@ window.GIG_DATA = (() => {
 
 </script>
 <script>
+/* Quote mode: client calls, a rental rate card, and quote grading.
+   Day rates are anchored to published rental rate sheets (Audioquip, RAAV, AV For You, Crossfire Pro AV,
+   Audio Design Rentals) and scaled from each item's new price. Real NJ rental houses vary about ±30%. */
+window.QUOTE_DATA = (() => {
+  const GD = window.GIG_DATA;
+  let SHOP = [], BY = {};
+
+  // ---------- rate card ----------
+  const TV = {55:175, 60:200, 65:250, 70:300, 75:350, 85:500};
+  const r5 = v => v < 20 ? Math.max(3, Math.round(v)) : Math.round(v/5)*5;
+  function rate(x){
+    const n = x.n, c = GD.cat(x), p = x.p;
+    const size = (n.match(/(\d\d)"/)||[])[1];
+    if(c === "display" && size) return TV[size] || 250;
+    if(c === "display") return 125;                                   // projectors
+    if(/Projection Screen/.test(n)) return 200;
+    if(/Podium/.test(n)) return 100;
+    if(/Velour Drape Panel/.test(n)) return 15;
+    if(/Drape|Upright|Base Plate|Crossbar|Schedule 40|Metal Pipe/.test(n)) return 5;
+    if(/TV Floor Stand|Confidence Monitor Stand/.test(n)) return 40;
+    if(/TV Mounting Bracket/.test(n)) return 10;
+    if(c === "cable" || c === "dmx" || c === "sdi"){
+      if(/Cable Ramp/.test(n)) return 10;
+      return /100|150|200|328|125/.test(n) ? 8 : c === "sdi" ? 5 : 4;
+    }
+    if(p != null){
+      if(c === "console") return r5(p * (p < 1000 ? .08 : p < 3000 ? .06 : p < 10000 ? .045 : .035));
+      if(c === "wireless" && p > 2500) return r5(p * .025);           // multi-channel receivers
+      if(c === "snake") return r5(p * .04);
+      return r5(p * (p < 150 ? .12 : p < 600 ? .08 : p < 2500 ? .055 : .04));
+    }
+    const D = {speech:20, wireless:/Receiver/.test(n)?60:/Bodypack|Transmitter/.test(n)?35:15, fixture:30, lightctl:40,
+      snake:/DL32/.test(n)?150:40, speaker:40, sub:60, stand:10, iem:35, intercom:/Package/.test(n)?120:25, console:60,
+      instmic:15, vocal:10, di:15, camera:120, switcher:100, playback:60, power:25, linearray:150};
+    if(D[c] != null) return D[c];
+    if(/Laptop|MacBook|ThinkPad/.test(n)) return 75;
+    if(/iPad/.test(n)) return 35;
+    if(/Table/.test(n)) return 15;
+    return 10;
+  }
+  const LABOR = [
+    ["a1","A1 audio engineer",85],["av","A/V tech",65],["ld","Lighting operator",85],["vo","Video / camera operator",85],["hand","Stagehand",50],
+  ];
+  const DELIVERY = 300;              // local NJ box truck, delivery + pickup
+  const MIN_HRS = 4;                 // per person, per day
+  const dayFactor = d => 1 + .5*(d-1);   // day 1 full, each extra day half
+
+  // ---------- what counts as what ----------
+  const rxCh = x => /4Q|EM 4/.test(x.n) ? 4 : /4D|Dual/.test(x.n) ? 2 : 1;
+  const IS = {
+    mains:   [x => /speaker|linearray/.test(GD.cat(x)), "Main speakers"],
+    wedge:   [x => GD.cat(x)==="speaker", "Speakers (mains + wedges)"],
+    linearray:[x => GD.cat(x)==="linearray", "Line array boxes"],
+    sub:     [x => GD.cat(x)==="sub", "Subwoofers"],
+    console: [x => GD.cat(x)==="console", "Mixing console"],
+    hh:      [x => GD.cat(x)==="wireless" && /ULXD2|QLXD2|SLXD2|Handheld/.test(x.n), "Wireless handhelds"],
+    pack:    [x => GD.cat(x)==="wireless" && /Bodypack|ULXD1|SLXD1/.test(x.n), "Wireless bodypacks"],
+    lav:     [x => GD.cat(x)==="speech" && /Lavalier|Earset|Headworn|Headset/.test(x.n), "Lav or headset mics for the packs"],
+    lectern: [x => GD.cat(x)==="speech" && /Lectern|Gooseneck/.test(x.n), "Lectern mic"],
+    podium:  [x => /Podium/.test(x.n), "Podium"],
+    tv55:    [x => GD.cat(x)==="display" && +((x.n.match(/(\d\d)"/)||[])[1]||0) >= 55, 'TVs 55" or bigger'],
+    tv65:    [x => GD.cat(x)==="display" && +((x.n.match(/(\d\d)"/)||[])[1]||0) >= 65, 'TVs 65" or bigger'],
+    tv70:    [x => GD.cat(x)==="display" && +((x.n.match(/(\d\d)"/)||[])[1]||0) >= 70, 'TVs 70" or bigger'],
+    tvstand: [x => /TV Floor Stand/.test(x.n), "TV floor stands"],
+    projector:[x => GD.cat(x)==="display" && /Projector/.test(x.n), "Projector"],
+    screen:  [x => /Projection Screen/.test(x.n), "Projection screen"],
+    uplight: [x => GD.cat(x)==="fixture" && /Freedom Par|SlimPar|Wedge Tri|Burst/.test(x.n), "Uplights"],
+    lightctl:[x => GD.cat(x)==="lightctl", "Lighting control"],
+    dmx:     [x => GD.cat(x)==="dmx", "DMX cables"],
+    camera:  [x => GD.cat(x)==="camera", "Cameras"],
+    switcher:[x => GD.cat(x)==="switcher", "Video switcher"],
+    sdi:     [x => GD.cat(x)==="sdi", "SDI cables"],
+    intercom:[x => GD.cat(x)==="intercom", "Intercom"],
+    stereodi:[x => GD.cat(x)==="di" && /Stereo|ProAV2|ProD2|USB-P|DIRECT2/.test(x.n), "Stereo DI for laptop or keys"],
+    di:      [x => GD.cat(x)==="di", "DI boxes"],
+    vocal:   [x => GD.cat(x)==="vocal", "Vocal mics"],
+    instmic: [x => GD.cat(x)==="instmic", "Drum & amp mics"],
+    micstand:[x => GD.cat(x)==="stand" && /Microphone Stand/.test(x.n), "Mic stands"],
+    spkstand:[x => GD.cat(x)==="stand" && /Speaker Stand|SS8000/.test(x.n), "Speaker stands"],
+    xlr:     [x => /25' XLR/.test(x.n), "XLR cables"],
+    gen:     [x => GD.cat(x)==="power" && /Generator/.test(x.n), "Generator"],
+  };
+
+  // ---------- the calls ----------
+  // need: [key, n, why]; labor: [role, people, hours per day]; ref: the shop's own quote [id, qty]
+  const CALLS = [
+    {id:1, who:"Dana, HR events", org:"a pharma company", town:"New Brunswick", room:"Hotel ballroom", ppl:400, days:1,
+     call:"Hey, we're doing a town hall for about 400 employees. Our CEO talks from a podium, then there's Q&A with a couple of mics in the audience. We want TVs on both sides of the stage so the back of the room can see the slides. What would that run us?",
+     need:[["mains",4,"400 people in a flat ballroom: four tops on stands, two front and two delays."],["spkstand",4,"Every top needs a stand."],["console",1,"Something has to mix the lectern, wireless and laptop."],["lectern",1,"The CEO talks from a podium."],["podium",1,"They asked for a podium."],["hh",2,"Two audience Q&A mics."],["rxch",2,"Each handheld needs a receiver channel."],["tv65",2,"Back of a 400-person room: 65\" minimum."],["tvstand",2,"The TVs need floor stands."],["stereodi",1,"Laptop audio for the slide deck."],["xlr",8,"Cable runs to the speakers and lectern."]],
+     labor:[["a1",1,8],["av",1,8],["hand",2,4]],
+     ref:[["p13-03",4],["p18-37",4],["p03-12",1],["p16-09",1],["p10-17",1],["p16-27",2],["p16-28",1],["p14-09",2],["p12-26",2],["p13-15",1],["p01-09",10]]},
+    {id:2, who:"Maria, the bride", org:"a wedding", town:"Asbury Park", room:"Reception hall", ppl:150, days:1,
+     call:"Hi! Our DJ has the music covered, but the hall is pretty dark. Can you do uplighting around the room, like 16 lights? Also one wireless mic for toasts that plugs into the DJ, and a TV for a photo slideshow at cocktail hour.",
+     need:[["uplight",16,"She asked for 16 uplights."],["hh",1,"One toast mic."],["rxch",1,"The toast mic needs a receiver to plug into the DJ."],["tv55",1,"One TV for the slideshow."],["tvstand",1,"The TV needs a stand."],["xlr",1,"Receiver to the DJ mixer."]],
+     labor:[["av",1,5],["hand",1,4]],
+     ref:[["p04-26",16],["p16-15",1],["p16-16",1],["p18-05",1],["p12-26",1],["p01-09",1]]},
+    {id:3, who:"Mr. Alvarez, vice principal", org:"a high school", town:"Toms River", room:"Football field, outdoors", ppl:800, days:1,
+     call:"We need sound for graduation on the football field. About 800 people in the stands. Speeches from a podium, two wireless mics for the class president and the reader, and walk-in music from a laptop. There's no power out on the field.",
+     need:[["linearray",4,"800 people outdoors needs real throw: line array boxes, not party tops."],["console",1,"Mix the speeches and walk-in music."],["lectern",1,"Speeches from a podium."],["podium",1,"They need a podium on the field."],["hh",2,"Class president and reader."],["rxch",2,"Receiver channels for both handhelds."],["gen",1,"No power on the field."],["stereodi",1,"Walk-in music from a laptop."],["xlr",10,"Long runs from the console to the PA."]],
+     labor:[["a1",1,6],["hand",2,6]],
+     ref:[["p09-13",4],["p09-11",2],["p09-17",2],["p19-29",1],["p16-09",1],["p10-17",1],["p16-27",2],["p16-28",1],["p08-28",1],["p13-15",1],["p01-09",12]]},
+    {id:4, who:"Priya, comms director", org:"a university think tank", town:"Princeton", room:"Lecture hall", ppl:120, days:1,
+     call:"We're hosting a panel: a moderator and four speakers on stage, and we're livestreaming it. We need everyone mic'd, a mic for audience questions, two cameras, and a screen up front for slides.",
+     need:[["mains",2,"120 people: a pair of tops is plenty."],["spkstand",2,"Stands for the tops."],["console",1,"Mix five panel mics, Q&A and a stream feed."],["pack",5,"Moderator plus four panelists, hands free."],["lav",5,"Each pack needs a lav."],["hh",1,"Audience Q&A mic."],["rxch",6,"One receiver channel per transmitter."],["camera",2,"They asked for two cameras."],["switcher",1,"Cut between cameras for the stream."],["sdi",2,"Camera runs to the switcher."],["tv55",1,"Screen up front for slides."],["tvstand",1,"Stand for that screen."],["stereodi",1,"Laptop audio."]],
+     labor:[["a1",1,8],["vo",1,8],["hand",1,4]],
+     ref:[["p12-40",2],["p18-37",2],["p19-29",1],["p16-24",5],["p16-39",5],["p16-27",1],["p16-29",1],["p16-28",1],["p03-18",2],["p03-27",1],["p04-12",2],["p14-09",1],["p12-26",1],["p13-15",1],["p01-09",6]]},
+    {id:5, who:"Sal, owner", org:"a brewery", town:"Jersey City", room:"Taproom", ppl:180, days:1,
+     call:"I've got a four-piece band Saturday: drums, bass, guitar, keys, three of them sing. Our room holds 180. I need the whole thing, PA and monitors and mics. Ballpark?",
+     need:[["wedge",5,"Two mains plus three monitor wedges."],["sub",2,"A band with drums needs low end."],["console",1,"Mix the band."],["vocal",3,"Three singers."],["instmic",4,"Kick, snare, overhead and guitar amp at least."],["di",2,"Bass and keys go direct."],["stereodi",1,"Keys are stereo."],["micstand",7,"Three vocal stands plus the instrument mics."],["spkstand",2,"The mains go on stands (or sub poles)."],["xlr",14,"Every mic and wedge needs a cable."]],
+     labor:[["a1",1,6]],
+     ref:[["p13-03",2],["p10-21",3],["p13-09",2],["p03-12",1],["p16-21",3],["p15-39",1],["p15-40",2],["p13-35",2],["p13-17",1],["p13-16",1],["p06-05",7],["p18-37",2],["p01-09",16]]},
+    {id:6, who:"Jordan, marketing", org:"a sneaker brand", town:"Hoboken", room:"Loft event space", ppl:250, days:2,
+     call:"Product launch, two days. We want four big TVs, like 70 inches or more, around the room looping the video. Two presenters in headset mics, one handheld for a guest, music, and some color on the walls. Maybe 12 lights?",
+     need:[["tv70",4,"Four TVs, 70\" or bigger."],["tvstand",4,"Floor stands for all four."],["pack",2,"Two presenters, hands free."],["lav",2,"Headset mics for the packs."],["hh",1,"One guest handheld."],["rxch",3,"A channel for every transmitter."],["mains",2,"A pair of tops for 250."],["spkstand",2,"Stands for the tops."],["sub",1,"Music for a launch wants some low end."],["uplight",12,"12 wall lights."],["console",1,"Mix mics and music."],["stereodi",1,"Music from a laptop."]],
+     labor:[["a1",1,8],["av",1,8],["hand",2,4]],
+     ref:[["p14-11",2],["p14-12",2],["p12-26",4],["p16-24",2],["p16-19",2],["p16-27",1],["p16-29",1],["p12-40",2],["p18-37",2],["p13-05",1],["p02-13",12],["p19-29",1],["p13-15",1]]},
+    {id:7, who:"Pastor Reggie", org:"a church conference", town:"Atlantic City", room:"Convention hall", ppl:600, days:3,
+     call:"Three-day conference, 600 people. Worship band each morning, then speakers. We'll need handhelds for the band's singers, headsets for the speakers, a projector and big screen for lyrics, some lighting, and the team needs to talk to each other.",
+     need:[["mains",4,"600 people: four mains at minimum."],["sub",2,"A worship band needs subs."],["console",1,"Band plus speakers: a real digital desk."],["hh",4,"Four singers."],["pack",2,"Two speakers in headsets."],["lav",2,"Headsets for the packs."],["rxch",6,"A channel for every transmitter."],["projector",1,"Lyrics on a big screen."],["screen",1,"Something to project on."],["uplight",12,"Stage and wall color."],["lightctl",1,"Someone runs the lights."],["dmx",8,"Cable the lights."],["intercom",1,"The team talks to each other."],["stereodi",1,"Laptop for lyrics and walk-in."]],
+     labor:[["a1",1,10],["ld",1,10],["av",1,10],["hand",2,4]],
+     ref:[["p09-10",4],["p18-37",4],["p09-17",2],["p02-24",1],["p16-27",4],["p16-24",2],["p16-19",2],["p16-29",1],["p16-28",1],["p19-08",1],["p17-33",1],["p04-34",12],["p02-17",1],["p01-21",12],["p08-20",1],["p13-15",1],["p01-09",12]]},
+    {id:8, who:"Evelyn, gala chair", org:"a hospital foundation", town:"Morristown", room:"Estate ballroom", ppl:300, days:1,
+     call:"Our gala is 300 guests. We want the room washed in color, about 30 uplights. Speeches from a podium, two wireless for the auctioneer and emcee, and two TVs showing the donor video.",
+     need:[["uplight",30,"About 30 uplights."],["lectern",1,"Speeches from a podium."],["podium",1,"They need a podium."],["hh",2,"Auctioneer and emcee."],["rxch",2,"A channel for each handheld."],["mains",2,"A pair of tops for 300 seated."],["spkstand",2,"Stands for the tops."],["console",1,"Mix it all."],["tv65",2,"Two TVs for the donor video, 65\" or bigger."],["tvstand",2,"Stands for the TVs."],["stereodi",1,"Video audio from a laptop."]],
+     labor:[["a1",1,8],["av",1,8],["hand",2,4]],
+     ref:[["p04-26",20],["p02-13",10],["p16-09",1],["p10-17",1],["p16-27",2],["p16-28",1],["p13-03",2],["p18-37",2],["p19-33",1],["p14-09",2],["p12-26",2],["p13-15",1],["p01-09",6]]},
+    {id:9, who:"Kevin, trade show manager", org:"a flooring supplier", town:"Edison", room:"Convention center booth", ppl:0, days:2,
+     call:"Two-day trade show booth. Two TVs, 55-inch or bigger, a small speaker, and one wireless mic for demos. Nothing crazy.",
+     need:[["tv55",2,"Two TVs, 55\" or bigger."],["tvstand",2,"Stands for both."],["mains",1,"One small speaker."],["spkstand",1,"A stand for it."],["hh",1,"One demo mic."],["rxch",1,"A receiver for the mic."],["console",1,"A small mixer to combine mic and laptop."],["stereodi",1,"Laptop audio."]],
+     labor:[["av",1,4]],
+     ref:[["p14-07",2],["p12-26",2],["p12-40",1],["p18-37",1],["p16-15",1],["p16-16",1],["p19-32",1],["p13-15",1]]},
+    {id:10, who:"Chris, parks & rec", org:"the town", town:"Montclair", room:"Park lawn, outdoors", ppl:200, days:1,
+     call:"Summer movie night in the park, about 200 people on blankets. We need a big screen, a projector, and sound that actually sounds like a movie. No power out there.",
+     need:[["projector",1,"A projector."],["screen",1,"A big screen."],["mains",2,"A pair of tops for 200 people."],["spkstand",2,"Stands for the tops."],["sub",2,"Movies need low end."],["console",1,"Small mixer for the feed."],["stereodi",1,"Stereo audio from the laptop or player."],["gen",1,"No power in the park."],["xlr",4,"Mixer to speakers."]],
+     labor:[["av",1,5],["hand",1,4]],
+     ref:[["p19-08",1],["p17-33",1],["p13-03",2],["p18-37",2],["p13-09",2],["p13-15",1],["p19-32",1],["p12-25",1],["p01-09",4]]},
+  ];
+
+  // ---------- totals + grading ----------
+  const LAB = Object.fromEntries(LABOR.map(([k,l,r]) => [k,{l,r}]));
+  function totals(call, lines, labor, delivery, rateOf){
+    const f = dayFactor(call.days);
+    const eq = lines.reduce((a,[id,q]) => a + rateOf(id)*q*f, 0);
+    const lab = labor.reduce((a,[k,n,h]) => a + LAB[k].r*n*Math.max(MIN_HRS,h)*call.days, 0);
+    const del = delivery ? DELIVERY : 0;
+    return {eq, lab, del, total: eq + lab + del};
+  }
+  const refTotals = call => totals(call, call.ref, call.labor, true, id => rate(BY[id]));
+  function count(key, lines){
+    if(key === "rxch") return lines.reduce((a,[id,q]) => { const x = BY[id]; return a + (GD.cat(x)==="wireless" && /Receiver|ULXD4|QLXD4|SLXD4|EM 4/.test(x.n) ? rxCh(x)*q : 0); }, 0);
+    const f = IS[key][0];
+    return lines.reduce((a,[id,q]) => a + (f(BY[id]) ? q : 0), 0);
+  }
+  const needLabel = k => k === "rxch" ? "Wireless receiver channels" : IS[k][1];
+  function grade(call, lines, labor, delivery, myRates){
+    const checks = [];
+    for(const [k,n,why] of call.need){
+      const have = count(k, lines);
+      checks.push({ok: have >= n, label: needLabel(k), detail: have >= n ? `${have} quoted. ${why}` : `${have} of ${n} quoted. ${why}`});
+    }
+    for(const [k,n,h] of call.labor){
+      const mine = labor.find(l => l[0] === k);
+      const ok = mine && mine[1] >= n && Math.max(MIN_HRS, mine[2]) >= h*.75;
+      checks.push({ok: !!ok, label: `Labor: ${LAB[k].l}`, detail: ok ? `${mine[1]} × ${mine[2]} hrs per day. The shop would book ${n} × ${h}.` : mine ? `You booked ${mine[1]} × ${mine[2]} hrs per day. The shop would book ${n} × ${h}.` : `Not on your quote. The shop would book ${n} × ${h} hrs per day.`});
+    }
+    checks.push({ok: !!delivery, label: "Delivery & pickup", detail: delivery ? `$${DELIVERY} truck, there and back.` : `Somebody has to drive it there. Add $${DELIVERY}.`});
+    let rateScore = null;
+    if(myRates){
+      const rows = lines.map(([id]) => ({id, mine: myRates[id], card: rate(BY[id])}));
+      const good = rows.filter(r => r.mine > 0 && Math.abs(r.mine - r.card) / r.card <= .35);
+      rateScore = {good: good.length, n: rows.length, rows};
+      checks.push({ok: rows.length > 0 && good.length / rows.length >= .7, label: "Day rates from memory", detail: `${good.length} of ${rows.length} line rates within 35% of the rate card.`});
+    }
+    const rateOf = id => myRates ? (myRates[id] || 0) : rate(BY[id]);
+    const mine = totals(call, lines, labor, delivery, rateOf), ref = refTotals(call);
+    const r = mine.total / ref.total;
+    const verdict = r > 1.5 ? ["Lost the bid", "Way over what the shop would charge. The client calls someone else."]
+      : r > 1.25 ? ["A little rich", "Higher than the shop's number. You might keep it if the client loves you."]
+      : r >= .8 ? ["On the money", "Right around the shop's own quote."]
+      : r >= .65 ? ["Tight margin", "Under the shop's number. You'd win it, but check you didn't forget anything."]
+      : ["Money left on the table", "Far under the shop's number. Something is missing or underpriced."];
+    checks.push({ok: r >= .8 && r <= 1.25, label: `Total: ${verdict[0]}`, detail: `${verdict[1]} Yours ${usd(mine.total)} vs shop ${usd(ref.total)}.`});
+    const passed = checks.filter(c => c.ok).length;
+    return {checks, passed, total: checks.length, mine, ref, ratio: r, verdict, rateScore};
+  }
+  const usd = v => "$" + Math.round(v).toLocaleString();
+
+  return {
+    CALLS, LABOR, DELIVERY, MIN_HRS, dayFactor, rate, grade, totals, refTotals, usd,
+    setShop(g){ SHOP = g; BY = Object.fromEntries(g.map(x => [x.id, x])); },
+  };
+})();
+
+</script>
+<script>
 (() => {
 const CAT = {Audio:"var(--audio)",Lighting:"var(--lighting)",Video:"var(--video)",Other:"var(--other)"};
 const CAT_NAME = {Audio:"Audio",Lighting:"Lighting",Video:"Video",Other:"Staging & rigging"};
@@ -728,7 +941,7 @@ const MODES = {
 /* ---------- home: choose your game ---------- */
 const GAMES=[["photo","Name that gear","See the photo, pick the right name."],["price","Price is right","Guess what it costs new."],
   ["job","What's it for?","Match the gear to its job on a show."],["mix","Full shift","All three drills mixed together. Double XP."],
-  ["gigs","Gigs","Get sent to a NJ venue. Pull the right gear for the client."],["browse","Browse the shop","Every item, with website and manual links."]];
+  ["gigs","Gigs","Get sent to a NJ venue. Pull the right gear for the client."],["quote","Make the quote","A client calls. Build the rental quote and price it."],["browse","Browse the shop","Every item, with website and manual links."]];
 function setTab(t){document.querySelectorAll("nav [data-tab]").forEach(x=>x.setAttribute("aria-selected",x.dataset.tab===t))}
 const dayKey=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
 function dailyGig(){const k=dayKey();let h=0;for(const c of k)h=(h*31+c.charCodeAt(0))>>>0;return GD.GIGS[h%GD.GIGS.length]}
@@ -761,7 +974,7 @@ function home(){
   document.getElementById("tocrew").onclick=crew;
   drawMini(); bindNick();
   view.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{const k=b.dataset.go;
-    if(k==="gigs") gigList(); else if(k==="browse"){setTab("browse");browse()} else drillSetup(k);});
+    if(k==="gigs") gigList(); else if(k==="quote") quoteList(); else if(k==="browse"){setTab("browse");browse()} else drillSetup(k);});
 }
 /* stepped setup: each step collapses to a summary line once chosen */
 function flow({title,back,steps,final,start}){
@@ -886,11 +1099,12 @@ const TIERS=[[90,"Headliner-ready"],[70,"Solid crew"],[50,"Needs a shadow shift"
 const tier=p=>TIERS.find(([m])=>p>=m)[1];
 const byMax=(a,f)=>a.reduce((m,x)=>m==null||f(x)>f(m)?x:m,null);
 const checkRow=(ok,t,d)=>`<div class="check ${ok?"ok":"no"}"><span class="i">${ok?"✓":"✗"}</span><div><b>${esc(t)}</b><br><span>${esc(d)}</span></div></div>`;
-function results({kicker,big,unit,pct,sub,best,miss,rows,btns,rig}){
+function results({kicker,big,unit,pct,sub,best,miss,rows,btns,rig,extra}){
   window.scrollTo(0,0);
   view.innerHTML=`<div class="card result pop"><div class="label">${kicker}</div><div class="big">${big}</div><div class="label">${unit}</div>
     <span class="tier">${tier(pct)}</span><div class="label">${sub}</div>
     ${best||miss?`<div class="hl">${best?`<div class="hlc"><span class="label">Best call</span><b>${esc(best[0])}</b><span>${esc(best[1])}</span></div>`:""}${miss?`<div class="hlc miss"><span class="label">Costliest miss</span><b>${esc(miss[0])}</b><span>${esc(miss[1])}</span></div>`:""}</div>`:""}
+    ${extra||""}
     ${rig?`<div class="label">What went on the truck</div><div class="rig">${rig}</div>`:""}
     <details class="bd"><summary>Show full breakdown</summary><div class="checks">${rows}</div></details>
     <div class="btns">${btns}</div></div>`;
@@ -1107,6 +1321,131 @@ function gigResult(){
   document.getElementById("all").onclick=gigList;
 }
 
+/* ---------- quotes ---------- */
+const QD=window.QUOTE_DATA;
+let QT=null, qmode=store.get("qmode","open");
+const QMODE={open:["Rate card open","Day rates are shown. You pick the gear, the crew and the hours."],
+  memory:["From memory","No rate card. Type the day rate you'd charge for every line. Within 35% counts."]};
+function quoteList(skipMode){
+  clearInterval(G&&G.tm); setTab("quotes");
+  const best=store.get("qbest",{}), C=QD.CALLS, reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  flow({title:"Make the quote",back:["All games",home],
+    steps:[
+      {key:"mode",label:"Rate card",name:v=>QMODE[v][0],set:v=>{qmode=v;store.set("qmode",v)},
+       body:()=>`<div class="picks">${Object.entries(QMODE).map(([k,[l,d]])=>`<button class="pk" data-v="${k}" aria-pressed="${qmode===k}"><b>${l}</b><span>${d}</span></button>`).join("")}</div>`},
+      {key:"call",label:"The call",name:id=>{const c=C.find(x=>x.id===+id);return c?`${c.who}, ${c.town}`:""},
+       body:v=>`<div class="spin"><button class="next" id="spin">Pick up the phone</button><div class="reel" id="reel" aria-live="polite"><small>A random client calls the shop.</small></div></div>
+         <details class="venues"><summary>Or choose a call (${C.length})</summary><div class="picks">${C.map(c=>`<button class="pk" data-v="${c.id}"><span>${esc(c.town)} · ${c.ppl?c.ppl+" people · ":""}${c.days} day${c.days>1?"s":""}</span><b>${esc(c.who)}</b><span>${esc(c.org)} · ${esc(c.room)}</span>${best[v.mode+c.id]!=null?`<span class="best">Best: ${best[v.mode+c.id]}%</span>`:""}</button>`).join("")}</div></details>`,
+       after:choose=>{
+         const btn=document.getElementById("spin"), reel=document.getElementById("reel");
+         const show=c=>{reel.innerHTML=`<span class="label">${esc(c.town)}</span><b>${esc(c.who)}</b><small>${esc(c.org)} · ${esc(c.room)}</small>`};
+         btn.onclick=()=>{const t=C[Math.random()*C.length|0]; btn.disabled=true;
+           if(reduce){show(t);reel.classList.add("land");setTimeout(()=>reel.isConnected&&choose(String(t.id)),350);return}
+           let k=0; const tick=()=>{if(!reel.isConnected)return; if(k<14){show(C[Math.random()*C.length|0]);k++;setTimeout(tick,40+k*k*1.2)} else {show(t);reel.classList.add("land");setTimeout(()=>reel.isConnected&&choose(String(t.id)),600)}}; tick();};
+       }}],
+    final:{label:"On the phone",go:"Take the call →",body:v=>{const c=C.find(x=>x.id===+v.call);return `<div class="label">${esc(c.org)} · ${esc(c.town)}, NJ</div><div class="req">${esc(c.who)} is calling about ${c.ppl?c.ppl+" people, ":""}${c.days} day${c.days>1?"s":""}.</div>`},
+      run:v=>startQuote(+v.call)},start:skipMode?{mode:qmode}:null});
+}
+function startQuote(id){
+  const call=QD.CALLS.find(c=>c.id===id);
+  QT={call,mode:qmode,lines:{},rates:{},labor:{},delivery:false,dept:"speaker",q:""};
+  quoteScreen();
+}
+function qLines(){return Object.entries(QT.lines).filter(([,n])=>n>0)}
+function qLabor(){return Object.entries(QT.labor).filter(([,[n]])=>n>0).map(([k,[n,h]])=>[k,n,h])}
+function qTotal(){
+  const rateOf=id=>QT.mode==="open"?QD.rate(byId[id]):(+QT.rates[id]||0);
+  return QD.totals(QT.call,qLines(),qLabor(),QT.delivery,rateOf);
+}
+function quoteScreen(){
+  window.scrollTo(0,0);
+  const c=QT.call, open=QT.mode==="open";
+  view.innerHTML=`<div class="game"><div class="gtop"><button class="quit" id="qback">All calls</button><span class="label" style="flex:1">Quote · ${QMODE[QT.mode][0]}</span></div>
+    <div class="qcall"><div class="label">Incoming call · ${esc(c.who)}, ${esc(c.org)}</div>
+      <div class="say">“${esc(c.call)}”</div>
+      <div class="qfacts"><span>${esc(c.town)}, NJ</span><span>${esc(c.room)}</span>${c.ppl?`<span>${c.ppl} people</span>`:""}<span>${c.days} day${c.days>1?"s":""}</span></div></div>
+    <p class="foot" style="margin:0">${open?"Day rates come from the shop's rate card.":"Add gear, then type your day rate on each line."} ${c.days>1?`Day 1 bills in full; each extra day bills at 50% (×${QD.dayFactor(c.days)}). `:""}Labor has a ${QD.MIN_HRS}-hour minimum per person per day.</p>
+    <div class="label">Equipment</div>
+    <div class="tools" style="margin:0"><input id="qq" type="search" placeholder="Search the shop (try “K12”, “65”, “lav”)" aria-label="Search the shop" value="${esc(QT.q)}"></div>
+    <div class="chips cats" id="qcats"></div>
+    <div class="pull" id="qlist"></div>
+    <div class="label" style="margin-top:8px">Crew</div>
+    <div id="qlab"></div>
+    <label class="chk"><input type="checkbox" id="qdel" ${QT.delivery?"checked":""}> Delivery &amp; pickup, local NJ box truck · ${QD.usd(QD.DELIVERY)}</label>
+    <div class="truck"><div><div class="t" id="qt"></div><div class="s" id="qs"></div></div>
+      <div style="display:flex;gap:8px"><button class="ghost" id="qclear">Clear</button><button id="qsend">Send quote</button></div></div></div>`;
+  document.getElementById("qback").onclick=()=>quoteList(true);
+  const q=document.getElementById("qq"); q.oninput=()=>{QT.q=q.value;drawQ()};
+  document.getElementById("qdel").onchange=e=>{QT.delivery=e.target.checked;qBar()};
+  document.getElementById("qclear").onclick=()=>{QT.lines={};QT.rates={};QT.labor={};QT.delivery=false;quoteScreen()};
+  document.getElementById("qsend").onclick=quoteResult;
+  drawQ(); drawLab();
+}
+function drawQ(){
+  const s=QT.q.trim().toLowerCase(), open=QT.mode==="open";
+  const onQ=k=>qLines().filter(([id])=>GD.cat(byId[id])===k).reduce((a,[,n])=>a+n,0);
+  const chips=[["quoted","On the quote"],...GD.CATS];
+  const cats=document.getElementById("qcats"), sx=cats.scrollLeft;
+  cats.innerHTML=chips.map(([k,l])=>{const n=k==="quoted"?qLines().reduce((a,[,n])=>a+n,0):onQ(k);return `<button class="chip" data-qc="${k}" aria-pressed="${QT.dept===k}">${esc(l)}${n?` <b>${n}</b>`:""}</button>`}).join("");
+  cats.scrollLeft=sx;
+  cats.querySelectorAll("[data-qc]").forEach(b=>b.onclick=()=>{QT.dept=b.dataset.qc;QT.q="";document.getElementById("qq").value="";drawQ()});
+  let list=GEAR.filter(x=>x.q>0);
+  if(s) list=list.filter(x=>(x.n+" "+x.t+" "+x.r).toLowerCase().includes(s));
+  else if(QT.dept==="quoted") list=list.filter(x=>QT.lines[x.id]);
+  else list=list.filter(x=>GD.cat(x)===QT.dept);
+  const el=document.getElementById("qlist");
+  el.innerHTML=list.length?list.slice(0,120).map(x=>{const n=QT.lines[x.id]||0;return `<div class="prow${n?" on":""}" data-id="${x.id}">
+      ${x.img&&!x.sub?`<img alt="" src="${x.img}" loading="lazy">`:`<span></span>`}
+      <div><div class="nm">${esc(x.n)}</div><div class="sub">${esc(x.t)} · shop has ${x.q}${open?` · <span class="qrate">${QD.usd(QD.rate(x))}/day</span>`:""}</div>
+        ${!open&&n?`<label class="sub" style="display:flex;gap:6px;align-items:center;margin-top:4px">Your day rate $<input class="rin" type="number" min="0" inputmode="decimal" id="r-${x.id}" value="${esc(QT.rates[x.id]??"")}" aria-label="Day rate for ${esc(x.n)}"></label>`:""}</div>
+      <div class="qty"><button data-d="-1" ${n?"":"disabled"} aria-label="Remove one">−</button><span>${n}</span><button data-d="1" ${n>=x.q?"disabled":""} aria-label="Add one">+</button></div></div>`}).join("")
+    :`<p class="foot">${QT.dept==="quoted"&&!s?"Nothing on the quote yet. Pick a category above.":"No matches. Try another word."}</p>`;
+  el.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{const id=b.closest(".prow").dataset.id,x=byId[id];
+    QT.lines[id]=Math.max(0,Math.min(x.q,(QT.lines[id]||0)+ +b.dataset.d)); if(!QT.lines[id]){delete QT.lines[id];delete QT.rates[id]} drawQ();});
+  el.querySelectorAll(".rin").forEach(i=>i.oninput=()=>{QT.rates[i.id.slice(2)]=i.value;qBar()});
+  qBar();
+}
+function drawLab(){
+  const el=document.getElementById("qlab");
+  el.innerHTML=QD.LABOR.map(([k,l,r])=>{const [n,h]=QT.labor[k]||[0,8];return `<div class="lab" data-k="${k}"><div><div class="nm">${esc(l)}</div><div class="sub">${QD.usd(r)}/hr per person</div></div>
+    <div class="qty"><button data-f="n" data-d="-1" ${n?"":"disabled"} aria-label="One fewer ${esc(l)}">−</button><span>${n}</span><button data-f="n" data-d="1" aria-label="One more ${esc(l)}">+</button></div>
+    <div class="qty hrs"><button data-f="h" data-d="-1" ${h>1?"":"disabled"} aria-label="One hour less">−</button><span>${h}h</span><button data-f="h" data-d="1" ${h<16?"":"disabled"} aria-label="One hour more">+</button></div></div>`}).join("");
+  el.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>{const k=b.closest(".lab").dataset.k, cur=QT.labor[k]||[0,8];
+    if(b.dataset.f==="n") cur[0]=Math.max(0,Math.min(9,cur[0]+ +b.dataset.d)); else cur[1]=Math.max(1,Math.min(16,cur[1]+ +b.dataset.d));
+    QT.labor[k]=cur; drawLab(); qBar();});
+}
+function qBar(){
+  const t=qTotal(), n=qLines().reduce((a,[,n])=>a+n,0);
+  document.getElementById("qt").textContent=`Quote: ${QD.usd(t.total)}`;
+  document.getElementById("qs").textContent=`Gear ${QD.usd(t.eq)} · Crew ${QD.usd(t.lab)} · Truck ${QD.usd(t.del)} · ${n} item${n===1?"":"s"}`;
+}
+function quoteResult(){
+  const c=QT.call, lines=qLines(), labor=qLabor();
+  const r=QD.grade(c,lines,labor,QT.delivery,QT.mode==="memory"?Object.fromEntries(Object.entries(QT.rates).map(([k,v])=>[k,+v])):null);
+  const pct=Math.round(r.passed/r.total*100), xp=r.passed*10+(pct===100?40:0);
+  st.xp+=xp; const best=store.get("qbest",{}); best[QT.mode+c.id]=Math.max(best[QT.mode+c.id]||0,pct); store.set("qbest",best); save();
+  const f=QD.dayFactor(c.days), mem=QT.mode==="memory";
+  const row=(id,q)=>{const x=byId[id], card=QD.rate(x), mine=mem?(+QT.rates[id]||0):card, off=mem&&(!mine||Math.abs(mine-card)/card>.35);
+    return `<tr><td>${esc(x.n)}<small${off?' class="off"':""}>${q} × ${QD.usd(mine)}/day${mem?` · card ${QD.usd(card)}`:""}${c.days>1?` × ${f}`:""}</small></td><td class="n">${QD.usd(mine*q*f)}</td></tr>`};
+  const labRows=labor.map(([k,n,h])=>{const L=QD.LABOR.find(l=>l[0]===k);const hh=Math.max(QD.MIN_HRS,h);return `<tr><td>${esc(L[1])}<small>${n} × ${hh}h × ${QD.usd(L[2])}/hr${c.days>1?` × ${c.days} days`:""}</small></td><td class="n">${QD.usd(L[2]*n*hh*c.days)}</td></tr>`}).join("");
+  const sheet=`<div class="label">Your quote</div><div class="qsheet"><table>
+    <thead><tr><th>Line</th><th class="n">Total</th></tr></thead>
+    <tbody>${lines.map(([id,q])=>row(id,q)).join("")||`<tr><td colspan="2">No gear quoted.</td></tr>`}${labRows}${QT.delivery?`<tr><td>Delivery &amp; pickup</td><td class="n">${QD.usd(QD.DELIVERY)}</td></tr>`:""}</tbody>
+    <tfoot><tr><td>Your total</td><td class="n">${QD.usd(r.mine.total)}</td></tr><tr><td style="color:var(--muted);font-weight:400">Shop's quote for this call</td><td class="n" style="color:var(--muted);font-weight:400">${QD.usd(r.ref.total)}</td></tr></tfoot></table></div>
+    <details class="bd"><summary>How the shop would quote it</summary><div class="qsheet"><table><tbody>${c.ref.map(([id,q])=>{const x=byId[id],v=QD.rate(x);return `<tr><td>${esc(x.n)}<small>${q} × ${QD.usd(v)}/day${c.days>1?` × ${f}`:""}</small></td><td class="n">${QD.usd(v*q*f)}</td></tr>`}).join("")}
+      ${c.labor.map(([k,n,h])=>{const L=QD.LABOR.find(l=>l[0]===k);return `<tr><td>${esc(L[1])}<small>${n} × ${h}h × ${QD.usd(L[2])}/hr${c.days>1?` × ${c.days} days`:""}</small></td><td class="n">${QD.usd(L[2]*n*Math.max(QD.MIN_HRS,h)*c.days)}</td></tr>`}).join("")}
+      <tr><td>Delivery &amp; pickup</td><td class="n">${QD.usd(QD.DELIVERY)}</td></tr><tr><td><b>Shop total</b></td><td class="n"><b>${QD.usd(r.ref.total)}</b></td></tr></tbody></table></div></details>`;
+  const hit=r.checks.find(k=>k.ok), miss=r.checks.find(k=>!k.ok);
+  results({kicker:`${esc(c.who)} · ${esc(c.town)} · ${QMODE[QT.mode][0]}`,big:QD.usd(r.mine.total),unit:`your quote · shop says ${QD.usd(r.ref.total)}`,pct,
+    sub:`${r.verdict[0]} · +${xp} XP · ${r.passed} of ${r.total} checks`,
+    best:hit&&[hit.label,hit.detail],miss:miss&&[miss.label,miss.detail],extra:sheet,
+    rows:r.checks.map(k=>checkRow(k.ok,k.label,k.detail)).join(""),
+    btns:`<button class="next" id="qfix">Revise the quote</button><button class="chip" id="qnext">Next call</button><button class="chip" id="qall">All calls</button>`});
+  document.getElementById("qfix").onclick=quoteScreen;
+  document.getElementById("qnext").onclick=()=>{let n;do{n=QD.CALLS[Math.random()*QD.CALLS.length|0].id}while(n===c.id);startQuote(n)};
+  document.getElementById("qall").onclick=()=>quoteList(true);
+}
+
 /* ---------- crew leaderboard (shared db; works solo when unavailable) ---------- */
 let DB=null, ME=null, BOARD=[], nick=store.get("nick",""), wq=Promise.resolve(), wt=0, boardMode="today";
 function sync(){
@@ -1214,10 +1553,10 @@ function detail(g, from){
 
 document.querySelectorAll("nav [data-tab]").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("nav [data-tab]").forEach(x=>x.setAttribute("aria-selected",x===b));
-  R=null; clearInterval(G&&G.tm); ({play:home,gigs:()=>gigList(),crew,browse})[b.dataset.tab]();
+  R=null; clearInterval(G&&G.tm); ({play:home,gigs:()=>gigList(),quotes:quoteList,crew,browse})[b.dataset.tab]();
 });
 
-fetch("gear.json").then(r=>r.json()).then(d=>{GEAR=d;d.forEach(g=>byId[g.id]=g);GD.setShop(d);renderStats();home();connect()})
+fetch("gear.json").then(r=>r.json()).then(d=>{GEAR=d;d.forEach(g=>byId[g.id]=g);GD.setShop(d);QD.setShop(d);renderStats();home();connect()})
   .catch(()=>{view.innerHTML=`<p>The gear list didn't load. Reload the page to try again.</p>`});
 })();
 </script>
