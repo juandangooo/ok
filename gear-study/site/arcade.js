@@ -42,8 +42,28 @@ function axShell(top, mid, cap){
   AX.innerHTML = `<div class="ax-top">${top}</div><div class="ax-mid">${mid}</div><div class="ax-cap">${cap}</div>`;
 }
 const hiScore = () => Math.max(store.get("hi",0), ...BOARD.map(p=>p.hi||0));
+/* Hellhound Audio emblem as an arcade sprite: black face with a white H, red face with a black H */
+const HH_ROWS = [
+  "..........kr..........","........kkkrrr........","......kkkkkrrrrr......","....kkkkkkkrrrrrrr....","..kkkkkkkkkrrrrrrrrr..",
+  "kkkkkkkkkkkrrrrrrrrrrr","kkkkkkkkkkkrrrrrrrrrrr",
+  "kkwwkkkwwkkrrkkrrrkkrr","kkwwkkkwwkkrrkkrrrkkrr","kkwwkkkwwkkrrkkrrrkkrr","kkwwkkkwwkkrrkkrrrkkrr",
+  "kkwwwwwwwkkrrkkkkkkkrr","kkwwwwwwwkkrrkkkkkkkrr",
+  "kkwwkkkwwkkrrkkrrrkkrr","kkwwkkkwwkkrrkkrrrkkrr","kkwwkkkwwkkrrkkrrrkkrr","kkwwkkkwwkkrrkkrrrkkrr",
+  "kkkkkkkkkkkrrrrrrrrrrr","kkkkkkkkkkkrrrrrrrrrrr",
+  "..kkkkkkkkkrrrrrrrrr..","....kkkkkkkrrrrrrr....","......kkkkkrrrrr......","........kkkrrr........","..........kr..........",
+];
+const HH_SVG = (() => {
+  const g = HH_ROWS.map(r=>r.split("")), H=g.length, W=g[0].length, at=(y,x)=>(g[y]&&g[y][x])||".";
+  // outline the red face in black so the cube holds its shape on the red stage colour
+  const out = g.map((row,y)=>row.map((c,x)=>c==="r"&&[[0,1],[0,-1],[1,0],[-1,0]].some(([dy,dx])=>at(y+dy,x+dx)===".")?"k":c));
+  const col={k:"#0B0B0B",r:"#E83A36",w:"#FFFFFF"};
+  let rects="";
+  out.forEach((row,y)=>row.forEach((c,x)=>{ if(c!==".") rects+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${col[c]}"/>`; }));
+  return `<svg class="hh-mark" viewBox="0 0 ${W} ${H}" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
+})();
+const HH_LOGO = `<span class="hh" role="img" aria-label="Hellhound Audio">${HH_SVG}<span class="hh-word">HELLHOUND<small>AUDIO</small></span></span>`;
 function capRow(){
-  return `<span><button id="axgearb">Gear</button></span><span>Stage Shop, NJ</span><span><button id="axsnd">Sound ${axSound?"on":"off"}</button> · <button id="axprac">Practice</button></span>`;
+  return `<span><button id="axgearb">Gear</button></span><span>${HH_LOGO}</span><span><button id="axsnd">Sound ${axSound?"on":"off"}</button> · <button id="axprac">Practice</button></span>`;
 }
 /* the gear encyclopedia, always one tap away; pauses the clock */
 function openGear(item){

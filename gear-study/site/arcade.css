@@ -98,6 +98,10 @@
   padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px))}
 .axg-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;position:sticky;top:0;background:var(--bg);padding-block:6px;z-index:2}
 .ax-more{text-decoration:underline;text-underline-offset:2px;margin-left:6px;font-weight:500}
+.hh{display:inline-flex;align-items:center;gap:7px;justify-content:center}
+.hh-mark{width:22px;height:24px;image-rendering:pixelated;flex:none}
+.hh-word{display:grid;font:400 11px/1 "Silkscreen","Press Start 2P",monospace;letter-spacing:.06em;text-align:left}
+.hh-word small{font:inherit;font-size:8px;letter-spacing:.34em;margin-top:2px}
 .ax-back{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:40;background:#1E1C18;color:#F1C232;border:0;padding:10px 16px;font:500 13px "Archivo",Helvetica,Arial,sans-serif;letter-spacing:.08em;cursor:pointer}
 @media (prefers-reduced-motion:reduce){
   #arcade,.ax-tile,.ax-grid path{transition:none!important}.ax-grid svg,.ax-press{animation:none}

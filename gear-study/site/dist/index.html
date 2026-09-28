@@ -1,7 +1,7 @@
 <meta charset="utf-8">
 <title>Load-In Drills</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Oswald:wght@500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Silkscreen&family=Oswald:wght@500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{
   --bg:#e9ecef; --panel:#f8f9fa; --ink:#15191e; --muted:#5b6570; --line:#cfd5db;
@@ -437,6 +437,10 @@ details.venues .picks{margin-top:8px}
   padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px))}
 .axg-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;position:sticky;top:0;background:var(--bg);padding-block:6px;z-index:2}
 .ax-more{text-decoration:underline;text-underline-offset:2px;margin-left:6px;font-weight:500}
+.hh{display:inline-flex;align-items:center;gap:7px;justify-content:center}
+.hh-mark{width:22px;height:24px;image-rendering:pixelated;flex:none}
+.hh-word{display:grid;font:400 11px/1 "Silkscreen","Press Start 2P",monospace;letter-spacing:.06em;text-align:left}
+.hh-word small{font:inherit;font-size:8px;letter-spacing:.34em;margin-top:2px}
 .ax-back{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:40;background:#1E1C18;color:#F1C232;border:0;padding:10px 16px;font:500 13px "Archivo",Helvetica,Arial,sans-serif;letter-spacing:.08em;cursor:pointer}
 @media (prefers-reduced-motion:reduce){
   #arcade,.ax-tile,.ax-grid path{transition:none!important}.ax-grid svg,.ax-press{animation:none}
@@ -1750,8 +1754,28 @@ function axShell(top, mid, cap){
   AX.innerHTML = `<div class="ax-top">${top}</div><div class="ax-mid">${mid}</div><div class="ax-cap">${cap}</div>`;
 }
 const hiScore = () => Math.max(store.get("hi",0), ...BOARD.map(p=>p.hi||0));
+/* Hellhound Audio emblem as an arcade sprite: black face with a white H, red face with a black H */
+const HH_ROWS = [
+  "..........kr..........","........kkkrrr........","......kkkkkrrrrr......","....kkkkkkkrrrrrrr....","..kkkkkkkkkrrrrrrrrr..",
+  "kkkkkkkkkkkrrrrrrrrrrr","kkkkkkkkkkkrrrrrrrrrrr",
+  "kkwwkkkwwkkrrkkrrrkkrr","kkwwkkkwwkkrrkkrrrkkrr","kkwwkkkwwkkrrkkrrrkkrr","kkwwkkkwwkkrrkkrrrkkrr",
+  "kkwwwwwwwkkrrkkkkkkkrr","kkwwwwwwwkkrrkkkkkkkrr",
+  "kkwwkkkwwkkrrkkrrrkkrr","kkwwkkkwwkkrrkkrrrkkrr","kkwwkkkwwkkrrkkrrrkkrr","kkwwkkkwwkkrrkkrrrkkrr",
+  "kkkkkkkkkkkrrrrrrrrrrr","kkkkkkkkkkkrrrrrrrrrrr",
+  "..kkkkkkkkkrrrrrrrrr..","....kkkkkkkrrrrrrr....","......kkkkkrrrrr......","........kkkrrr........","..........kr..........",
+];
+const HH_SVG = (() => {
+  const g = HH_ROWS.map(r=>r.split("")), H=g.length, W=g[0].length, at=(y,x)=>(g[y]&&g[y][x])||".";
+  // outline the red face in black so the cube holds its shape on the red stage colour
+  const out = g.map((row,y)=>row.map((c,x)=>c==="r"&&[[0,1],[0,-1],[1,0],[-1,0]].some(([dy,dx])=>at(y+dy,x+dx)===".")?"k":c));
+  const col={k:"#0B0B0B",r:"#E83A36",w:"#FFFFFF"};
+  let rects="";
+  out.forEach((row,y)=>row.forEach((c,x)=>{ if(c!==".") rects+=`<rect x="${x}" y="${y}" width="1" height="1" fill="${col[c]}"/>`; }));
+  return `<svg class="hh-mark" viewBox="0 0 ${W} ${H}" shape-rendering="crispEdges" aria-hidden="true">${rects}</svg>`;
+})();
+const HH_LOGO = `<span class="hh" role="img" aria-label="Hellhound Audio">${HH_SVG}<span class="hh-word">HELLHOUND<small>AUDIO</small></span></span>`;
 function capRow(){
-  return `<span><button id="axgearb">Gear</button></span><span>Stage Shop, NJ</span><span><button id="axsnd">Sound ${axSound?"on":"off"}</button> · <button id="axprac">Practice</button></span>`;
+  return `<span><button id="axgearb">Gear</button></span><span>${HH_LOGO}</span><span><button id="axsnd">Sound ${axSound?"on":"off"}</button> · <button id="axprac">Practice</button></span>`;
 }
 /* the gear encyclopedia, always one tap away; pauses the clock */
 function openGear(item){
