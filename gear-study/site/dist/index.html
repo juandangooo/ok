@@ -387,12 +387,21 @@ details.venues .picks{margin-top:8px}
 .ax-prompt .q{font:500 clamp(20px,5.6vw,30px)/1.1 "Archivo",Helvetica,Arial,sans-serif;letter-spacing:-.01em;text-wrap:balance}
 .ax-timer{height:2px;background:var(--soft)}.ax-timer span{display:block;height:100%;background:var(--line);width:100%}
 .ax-form{display:grid;gap:8px;grid-template-columns:repeat(2,1fr);max-width:560px;width:100%;justify-self:center}
-.ax-form.k8{grid-template-columns:repeat(4,1fr)}
-@media (max-width:520px){.ax-form.k8{grid-template-columns:repeat(4,1fr);gap:6px}}
+.ax-form.k8{grid-template-columns:repeat(3,minmax(0,1fr))}
+.ax-form{grid-template-columns:repeat(2,minmax(0,1fr))}
+.ax-tile{min-width:0;width:100%;max-width:100%;align-self:start}
+.ax-tile.photo{aspect-ratio:auto;height:0;padding-bottom:100%!important}
 .ax-tile{position:relative;aspect-ratio:1;border:1px solid var(--line)!important;display:grid;place-items:center;overflow:hidden;
   transition:transform .7s cubic-bezier(.2,.8,.2,1),opacity .4s,border-color .3s}
-.ax-tile img{width:86%;height:86%;object-fit:contain;filter:grayscale(1) contrast(1.35);mix-blend-mode:multiply}
-#arcade[data-f="red"] .ax-tile img,#arcade[data-f="coal"] .ax-tile img,#arcade[data-f="green"] .ax-tile img{mix-blend-mode:normal;background:#fff;filter:grayscale(1) contrast(1.2)}
+.ax-tile img{width:90%;height:90%;object-fit:contain;image-rendering:auto}
+.ax-tile.photo{background:#fff!important}
+.ax-tile.photo img{position:absolute;inset:6%;width:88%;height:88%;max-width:none!important;max-height:none!important;object-fit:contain}
+.ax-form.rows .ax-tile img{background:#fff;border-radius:2px;padding:2px}
+.ax-depts{display:grid;gap:10px;width:min(420px,100%);justify-self:center}
+.ax-depts button{border:1.5px solid var(--line)!important;padding:16px 18px!important;display:grid!important;gap:4px;text-align:left}
+.ax-depts button:hover,.ax-depts button:focus-visible{background:var(--line)!important;color:var(--field)!important}
+.ax-depts b{font:500 20px/1.1 "Archivo",Helvetica,Arial,sans-serif}
+.ax-depts span{font:400 12px/1.3 "Archivo",Helvetica,Arial,sans-serif;opacity:.8}
 .ax-tile.in{transform:none!important}
 .ax-tile.hit{transform:translate(var(--dx),var(--dy)) scale(.12) rotate(8deg)!important;opacity:0}
 .ax-tile.miss{animation:axPeel .8s cubic-bezier(.5,0,.8,.4) forwards}
@@ -1766,7 +1775,7 @@ function hsRows(){
 }
 function attract(){
   clearInterval(A&&A.tm); A=null;
-  AX.hidden=false; AX.dataset.f="yellow"; document.body.style.overflow="hidden"; window.scrollTo(0,0);
+  AX.hidden=false; AX.dataset.f="yellow"; AX.dataset.pick=""; document.body.style.overflow="hidden"; window.scrollTo(0,0);
   const kinds=["stairs","speaker","case","sub","wedge","stairs","riser","speaker","sub","stairs","case","wedge"];
   const hs=hsRows();
   axShell(`<span>Load-In</span><span>Hi</span><span class="n">${hiScore().toLocaleString()}</span>`,
@@ -1776,7 +1785,25 @@ function attract(){
      ${hs.length?`<div class="ax-hs"><h3>BEST CREWS</h3>${hs.map((r,i)=>`<div class="${r.me?"me":""}"><span>${i+1}</span><span>${esc(r.ini)}</span><span>${r.s.toLocaleString()}</span></div>`).join("")}</div>`:""}`,
     capRow());
   bindCap();
-  AX.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>startRun(b.dataset.m));
+  AX.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>pickDept(b.dataset.m));
+}
+/* after EASY / HARD: which department do you want to work? */
+const DEPTS=[["Audio","Audio","Mics, wireless, speakers, consoles, DIs."],["Lighting","Lighting","Fixtures, uplights, consoles, DMX."],
+  ["Video","Video","TVs, projectors, cameras, switchers."],["Other","Staging & rigging","Truss, pipe and drape, risers, power."],
+  ["All","Load-in","Everything in the shop, all departments."]];
+function pickDept(mode){
+  sfx.tick();
+  axShell(`<span>${mode==="hard"?"Hard":"Easy"}</span><span></span><span class="n">${hiScore().toLocaleString()}</span>`,
+    `<div class="ax-card"><div class="k">CHOOSE YOUR DEPARTMENT</div></div>
+     <div class="ax-depts">${DEPTS.map(([k,l,d],i)=>`<button data-d="${k}"><b>${i+1} · ${l}</b><span>${d}</span></button>`).join("")}</div>
+     <button class="ax-more" id="axdback" style="justify-self:center">Back</button>`, capRow());
+  bindCap();
+  AX.querySelectorAll("[data-d]").forEach(b=>{
+    b.onmouseenter=b.onfocus=()=>{AX.dataset.f=FIELD[b.dataset.d]||"yellow"};
+    b.onclick=()=>startRun(mode,b.dataset.d);
+  });
+  document.getElementById("axdback").onclick=attract;
+  A=null; AX.dataset.pick=mode;
 }
 
 /* the run: fixed order */
@@ -1785,14 +1812,14 @@ const STAGES = [
   {id:"price", k:"CHALLENGING STAGE", h:"Price check", s:"No lives lost. What does it cost new? Bonus points only."},
   {id:"gig", k:"STAGE 2", h:"Pull the show", s:"A client, a venue, a request. One decision at a time."},
 ];
-function startRun(mode){
-  sfx.start();
-  A={mode, score:0, lives:3, si:0, right:0, total:0, streak:0, crowd:0, hintsUsed:0};
+function startRun(mode, dept="All"){
+  sfx.start(); AX.dataset.pick="";
+  A={mode, dept, score:0, lives:3, si:0, right:0, total:0, streak:0, crowd:0, hintsUsed:0};
   stageCard();
 }
 function stageCard(){
   const S=STAGES[A.si];
-  AX.dataset.f = S.id==="price" ? "red" : S.id==="gig" ? "coal" : "yellow";
+  AX.dataset.f = A.dept!=="All" ? FIELD[A.dept] : S.id==="price" ? "red" : S.id==="gig" ? "coal" : "yellow";
   axShell(`<span>${S.k.startsWith("STAGE")?"Stage "+(A.si===0?1:2):"Bonus"}</span><span></span><span class="n">${A.score.toLocaleString()}</span>`,
     `<div class="ax-card"><div class="k">${S.k}</div><div class="h">${S.h}</div><div class="s">${S.s}</div></div>`, capRow());
   bindCap();
@@ -1800,24 +1827,35 @@ function stageCard(){
 }
 function pickLoad(n){
   // only sharp photos in the formation: a blurry tile teaches nothing
+  const inDept = g => A.dept==="All" || g.c===A.dept;
   const sharp = GEAR.filter(g=>g.img&&!g.sub&&(g.iw||0)>=300);
-  const base = sharp.length>=60 ? sharp : GEAR.filter(g=>g.img&&!g.sub);
-  const pool = shuffle(base.filter(g=>g.q>0&&g.n.length<70));
+  const mine = sharp.filter(inDept).length>=15 ? sharp.filter(inDept) : GEAR.filter(g=>g.img&&!g.sub&&inDept(g));
+  const pool = shuffle(mine.filter(g=>g.q>0&&g.n.length<70));
   return pool.slice(0,n).map(g=>{
-    const same = base.filter(x=>x.id!==g.id&&x.n!==g.n&&GD.cat(x)===GD.cat(g));
-    const other = base.filter(x=>x.id!==g.id&&GD.cat(x)!==GD.cat(g));
-    const wrong = A.mode==="hard" ? shuffle(same).slice(0,7) : [];
-    while(wrong.length < (A.mode==="hard"?7:3)){ const x=other[Math.random()*other.length|0]; if(!wrong.includes(x)) wrong.push(x); }
+    // hard: look-alikes from the same department; easy: anything sharp that looks different
+    const same = mine.filter(x=>x.id!==g.id&&x.n!==g.n&&GD.cat(x)===GD.cat(g));
+    const other = (A.mode==="hard"?mine:sharp).filter(x=>x.id!==g.id&&GD.cat(x)!==GD.cat(g));
+    const wrong = A.mode==="hard" ? shuffle(same).slice(0,5) : [];
+    while(wrong.length < (A.mode==="hard"?5:3)){ const x=other[Math.random()*other.length|0]; if(!wrong.includes(x)) wrong.push(x); }
     return {kind:"load", dept:g.c, k:"PULL", q:g.n, opts:shuffle([{x:g,ok:true},...wrong.map(x=>({x,ok:false}))]), hint:`It's a ${g.t.toLowerCase()}. ${g.w?g.w.replace(/Skip this one.*$/,"").split(". ")[0].replace(/\.+\s*$/,"")+".":""}`, answer:g};
   });
 }
 function pickPrice(n){
-  return shuffle(GEAR.filter(g=>g.p!=null&&g.img&&!g.sub)).slice(0,n).map(g=>({kind:"price", dept:g.c, k:"WHAT DOES IT COST NEW?", q:g.n, img:g.img,
+  return shuffle(GEAR.filter(g=>g.p!=null&&g.img&&!g.sub&&(A.dept==="All"||g.c===A.dept))).slice(0,n).map(g=>({kind:"price", dept:g.c, k:"WHAT DOES IT COST NEW?", q:g.n, img:g.img,
     opts:shuffle(priceOpts(g.p).map(v=>({price:v, ok:v===g.p}))), hint:`${g.t}.`, answer:g}));
 }
 function pickGig(){
-  const gig = GD.GIGS[Math.random()*GD.GIGS.length|0]; A.gig = gig; A.gstate = {};
-  return GD.questions(gig).map(q=>({kind:"gig", q, k:q.title.toUpperCase(), hint:""}));
+  // pick a venue with enough decisions in the chosen department
+  const deptOf = q => { const o=(q.pool({})||[]).find(x=>x.ok); const x=o&&(o.x||byId[Object.keys(o.bundle||{})[0]]); return x?x.c:"Other"; };
+  let best=null;
+  for(const gig of shuffle([...GD.GIGS])){
+    const qs=GD.questions(gig).filter(q=>A.dept==="All"||deptOf(q)===A.dept);
+    if(!best||qs.length>best.qs.length) best={gig,qs};
+    if(qs.length>=4) break;
+  }
+  if(best.qs.length<2) best.qs=GD.questions(best.gig);   // few decisions in this department: run the whole show
+  A.gig = best.gig; A.gstate = {};
+  return best.qs.map(q=>({kind:"gig", q, k:q.title.toUpperCase(), hint:""}));
 }
 function buildWaves(){
   const S=STAGES[A.si];
@@ -1852,8 +1890,8 @@ function wave(){
     let inner;
     if(price) inner=`<span style="font:500 clamp(18px,5vw,26px) Archivo,Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums">${money(o.price)}</span>`;
     else if(named){ const im=optImg(o); inner=`<span style="display:grid;grid-template-columns:40px 1fr;gap:10px;align-items:center;width:100%;padding:5px 10px;text-align:left">${im?`<img alt="" src="${im}" style="width:40px;height:40px">`:"<span></span>"}<span style="font:500 13px/1.25 Archivo,Helvetica,Arial,sans-serif">${esc(optName(o))}</span></span>`; }
-    else inner=`<img alt="" src="${o.x.img}" style="max-width:min(86%,${o.x.iw||480}px);max-height:min(86%,${o.x.iw||480}px)">`;
-    return `<button class="ax-tile" data-i="${i}" aria-label="${price?money(o.price):named?esc(optName(o)):"Option "+(i+1)}" style="transform:translate(${(Math.random()*120-60).toFixed(0)}vw,-110vh) rotate(${(Math.random()*90-45).toFixed(0)}deg);transition-delay:${i*55}ms">${inner}</button>`;
+    else inner=`<img alt="" src="${o.x.img}" style="max-width:min(90%,${o.x.iw||480}px);max-height:min(90%,${o.x.iw||480}px)">`;
+    return `<button class="ax-tile${!price&&!named?" photo":""}" data-i="${i}" aria-label="${price?money(o.price):named?esc(optName(o)):"Option "+(i+1)}" style="transform:translate(${(Math.random()*120-60).toFixed(0)}vw,-110vh) rotate(${(Math.random()*90-45).toFixed(0)}deg);transition-delay:${i*55}ms">${inner}</button>`;
   }).join("");
   const formCls = named ? "ax-form rows" : price ? "ax-form prices" : `ax-form${opts.length>4?" k8":""}`;
   axShell(`<span>${S.id==="price"?"Bonus":S.id==="gig"?esc(A.gig.venue):"Stage 1"}</span><span></span><span class="n">${A.score.toLocaleString()}</span>`,
@@ -1960,7 +1998,11 @@ function over(clear, ended){
 }
 document.addEventListener("keydown",e=>{
   if(AX.hidden||!AX.isConnected) return;
-  if(!A){ if(e.key==="Enter"){ const b=AX.querySelector("[data-m=easy]"); if(b) b.click(); } return; }
+  if(!A){
+    if(AX.dataset.pick&&/^[1-5]$/.test(e.key)){ const b=AX.querySelectorAll("[data-d]")[+e.key-1]; if(b) b.click(); }
+    else if(e.key==="Enter"){ const b=AX.querySelector("[data-m=easy]"); if(b) b.click(); }
+    return;
+  }
   if(A.keyIni&&!AX.querySelector(".ax-tile")){ if(e.key==="Enter") document.getElementById("axsave").click(); else A.keyIni(e.key); return; }
   if(/^[1-8]$/.test(e.key)&&A.pick){ const t=AX.querySelector(`.ax-tile[data-i="${+e.key-1}"]`); if(t&&!t.disabled) A.pick(+e.key-1); }
 });
