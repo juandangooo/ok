@@ -155,7 +155,7 @@ h2{font:800 26px/1.1 var(--display);text-transform:uppercase;letter-spacing:.02e
 .check.ok .i{color:var(--good)}.check.no .i{color:var(--bad)}
 .check b{font:700 15px var(--body)}.check span{font-size:14px;color:var(--muted)}
 
-.sheet{position:fixed;inset:0;background:rgba(10,12,15,.55);display:grid;place-items:center;padding:16px;z-index:10}
+.sheet{position:fixed;inset:0;background:rgba(10,12,15,.55);display:grid;place-items:center;padding:16px;z-index:80}
 .sheet .card{width:min(560px,100%);max-height:calc(100% - 32px);overflow:auto}
 .sheet .close{justify-self:end;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 12px;cursor:pointer;font:600 14px var(--body)}
 .facts-list{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:15px;margin:0}
@@ -592,23 +592,23 @@ document.addEventListener("keydown",e=>{
 });
 
 /* ---------- browse ---------- */
-function browse(){
-  view.innerHTML=`<div class="tools"><input id="q" type="search" placeholder="Search 716 items (try “SM58” or “truss”)" aria-label="Search gear">
+function browse(root=view, preset=""){
+  root.innerHTML=`<div class="tools"><input class="bq" type="search" placeholder="Search 716 items (try “SM58” or “truss”)" aria-label="Search gear" value="${esc(preset)}">
     <div class="chips">${["All","Audio","Lighting","Video","Other"].map(c=>`<button class="chip" data-dept="${c}" aria-pressed="${dept===c}">${c==="All"?"All":CAT_NAME[c]}</button>`).join("")}</div></div>
-    <div class="label" id="count"></div><div class="grid" id="grid" style="margin-top:8px"></div>`;
-  const q=document.getElementById("q");
+    <div class="label bcount"></div><div class="grid bgrid" style="margin-top:8px"></div>`;
+  const q=root.querySelector(".bq");
   const draw=()=>{
     const s=q.value.trim().toLowerCase();
-    const list=pool().filter(g=>!s||(g.n+" "+g.t+" "+g.w).toLowerCase().includes(s)).sort((a,b)=>(b.p??-1)-(a.p??-1));
-    document.getElementById("count").textContent=`${list.length} items · most expensive first`;
-    document.getElementById("grid").innerHTML=list.slice(0,300).map(g=>`<button class="item" data-id="${g.id}">
+    const list=pool().filter(g=>!s||(g.n+" "+g.t+" "+g.w+" "+(g.r||"")).toLowerCase().includes(s)).sort((a,b)=>(b.p??-1)-(a.p??-1));
+    root.querySelector(".bcount").textContent=`${list.length} items · most expensive first`;
+    root.querySelector(".bgrid").innerHTML=list.slice(0,300).map(g=>`<button class="item" data-id="${g.id}">
       <div class="photo">${g.img?`<img loading="lazy" alt="" src="${g.img}">`:""}</div>
       <span class="tag" style="background:${CAT[g.c]};justify-self:start">${CAT_NAME[g.c]}</span>
       <span class="nm">${esc(g.n)}</span><span class="pr">${g.p!=null?money(g.p):"—"}${g.q!=null?` · ×${g.q}`:""}</span></button>`).join("");
-    document.querySelectorAll(".item").forEach(b=>b.onclick=()=>detail(byId[b.dataset.id],b));
+    root.querySelectorAll(".item").forEach(b=>b.onclick=()=>detail(byId[b.dataset.id],b));
   };
   q.oninput=draw;
-  view.querySelectorAll("[data-dept]").forEach(b=>b.onclick=()=>{dept=b.dataset.dept;store.set("dept",dept);view.querySelectorAll("[data-dept]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.dept===dept));draw()});
+  root.querySelectorAll("[data-dept]").forEach(b=>b.onclick=()=>{dept=b.dataset.dept;store.set("dept",dept);root.querySelectorAll("[data-dept]").forEach(x=>x.setAttribute("aria-pressed",x.dataset.dept===dept));draw()});
   draw();
 }
 

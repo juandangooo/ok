@@ -76,6 +76,10 @@
 .ax-go:hover{background:var(--line)!important;color:var(--field)!important}
 .ax-stats{display:grid;grid-template-columns:repeat(3,auto);gap:4px 22px;justify-content:center;font:400 12px/1.4 "Archivo",Helvetica,Arial,sans-serif;text-align:center}
 .ax-stats b{display:block;font:500 26px/1.1 "Archivo",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
+#axgear{position:fixed;inset:0;z-index:70;background:var(--bg);color:var(--ink);overflow-y:auto;
+  padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px))}
+.axg-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;position:sticky;top:0;background:var(--bg);padding-block:6px;z-index:2}
+.ax-more{text-decoration:underline;text-underline-offset:2px;margin-left:6px;font-weight:500}
 .ax-back{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:40;background:#1E1C18;color:#F1C232;border:0;padding:10px 16px;font:500 13px "Archivo",Helvetica,Arial,sans-serif;letter-spacing:.08em;cursor:pointer}
 @media (prefers-reduced-motion:reduce){
   #arcade,.ax-tile,.ax-grid path{transition:none!important}.ax-grid svg,.ax-press{animation:none}

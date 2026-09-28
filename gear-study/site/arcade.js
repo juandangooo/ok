@@ -43,9 +43,22 @@ function axShell(top, mid, cap){
 }
 const hiScore = () => Math.max(store.get("hi",0), ...BOARD.map(p=>p.hi||0));
 function capRow(){
-  return `<span>Load-In Drills</span><span>Stage Shop, NJ</span><span><button id="axsnd">Sound ${axSound?"on":"off"}</button> · <button id="axprac">Practice</button></span>`;
+  return `<span><button id="axgearb">Gear</button></span><span>Stage Shop, NJ</span><span><button id="axsnd">Sound ${axSound?"on":"off"}</button> · <button id="axprac">Practice</button></span>`;
+}
+/* the gear encyclopedia, always one tap away; pauses the clock */
+function openGear(item){
+  if(A) A.paused = A.paused || Date.now();
+  let g=document.getElementById("axgear");
+  if(!g){ g=document.createElement("div"); g.id="axgear"; g.setAttribute("role","dialog"); g.setAttribute("aria-label","Gear"); document.body.appendChild(g); }
+  g.hidden=false;
+  g.innerHTML=`<div class="axg-head"><h2>Gear</h2><button class="next" id="axgclose">${A?"Back to the game":"Close"}</button></div><div id="axgbody"></div>`;
+  browse(document.getElementById("axgbody"), "");
+  const close=()=>{ g.hidden=true; if(A&&A.paused){ A.shift=(A.shift||0)+(Date.now()-A.paused); A.paused=0; } if(A&&A.resume){ A.resume=false; next(); } };
+  document.getElementById("axgclose").onclick=close;
+  if(item) detail(item);
 }
 function bindCap(){
+  const gb=document.getElementById("axgearb"); if(gb) gb.onclick=()=>openGear();
   const s=document.getElementById("axsnd"); if(s) s.onclick=()=>{axSound=!axSound;store.set("axsound",axSound);s.textContent="Sound "+(axSound?"on":"off")};
   const p=document.getElementById("axprac"); if(p) p.onclick=()=>{clearInterval(A&&A.tm);A=null;AX.hidden=true;document.body.style.overflow="";showBack();home()};
 }
@@ -96,10 +109,13 @@ function stageCard(){
   setTimeout(()=>{ if(!A) return; buildWaves(); wave(); }, axReduce?600:1700);
 }
 function pickLoad(n){
-  const pool = shuffle(GEAR.filter(g=>g.img&&!g.sub&&g.q>0&&g.n.length<70));
+  // only sharp photos in the formation: a blurry tile teaches nothing
+  const sharp = GEAR.filter(g=>g.img&&!g.sub&&(g.iw||0)>=300);
+  const base = sharp.length>=60 ? sharp : GEAR.filter(g=>g.img&&!g.sub);
+  const pool = shuffle(base.filter(g=>g.q>0&&g.n.length<70));
   return pool.slice(0,n).map(g=>{
-    const same = GEAR.filter(x=>x.id!==g.id&&x.img&&!x.sub&&x.n!==g.n&&GD.cat(x)===GD.cat(g));
-    const other = GEAR.filter(x=>x.id!==g.id&&x.img&&!x.sub&&GD.cat(x)!==GD.cat(g));
+    const same = base.filter(x=>x.id!==g.id&&x.n!==g.n&&GD.cat(x)===GD.cat(g));
+    const other = base.filter(x=>x.id!==g.id&&GD.cat(x)!==GD.cat(g));
     const wrong = A.mode==="hard" ? shuffle(same).slice(0,7) : [];
     while(wrong.length < (A.mode==="hard"?7:3)){ const x=other[Math.random()*other.length|0]; if(!wrong.includes(x)) wrong.push(x); }
     return {kind:"load", dept:g.c, k:"PULL", q:g.n, opts:shuffle([{x:g,ok:true},...wrong.map(x=>({x,ok:false}))]), hint:`It's a ${g.t.toLowerCase()}. ${g.w?g.w.replace(/Skip this one.*$/,"").split(". ")[0].replace(/\.+\s*$/,"")+".":""}`, answer:g};
@@ -146,7 +162,7 @@ function wave(){
     let inner;
     if(price) inner=`<span style="font:500 clamp(18px,5vw,26px) Archivo,Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums">${money(o.price)}</span>`;
     else if(named){ const im=optImg(o); inner=`<span style="display:grid;grid-template-columns:40px 1fr;gap:10px;align-items:center;width:100%;padding:5px 10px;text-align:left">${im?`<img alt="" src="${im}" style="width:40px;height:40px">`:"<span></span>"}<span style="font:500 13px/1.25 Archivo,Helvetica,Arial,sans-serif">${esc(optName(o))}</span></span>`; }
-    else inner=`<img alt="" src="${o.x.img}">`;
+    else inner=`<img alt="" src="${o.x.img}" style="max-width:min(86%,${o.x.iw||480}px);max-height:min(86%,${o.x.iw||480}px)">`;
     return `<button class="ax-tile" data-i="${i}" aria-label="${price?money(o.price):named?esc(optName(o)):"Option "+(i+1)}" style="transform:translate(${(Math.random()*120-60).toFixed(0)}vw,-110vh) rotate(${(Math.random()*90-45).toFixed(0)}deg);transition-delay:${i*55}ms">${inner}</button>`;
   }).join("");
   const formCls = named ? "ax-form rows" : price ? "ax-form prices" : `ax-form${opts.length>4?" k8":""}`;
@@ -166,11 +182,12 @@ function wave(){
   if(h) h.onclick=()=>{ h.disabled=true; h.style.opacity=.4; A.score=Math.max(0,A.score-200); A.hintsUsed++;
     document.getElementById("axhint").textContent="Crew chief: "+hint;
     let k=0; AX.querySelectorAll(".ax-tile").forEach((t,i)=>{ if(!opts[i].ok && k<Math.floor((opts.length-1)/2)){ t.classList.add("dim"); t.disabled=true; k++; } }); };
-  const t0=Date.now(), bar=document.getElementById("axt"); let done=false;
-  clearInterval(A.tm); A.tm=setInterval(()=>{ const left=Math.max(0,T-(Date.now()-t0)/1000); bar.style.width=(left/T*100)+"%"; if(left<=0) pick(-1); },100);
+  const t0=Date.now(), bar=document.getElementById("axt"); let done=false; A.shift=0; A.paused=0;
+  const elapsed=()=>(Date.now()-t0-A.shift)/1000;
+  clearInterval(A.tm); A.tm=setInterval(()=>{ if(A.paused) return; const left=Math.max(0,T-elapsed()); bar.style.width=(left/T*100)+"%"; if(left<=0) pick(-1); },100);
   const pick = i => {
-    if(done) return; done=true; clearInterval(A.tm);
-    const left=Math.max(0,T-(Date.now()-t0)/1000), o=i>=0?opts[i]:null, ok=!!(o&&o.ok);
+    if(done||A.paused) return; done=true; clearInterval(A.tm);
+    const left=Math.max(0,T-elapsed()), o=i>=0?opts[i]:null, ok=!!(o&&o.ok);
     const tiles=[...AX.querySelectorAll(".ax-tile")]; tiles.forEach(t=>t.disabled=true);
     const ri=opts.findIndex(x=>x.ok);
     if(W.kind==="gig"&&W.q.key==="console"&&o&&o.x) A.gstate.console=o.x.id;
@@ -190,11 +207,13 @@ function wave(){
       tiles[ri].classList.add("right"); tiles.forEach((t,j)=>{ if(j!==i&&j!==ri) t.classList.add("dim"); });
     }
     const who = W.kind==="gig" ? optName(opts[ri]) : W.answer.n, why = W.kind==="gig" ? opts[ri].why : [W.answer.t, W.answer.p!=null?money(W.answer.p):""].filter(Boolean).join(" · ");
-    document.getElementById("axname").innerHTML = `${ok?"":(i<0?"Time. ":"Not that one. ")}<b>${esc(who)}</b> · ${esc(why)}`;
+    const ansItem = W.kind==="gig" ? (opts[ri].x || byId[Object.keys(opts[ri].bundle||{})[0]]) : W.answer;
+    document.getElementById("axname").innerHTML = `${ok?"":(i<0?"Time. ":"Not that one. ")}<b>${esc(who)}</b> · ${esc(why)}${ansItem?` <button class="ax-more" id="axmore">Look it up</button>`:""}`;
+    const mb=document.getElementById("axmore"); if(mb) mb.onclick=()=>{ clearTimeout(A.nt); openGear(ansItem); A.resume=true; };
     AX.querySelector(".ax-top .n").textContent=A.score.toLocaleString();
     AX.querySelector(".ax-lives").outerHTML=livesHTML(); crowdDraw();
     if(W.kind!=="gig"){ st.box[W.answer.id]=ok?box(W.answer.id)+1:0; }
-    setTimeout(next, ok?(W.kind==="gig"?1700:1100):2400);
+    A.nt=setTimeout(next, ok?(W.kind==="gig"?1700:1100):2400);
   };
   AX.querySelectorAll(".ax-tile").forEach(b=>b.onclick=()=>pick(+b.dataset.i));
   A.pick=pick;
@@ -204,11 +223,26 @@ function next(){
   if(A.lives<=0) return over(false);
   A.wi++;
   if(A.wi<A.waves.length) return wave();
-  A.score+=A.lives*250; A.si++; sfx.start();
-  if(A.si<STAGES.length) return stageCard();
+  const bonus=A.lives*250; A.score+=bonus; A.si++; sfx.start();
+  if(A.si<STAGES.length) return stageClear(bonus);
   over(true);
 }
-function over(clear){
+/* the check-in between stages */
+function stageClear(bonus){
+  const done=STAGES[A.si-1], up=STAGES[A.si];
+  AX.dataset.f="yellow";
+  axShell(`<span>Stage clear</span><span></span><span class="n">${A.score.toLocaleString()}</span>`,
+    `<div class="ax-card"><div class="k">${done.k} CLEAR</div><div class="h">${done.h}</div></div>
+     <div class="ax-stats"><span><b>${A.right}/${A.total}</b>right calls</span><span><b>${A.lives}</b>truck${A.lives===1?"":"s"} left</span><span><b>+${bonus.toLocaleString()}</b>truck bonus</span></div>
+     <div class="ax-card"><div class="k">UP NEXT · ${up.k}</div><div class="s"><b>${up.h}.</b> ${up.s}</div></div>
+     <div class="ax-card"><div class="h" style="font-size:clamp(28px,8vw,44px)">Continue?</div></div>
+     <div class="ax-modes" style="justify-self:center"><button id="axcont">CONTINUE</button><button id="axend">END SHIFT</button></div>`, capRow());
+  bindCap();
+  document.getElementById("axcont").onclick=stageCard;
+  document.getElementById("axend").onclick=()=>over(false,true);
+  document.getElementById("axcont").focus({preventScroll:true});
+}
+function over(clear, ended){
   clearInterval(A.tm);
   const xp=A.right*10; st.xp+=xp;
   const hi=store.get("hi",0); if(A.score>hi) store.set("hi",A.score);
@@ -216,8 +250,8 @@ function over(clear){
   AX.dataset.f="yellow";
   let ini=(store.get("ini","")||"AAA").padEnd(3,"A").slice(0,3).split("");
   const L="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  axShell(`<span>${clear?"Shift complete":"Game over"}</span><span></span><span class="n">${A.score.toLocaleString()}</span>`,
-    `<div class="ax-card"><div class="k">${clear?"THE SHOW WENT UP":"OUT OF TRUCKS"}</div><div class="h">${A.score.toLocaleString()}</div></div>
+  axShell(`<span>${clear?"Shift complete":ended?"Shift ended":"Game over"}</span><span></span><span class="n">${A.score.toLocaleString()}</span>`,
+    `<div class="ax-card"><div class="k">${clear?"THE SHOW WENT UP":ended?"SHIFT ENDED":"OUT OF TRUCKS"}</div><div class="h">${A.score.toLocaleString()}</div></div>
      <div class="ax-stats"><span><b>${A.right}/${A.total}</b>right calls</span><span><b>${Math.round(A.crowd*100)}%</b>crowd</span><span><b>+${xp}</b>XP</span></div>
      <div class="ax-card"><div class="k">ENTER YOUR INITIALS</div></div>
      <div class="ax-ini">${ini.map((c,i)=>`<div><button data-u="${i}" aria-label="Next letter">▲</button><b id="ini${i}">${c}</b><button data-dn="${i}" aria-label="Previous letter">▼</button></div>`).join("")}</div>
