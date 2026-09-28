@@ -1,0 +1,37 @@
+id,date,name,city,state,status,address_as_supplied
+1,2022-11-17,Roosevelt Field,Garden City,NY,completed,630 Old Country Rd.
+2,2022-12-02,Gertz Jamaica,Queens,NY,completed,"162-10 Jamaica Ave., 11432"
+3,2022-12-20,Fulton Street / City Point,Brooklyn,NY,completed,"445 Albee Square, 11201"
+4,2023-04-20,Walden Galleria,Buffalo,NY,completed,"1 Walden Galleria, 14225"
+5,2023-06-22,Green Acres Mall,Valley Stream,NY,completed,2034 Green Acres Rd.
+6,2023-07-06,The Mills at Jersey Gardens,Elizabeth,NJ,completed,"651 Kapkowski Rd., Suite 200, 07201"
+7,2023-07-20,Crossgates Mall,Albany,NY,completed,"1 Crossgates Mall Rd., 12203"
+8,2023-09-07,Arundel Mills,Hanover,MD,completed,"7000 Arundel Mills Cir., 21076"
+9,2023-10-12,Woodfield Mall,Schaumburg,IL,completed,"5 Woodfield Mall, 60173"
+10,2023-11-09,Smith Haven,Lake Grove,NY,completed,"408 Burr Ln., 11755"
+11,2023-11-16,Concord Mills Mall,Concord,NC,completed,8111 Concord Mills Blvd.
+12,2024-07-16,Tysons Corner Center,Tysons Corner,VA,completed,"1961 Chain Bridge Rd., 22102"
+13,2024-08-29,Florida Mall,Orlando,FL,completed,8001 S Orange Blossom Trl.
+14,2024-09-12,Great Lakes Crossing Outlets,Auburn Hills,MI,completed,"4612 Baldwin Rd., 48326"
+15,2024-12-05,Queens Center Mall,Elmhurst,NY,completed,90-15 Queens Blvd.
+16,2024-12-12,La Plaza Mall,McAllen,TX,completed,2200 S Tenth St.
+17,2025-04-09/2025-04-10,Potomac Mills,Woodbridge,VA,completed,2700 Potomac Mills Cir.
+18,2025-07-24,Wolfchase Galleria,Memphis,TN,completed,"2760 N Germantown Pkwy., 38133"
+19,2025-08-14,Newport Centre,Jersey City,NJ,completed,"30 Mall Dr. W, 07310"
+20,2025-09-04,Cielo Vista,El Paso,TX,completed,"8401 Gateway Blvd. W, 79925"
+21,2025-10-30,CoolSprings Galleria,Franklin,TN,completed,"1800 Galleria Blvd., 37067"
+22,2025-11-20,Gurnee Mills,Gurnee,IL,completed,"6170 W Grand Ave., 60031"
+23,2025-11-20,Katy Mills Mall,Katy,TX,completed,"5000 Katy Mills Cir., 77494"
+24,2025-12-04,Grapevine Mills,Grapevine,TX,completed,"3000 Grapevine Mills Pkwy., 76051"
+25,2025-12-16,Dolphin Mall,Miami,FL,completed,"11401 NW 12th St., 33172"
+26,2026-04-30,North East Mall,Hurst,TX,completed,"1101 Melbourne Rd., Suite 4000, 76053"
+27,2026-05-08,Herald Square,New York,NY,completed,150 W 34th Street
+28,2026-05-14,Prince George's Mall,Hyattsville,MD,completed,"3500 East-West Hwy., 20782"
+29,2026-06-25,Parks at Arlington,Arlington,TX,completed,"3881 S Cooper St., Suite 1020, 76015"
+30,2026-07-16,Willowbrook Mall,Houston,TX,completed,"2000 Willowbrook Mall, 77070"
+31,2026-07-23,Castleton Square Mall,Indianapolis,IN,completed,"6020 E. 82nd Street, 46250"
+32,2026-08-20,Orlando Vineland Premium Outlets,Orlando,FL,completed,"8200 Vineland Ave., 32821"
+33,2026-09-03,Mall of America,Bloomington,MN,completed,"2131 Lindau Lane, Suite 500, 55425"
+34,2026-09-08,Sugarloaf Mills,Lawrenceville,GA,completed,"5900 Sugarloaf Pkwy., 30043"
+35,2026-09-10,Augusta Mall,Augusta,GA,completed,"3450 Wrightsboro Rd., 30909"
+36,2026-11-19,Pentagon City Mall,Arlington,VA,upcoming,"1100 South Hayes St., 22202"

@@ -1,0 +1,465 @@
+[
+  {
+    "id": 1,
+    "date": "2022-11-17",
+    "name": "Roosevelt Field",
+    "city": "Garden City",
+    "state": "NY",
+    "address_as_supplied": "630 Old Country Rd.",
+    "panel": "metro",
+    "map_point": null,
+    "status": "completed"
+  },
+  {
+    "id": 2,
+    "date": "2022-12-02",
+    "name": "Gertz Jamaica",
+    "city": "Queens",
+    "state": "NY",
+    "address_as_supplied": "162-10 Jamaica Ave., 11432",
+    "panel": "metro",
+    "map_point": null,
+    "status": "completed"
+  },
+  {
+    "id": 3,
+    "date": "2022-12-20",
+    "name": "Fulton Street / City Point",
+    "city": "Brooklyn",
+    "state": "NY",
+    "address_as_supplied": "445 Albee Square, 11201",
+    "panel": "metro",
+    "map_point": null,
+    "status": "completed"
+  },
+  {
+    "id": 4,
+    "date": "2023-04-20",
+    "name": "Walden Galleria",
+    "city": "Buffalo",
+    "state": "NY",
+    "address_as_supplied": "1 Walden Galleria, 14225",
+    "panel": "national",
+    "map_point": [
+      1540,
+      412
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 5,
+    "date": "2023-06-22",
+    "name": "Green Acres Mall",
+    "city": "Valley Stream",
+    "state": "NY",
+    "address_as_supplied": "2034 Green Acres Rd.",
+    "panel": "metro",
+    "map_point": null,
+    "status": "completed"
+  },
+  {
+    "id": 6,
+    "date": "2023-07-06",
+    "name": "The Mills at Jersey Gardens",
+    "city": "Elizabeth",
+    "state": "NJ",
+    "address_as_supplied": "651 Kapkowski Rd., Suite 200, 07201",
+    "panel": "metro",
+    "map_point": null,
+    "status": "completed"
+  },
+  {
+    "id": 7,
+    "date": "2023-07-20",
+    "name": "Crossgates Mall",
+    "city": "Albany",
+    "state": "NY",
+    "address_as_supplied": "1 Crossgates Mall Rd., 12203",
+    "panel": "national",
+    "map_point": [
+      1672,
+      350
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 8,
+    "date": "2023-09-07",
+    "name": "Arundel Mills",
+    "city": "Hanover",
+    "state": "MD",
+    "address_as_supplied": "7000 Arundel Mills Cir., 21076",
+    "panel": "capital",
+    "map_point": null,
+    "status": "completed"
+  },
+  {
+    "id": 9,
+    "date": "2023-10-12",
+    "name": "Woodfield Mall",
+    "city": "Schaumburg",
+    "state": "IL",
+    "address_as_supplied": "5 Woodfield Mall, 60173",
+    "panel": "national",
+    "map_point": [
+      1224,
+      520
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 10,
+    "date": "2023-11-09",
+    "name": "Smith Haven",
+    "city": "Lake Grove",
+    "state": "NY",
+    "address_as_supplied": "408 Burr Ln., 11755",
+    "panel": "metro",
+    "map_point": null,
+    "status": "completed"
+  },
+  {
+    "id": 11,
+    "date": "2023-11-16",
+    "name": "Concord Mills Mall",
+    "city": "Concord",
+    "state": "NC",
+    "address_as_supplied": "8111 Concord Mills Blvd.",
+    "panel": "national",
+    "map_point": [
+      1519,
+      746
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 12,
+    "date": "2024-07-16",
+    "name": "Tysons Corner Center",
+    "city": "Tysons Corner",
+    "state": "VA",
+    "address_as_supplied": "1961 Chain Bridge Rd., 22102",
+    "panel": "capital",
+    "map_point": null,
+    "status": "completed"
+  },
+  {
+    "id": 13,
+    "date": "2024-08-29",
+    "name": "Florida Mall",
+    "city": "Orlando",
+    "state": "FL",
+    "address_as_supplied": "8001 S Orange Blossom Trl.",
+    "panel": "national",
+    "map_point": [
+      1575,
+      1068
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 14,
+    "date": "2024-09-12",
+    "name": "Great Lakes Crossing Outlets",
+    "city": "Auburn Hills",
+    "state": "MI",
+    "address_as_supplied": "4612 Baldwin Rd., 48326",
+    "panel": "national",
+    "map_point": [
+      1389,
+      444
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 15,
+    "date": "2024-12-05",
+    "name": "Queens Center Mall",
+    "city": "Elmhurst",
+    "state": "NY",
+    "address_as_supplied": "90-15 Queens Blvd.",
+    "panel": "metro",
+    "map_point": null,
+    "status": "completed"
+  },
+  {
+    "id": 16,
+    "date": "2024-12-12",
+    "name": "La Plaza Mall",
+    "city": "McAllen",
+    "state": "TX",
+    "address_as_supplied": "2200 S Tenth St.",
+    "panel": "national",
+    "map_point": [
+      939,
+      1192
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 17,
+    "date": "2025-04-09/2025-04-10",
+    "name": "Potomac Mills",
+    "city": "Woodbridge",
+    "state": "VA",
+    "address_as_supplied": "2700 Potomac Mills Cir.",
+    "panel": "capital",
+    "map_point": null,
+    "status": "completed"
+  },
+  {
+    "id": 18,
+    "date": "2025-07-24",
+    "name": "Wolfchase Galleria",
+    "city": "Memphis",
+    "state": "TN",
+    "address_as_supplied": "2760 N Germantown Pkwy., 38133",
+    "panel": "national",
+    "map_point": [
+      1250,
+      814
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 19,
+    "date": "2025-08-14",
+    "name": "Newport Centre",
+    "city": "Jersey City",
+    "state": "NJ",
+    "address_as_supplied": "30 Mall Dr. W, 07310",
+    "panel": "metro",
+    "map_point": null,
+    "status": "completed"
+  },
+  {
+    "id": 20,
+    "date": "2025-09-04",
+    "name": "Cielo Vista",
+    "city": "El Paso",
+    "state": "TX",
+    "address_as_supplied": "8401 Gateway Blvd. W, 79925",
+    "panel": "national",
+    "map_point": [
+      625,
+      995
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 21,
+    "date": "2025-10-30",
+    "name": "CoolSprings Galleria",
+    "city": "Franklin",
+    "state": "TN",
+    "address_as_supplied": "1800 Galleria Blvd., 37067",
+    "panel": "national",
+    "map_point": [
+      1370,
+      774
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 22,
+    "date": "2025-11-20",
+    "name": "Gurnee Mills",
+    "city": "Gurnee",
+    "state": "IL",
+    "address_as_supplied": "6170 W Grand Ave., 60031",
+    "panel": "national",
+    "map_point": [
+      1237,
+      495
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 23,
+    "date": "2025-11-20",
+    "name": "Katy Mills Mall",
+    "city": "Katy",
+    "state": "TX",
+    "address_as_supplied": "5000 Katy Mills Cir., 77494",
+    "panel": "national",
+    "map_point": [
+      1034,
+      1058
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 24,
+    "date": "2025-12-04",
+    "name": "Grapevine Mills",
+    "city": "Grapevine",
+    "state": "TX",
+    "address_as_supplied": "3000 Grapevine Mills Pkwy., 76051",
+    "panel": "national",
+    "map_point": [
+      963,
+      947
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 25,
+    "date": "2025-12-16",
+    "name": "Dolphin Mall",
+    "city": "Miami",
+    "state": "FL",
+    "address_as_supplied": "11401 NW 12th St., 33172",
+    "panel": "national",
+    "map_point": [
+      1630,
+      1177
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 26,
+    "date": "2026-04-30",
+    "name": "North East Mall",
+    "city": "Hurst",
+    "state": "TX",
+    "address_as_supplied": "1101 Melbourne Rd., Suite 4000, 76053",
+    "panel": "national",
+    "map_point": [
+      952,
+      957
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 27,
+    "date": "2026-05-08",
+    "name": "Herald Square",
+    "city": "New York",
+    "state": "NY",
+    "address_as_supplied": "150 W 34th Street",
+    "panel": "metro",
+    "map_point": null,
+    "status": "completed"
+  },
+  {
+    "id": 28,
+    "date": "2026-05-14",
+    "name": "Prince George's Mall",
+    "city": "Hyattsville",
+    "state": "MD",
+    "address_as_supplied": "3500 East-West Hwy., 20782",
+    "panel": "capital",
+    "map_point": null,
+    "status": "completed"
+  },
+  {
+    "id": 29,
+    "date": "2026-06-25",
+    "name": "Parks at Arlington",
+    "city": "Arlington",
+    "state": "TX",
+    "address_as_supplied": "3881 S Cooper St., Suite 1020, 76015",
+    "panel": "national",
+    "map_point": [
+      979,
+      971
+    ],
+    "status": "completed",
+    "date_note": "Original 5/20/2026 crossed out; handwritten correction read as 6/25/2026."
+  },
+  {
+    "id": 30,
+    "date": "2026-07-16",
+    "name": "Willowbrook Mall",
+    "city": "Houston",
+    "state": "TX",
+    "address_as_supplied": "2000 Willowbrook Mall, 77070",
+    "panel": "national",
+    "map_point": [
+      1048,
+      1065
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 31,
+    "date": "2026-07-23",
+    "name": "Castleton Square Mall",
+    "city": "Indianapolis",
+    "state": "IN",
+    "address_as_supplied": "6020 E. 82nd Street, 46250",
+    "panel": "national",
+    "map_point": [
+      1310,
+      608
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 32,
+    "date": "2026-08-20",
+    "name": "Orlando Vineland Premium Outlets",
+    "city": "Orlando",
+    "state": "FL",
+    "address_as_supplied": "8200 Vineland Ave., 32821",
+    "panel": "national",
+    "map_point": [
+      1572,
+      1066
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 33,
+    "date": "2026-09-03",
+    "name": "Mall of America",
+    "city": "Bloomington",
+    "state": "MN",
+    "address_as_supplied": "2131 Lindau Lane, Suite 500, 55425",
+    "panel": "national",
+    "map_point": [
+      1082,
+      413
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 34,
+    "date": "2026-09-08",
+    "name": "Sugarloaf Mills",
+    "city": "Lawrenceville",
+    "state": "GA",
+    "address_as_supplied": "5900 Sugarloaf Pkwy., 30043",
+    "panel": "national",
+    "map_point": [
+      1485,
+      863
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 35,
+    "date": "2026-09-10",
+    "name": "Augusta Mall",
+    "city": "Augusta",
+    "state": "GA",
+    "address_as_supplied": "3450 Wrightsboro Rd., 30909",
+    "panel": "national",
+    "map_point": [
+      1525,
+      893
+    ],
+    "status": "completed"
+  },
+  {
+    "id": 36,
+    "date": "2026-11-19",
+    "name": "Pentagon City Mall",
+    "city": "Arlington",
+    "state": "VA",
+    "address_as_supplied": "1100 South Hayes St., 22202",
+    "panel": "capital",
+    "map_point": null,
+    "status": "upcoming"
+  }
+]
