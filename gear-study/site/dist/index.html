@@ -394,8 +394,17 @@ details.venues .picks{margin-top:8px}
 .ax-tile{position:relative;aspect-ratio:1;border:1px solid var(--line)!important;display:grid;place-items:center;overflow:hidden;
   transition:transform .7s cubic-bezier(.2,.8,.2,1),opacity .4s,border-color .3s}
 .ax-tile img{width:90%;height:90%;object-fit:contain;image-rendering:auto}
-.ax-tile.photo{background:#fff!important}
-.ax-tile.photo img{position:absolute;inset:6%;width:88%;height:88%;max-width:none!important;max-height:none!important;object-fit:contain}
+/* photos sit in a soft spotlight that fades into the stage colour; multiply turns each photo's white backdrop into that light */
+.ax-tile.photo,.ax-hero{background:radial-gradient(closest-side,#fff 0%,#fff 52%,color-mix(in srgb,#fff 45%,var(--field)) 78%,var(--field) 100%)!important;border-color:transparent!important}
+.ax-tile.photo img,.ax-hero img{mix-blend-mode:multiply}
+.ax-tile.photo img{position:absolute;inset:14%;width:72%;height:72%;max-width:none!important;max-height:none!important;object-fit:contain}
+.ax-tile.photo:hover,.ax-tile.photo:focus-visible{outline:1.5px solid var(--line);outline-offset:-1px}
+.ax-hero{position:relative;width:min(64vw,300px);aspect-ratio:1;justify-self:center}
+.ax-hero.sm{width:min(42vw,190px)}
+.ax-hero img{position:absolute;inset:14%;width:72%;height:72%;object-fit:contain}
+.ax-clock{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+.ax-secs{font:500 22px/1 "Archivo",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums;min-width:2ch;text-align:right}
+.ax-pts{font:600 15px "Archivo",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
 .ax-form.rows .ax-tile img{background:#fff;border-radius:2px;padding:2px}
 .ax-depts{display:grid;gap:10px;width:min(420px,100%);justify-self:center}
 .ax-depts button{border:1.5px solid var(--line)!important;padding:16px 18px!important;display:grid!important;gap:4px;text-align:left}
@@ -1831,13 +1840,21 @@ function pickLoad(n){
   const sharp = GEAR.filter(g=>g.img&&!g.sub&&(g.iw||0)>=300);
   const mine = sharp.filter(inDept).length>=15 ? sharp.filter(inDept) : GEAR.filter(g=>g.img&&!g.sub&&inDept(g));
   const pool = shuffle(mine.filter(g=>g.q>0&&g.n.length<70));
-  return pool.slice(0,n).map(g=>{
+  return pool.slice(0,n).map((g,wi)=>{
     // hard: look-alikes from the same department; easy: anything sharp that looks different
-    const same = mine.filter(x=>x.id!==g.id&&x.n!==g.n&&GD.cat(x)===GD.cat(g));
-    const other = (A.mode==="hard"?mine:sharp).filter(x=>x.id!==g.id&&GD.cat(x)!==GD.cat(g));
-    const wrong = A.mode==="hard" ? shuffle(same).slice(0,5) : [];
-    while(wrong.length < (A.mode==="hard"?5:3)){ const x=other[Math.random()*other.length|0]; if(!wrong.includes(x)) wrong.push(x); }
-    return {kind:"load", dept:g.c, k:"PULL", q:g.n, opts:shuffle([{x:g,ok:true},...wrong.map(x=>({x,ok:false}))]), hint:`It's a ${g.t.toLowerCase()}. ${g.w?g.w.replace(/Skip this one.*$/,"").split(". ")[0].replace(/\.+\s*$/,"")+".":""}`, answer:g};
+    // no twins: every option needs its own photo and must not be the same product in another length or colour
+    const base = n => n.toLowerCase().replace(/\(.*?\)/g,"").replace(/[\d.]+\s*(ft|'|"|in|inch)?\.?/g,"").replace(/\b(black|white|beige|silver|red|blue|green)\b/g,"").replace(/\s+/g," ").trim();
+    const seen = new Set([g.img]), seenN = new Set([base(g.n)]);
+    const fresh = x => x.id!==g.id && !seen.has(x.img) && !seenN.has(base(x.n));
+    const take = x => { seen.add(x.img); seenN.add(base(x.n)); return x; };
+    const same = shuffle(mine.filter(x=>GD.cat(x)===GD.cat(g)));
+    const other = shuffle((A.mode==="hard"?mine:sharp).filter(x=>GD.cat(x)!==GD.cat(g)));
+    const need = A.mode==="hard"?5:3, wrong = [];
+    for(const x of A.mode==="hard"?same:[]) { if(wrong.length>=need) break; if(fresh(x)) wrong.push(take(x)); }
+    for(const x of other) { if(wrong.length>=need) break; if(fresh(x)) wrong.push(take(x)); }
+    // alternate: odd waves show one photo and ask for the name; even waves name it and ask for the photo
+    const fmt = wi%2 ? "name" : "photo";
+    return {kind:"load", fmt, dept:g.c, k:fmt==="name"?"WHAT IS THIS?":"PULL", q:fmt==="name"?"":g.n, opts:shuffle([{x:g,ok:true},...wrong.map(x=>({x,ok:false}))]), hint:`It's ${/^[aeiou]/i.test(g.t)?"an":"a"} ${g.t.toLowerCase()}. ${g.w?g.w.replace(/Skip this one.*$/,"").split(". ")[0].replace(/\.+\s*$/,"")+".":""}`, answer:g};
   });
 }
 function pickPrice(n){
@@ -1884,11 +1901,13 @@ function wave(){
     const x0=opts.find(o=>o.ok); const xx=x0.x||byId[Object.keys(x0.bundle)[0]]; W.dept=xx?xx.c:"Other";
   } else opts=W.opts;
   AX.dataset.f = FIELD[W.dept]||"yellow";
-  const T = (A.mode==="hard"?8:12) + (W.kind==="gig"?8:0);
-  const named = W.kind==="gig", price = W.kind==="price";
+  const T = 30;   // Kahoot clock: the faster the answer, the more points
+  const nameQ = W.kind==="load" && W.fmt==="name";
+  const named = W.kind==="gig" || nameQ, price = W.kind==="price";
   const tiles = opts.map((o,i)=>{
     let inner;
     if(price) inner=`<span style="font:500 clamp(18px,5vw,26px) Archivo,Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums">${money(o.price)}</span>`;
+    else if(nameQ) inner=`<span style="font:500 15px/1.25 Archivo,Helvetica,Arial,sans-serif;padding:8px 14px;text-align:left;width:100%">${esc(o.x.n)}</span>`;
     else if(named){ const im=optImg(o); inner=`<span style="display:grid;grid-template-columns:40px 1fr;gap:10px;align-items:center;width:100%;padding:5px 10px;text-align:left">${im?`<img alt="" src="${im}" style="width:40px;height:40px">`:"<span></span>"}<span style="font:500 13px/1.25 Archivo,Helvetica,Arial,sans-serif">${esc(optName(o))}</span></span>`; }
     else inner=`<img alt="" src="${o.x.img}" style="max-width:min(90%,${o.x.iw||480}px);max-height:min(90%,${o.x.iw||480}px)">`;
     return `<button class="ax-tile${!price&&!named?" photo":""}" data-i="${i}" aria-label="${price?money(o.price):named?esc(optName(o)):"Option "+(i+1)}" style="transform:translate(${(Math.random()*120-60).toFixed(0)}vw,-110vh) rotate(${(Math.random()*90-45).toFixed(0)}deg);transition-delay:${i*55}ms">${inner}</button>`;
@@ -1897,8 +1916,8 @@ function wave(){
   axShell(`<span>${S.id==="price"?"Bonus":S.id==="gig"?esc(A.gig.venue):"Stage 1"}</span><span></span><span class="n">${A.score.toLocaleString()}</span>`,
     `<div class="ax-hud">${livesHTML()}<span>${DEPT_WORD[W.dept]||""} · ${A.wi+1} of ${A.waves.length}</span></div>
      <div class="ax-prompt"><span class="k">${esc(W.k)}</span><span class="q">${esc(prompt)}</span>${W.kind==="gig"&&A.wi===0?`<span class="k" style="letter-spacing:.04em;line-height:1.4">${esc(A.gig.town)} · ${esc(A.gig.cap)} · “${esc(A.gig.request)}”</span>`:""}</div>
-     ${price?`<img alt="" src="${W.img}" style="width:110px;height:110px;object-fit:contain;justify-self:center;background:#fff">`:""}
-     <div class="ax-timer"><span id="axt"></span></div>
+     ${price||nameQ?`<div class="ax-hero${price?" sm":""}"><img alt="" src="${W.answer.img}"></div>`:""}
+     <div class="ax-clock"><div class="ax-timer"><span id="axt"></span></div><span class="ax-secs" id="axs">${T}</span></div>
      <div class="${formCls}">${tiles}</div>
      <div class="ax-name" id="axname"></div>
      <div class="ax-tools"><span class="ax-hint" id="axhint">${A.mode==="easy"&&!price?"Crew chief: "+esc(hint):""}</span>${A.mode==="hard"&&!price?`<button id="axh">Hint −200</button>`:""}</div>
@@ -1910,9 +1929,9 @@ function wave(){
   if(h) h.onclick=()=>{ h.disabled=true; h.style.opacity=.4; A.score=Math.max(0,A.score-200); A.hintsUsed++;
     document.getElementById("axhint").textContent="Crew chief: "+hint;
     let k=0; AX.querySelectorAll(".ax-tile").forEach((t,i)=>{ if(!opts[i].ok && k<Math.floor((opts.length-1)/2)){ t.classList.add("dim"); t.disabled=true; k++; } }); };
-  const t0=Date.now(), bar=document.getElementById("axt"); let done=false; A.shift=0; A.paused=0;
+  const t0=Date.now(), bar=document.getElementById("axt"), secs=document.getElementById("axs"); let done=false; A.shift=0; A.paused=0;
   const elapsed=()=>(Date.now()-t0-A.shift)/1000;
-  clearInterval(A.tm); A.tm=setInterval(()=>{ if(A.paused) return; const left=Math.max(0,T-elapsed()); bar.style.width=(left/T*100)+"%"; if(left<=0) pick(-1); },100);
+  clearInterval(A.tm); A.tm=setInterval(()=>{ if(A.paused) return; const left=Math.max(0,T-elapsed()); bar.style.width=(left/T*100)+"%"; secs.textContent=Math.ceil(left); if(left<=0) pick(-1); },100);
   const pick = i => {
     if(done||A.paused) return; done=true; clearInterval(A.tm);
     const left=Math.max(0,T-elapsed()), o=i>=0?opts[i]:null, ok=!!(o&&o.ok);
@@ -1922,8 +1941,9 @@ function wave(){
     A.total++;
     if(ok){
       A.right++; A.streak++;
-      let pts=100+Math.round(100*left/T)+Math.min(A.streak-1,5)*20; if(price) pts=150+Math.round(150*left/T); if(A.mode==="hard") pts=Math.round(pts*1.5);
-      A.score+=pts; if(!price) A.crowd=Math.min(1,A.crowd+.1); sfx.ok();
+      // Kahoot scoring: 1000 for an instant answer, sliding to 500 at the buzzer, plus a streak bonus
+      let pts=Math.round(1000*(1-(1-left/T)/2)) + Math.min(A.streak-1,5)*100; if(A.mode==="hard") pts=Math.round(pts*1.5);
+      A.score+=pts; A.last=pts; if(!price) A.crowd=Math.min(1,A.crowd+.1); sfx.ok();
       const tr=document.getElementById("axtruck").getBoundingClientRect(), tb=tiles[i].getBoundingClientRect();
       tiles[i].style.setProperty("--dx",(tr.left+tr.width/2-(tb.left+tb.width/2))+"px"); tiles[i].style.setProperty("--dy",(tr.top-(tb.top+tb.height/2))+"px");
       tiles[i].style.transitionDelay="0ms"; tiles[i].classList.add("hit");
@@ -1936,7 +1956,7 @@ function wave(){
     }
     const who = W.kind==="gig" ? optName(opts[ri]) : W.answer.n, why = W.kind==="gig" ? opts[ri].why : [W.answer.t, W.answer.p!=null?money(W.answer.p):""].filter(Boolean).join(" · ");
     const ansItem = W.kind==="gig" ? (opts[ri].x || byId[Object.keys(opts[ri].bundle||{})[0]]) : W.answer;
-    document.getElementById("axname").innerHTML = `${ok?"":(i<0?"Time. ":"Not that one. ")}<b>${esc(who)}</b> · ${esc(why)}${ansItem?` <button class="ax-more" id="axmore">Look it up</button>`:""}`;
+    document.getElementById("axname").innerHTML = `${ok?`<span class="ax-pts">+${A.last.toLocaleString()}</span> ${A.streak>1?`Streak ${A.streak} · `:""}`:(i<0?"Time. ":"Not that one. ")}<b>${esc(who)}</b> · ${esc(why)}${ansItem?` <button class="ax-more" id="axmore">Look it up</button>`:""}`;
     const mb=document.getElementById("axmore"); if(mb) mb.onclick=()=>{ clearTimeout(A.nt); openGear(ansItem); A.resume=true; };
     AX.querySelector(".ax-top .n").textContent=A.score.toLocaleString();
     AX.querySelector(".ax-lives").outerHTML=livesHTML(); crowdDraw();
@@ -1951,7 +1971,7 @@ function next(){
   if(A.lives<=0) return over(false);
   A.wi++;
   if(A.wi<A.waves.length) return wave();
-  const bonus=A.lives*250; A.score+=bonus; A.si++; sfx.start();
+  const bonus=A.lives*1000; A.score+=bonus; A.si++; sfx.start();
   if(A.si<STAGES.length) return stageClear(bonus);
   over(true);
 }

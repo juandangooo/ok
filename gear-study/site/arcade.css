@@ -55,8 +55,17 @@
 .ax-tile{position:relative;aspect-ratio:1;border:1px solid var(--line)!important;display:grid;place-items:center;overflow:hidden;
   transition:transform .7s cubic-bezier(.2,.8,.2,1),opacity .4s,border-color .3s}
 .ax-tile img{width:90%;height:90%;object-fit:contain;image-rendering:auto}
-.ax-tile.photo{background:#fff!important}
-.ax-tile.photo img{position:absolute;inset:6%;width:88%;height:88%;max-width:none!important;max-height:none!important;object-fit:contain}
+/* photos sit in a soft spotlight that fades into the stage colour; multiply turns each photo's white backdrop into that light */
+.ax-tile.photo,.ax-hero{background:radial-gradient(closest-side,#fff 0%,#fff 52%,color-mix(in srgb,#fff 45%,var(--field)) 78%,var(--field) 100%)!important;border-color:transparent!important}
+.ax-tile.photo img,.ax-hero img{mix-blend-mode:multiply}
+.ax-tile.photo img{position:absolute;inset:14%;width:72%;height:72%;max-width:none!important;max-height:none!important;object-fit:contain}
+.ax-tile.photo:hover,.ax-tile.photo:focus-visible{outline:1.5px solid var(--line);outline-offset:-1px}
+.ax-hero{position:relative;width:min(64vw,300px);aspect-ratio:1;justify-self:center}
+.ax-hero.sm{width:min(42vw,190px)}
+.ax-hero img{position:absolute;inset:14%;width:72%;height:72%;object-fit:contain}
+.ax-clock{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+.ax-secs{font:500 22px/1 "Archivo",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums;min-width:2ch;text-align:right}
+.ax-pts{font:600 15px "Archivo",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
 .ax-form.rows .ax-tile img{background:#fff;border-radius:2px;padding:2px}
 .ax-depts{display:grid;gap:10px;width:min(420px,100%);justify-self:center}
 .ax-depts button{border:1.5px solid var(--line)!important;padding:16px 18px!important;display:grid!important;gap:4px;text-align:left}
