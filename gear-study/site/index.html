@@ -1,7 +1,7 @@
 <meta charset="utf-8">
 <title>Load-In Drills</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600&family=Oswald:wght@500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{
   --bg:#e9ecef; --panel:#f8f9fa; --ink:#15191e; --muted:#5b6570; --line:#cfd5db;
@@ -337,6 +337,7 @@ details.venues .picks{margin-top:8px}
   .gofoot{display:grid}
   #fb{display:contents}
 }
+/*ARCADECSS*/
 </style>
 
 <div class="wrap">
@@ -916,9 +917,10 @@ function quoteResult(){
 /* ---------- crew leaderboard (shared db; works solo when unavailable) ---------- */
 let DB=null, ME=null, BOARD=[], nick=store.get("nick",""), wq=Promise.resolve(), wt=0, boardMode="today";
 function sync(){
-  if(!DB||!ME||!nick) return;
+  const ini=store.get("ini","");
+  if(!DB||!ME||!(nick||ini)) return;
   clearTimeout(wt);
-  wt=setTimeout(()=>{const body={nick,xp:st.xp,dday:st.daily?st.daily.d:"",dpts:st.daily?st.daily.pts:0,dgig:st.daily?st.daily.gig:0,updated:Date.now()};
+  wt=setTimeout(()=>{const body={nick,ini,hi:store.get("hi",0),xp:st.xp,dday:st.daily?st.daily.d:"",dpts:st.daily?st.daily.pts:0,dgig:st.daily?st.daily.gig:0,updated:Date.now()};
     wq=wq.then(()=>DB.doc("players/"+ME).set(body)).catch(()=>{});},800);
 }
 function ranked(mode){
@@ -979,6 +981,7 @@ async function connect(){
     if(me.exists){const d=me.data();
       if(d.xp>st.xp) st.xp=d.xp;
       if(d.nick&&!nick){nick=d.nick;store.set("nick",nick)}
+      if(d.ini&&!store.get("ini","")) store.set("ini",d.ini); if(d.hi>store.get("hi",0)) store.set("hi",d.hi);
       if(d.dday===dayKey()&&!(st.daily&&st.daily.d===d.dday)) st.daily={d:d.dday,pts:d.dpts,gig:d.dgig};
       store.set("state",st); renderStats();}
     if(!nick){const n=await user.name(); const i=document.getElementById("nickin"); if(n&&i&&!i.value) i.placeholder=n.split(" ")[0];}
@@ -1023,7 +1026,9 @@ document.querySelectorAll("nav [data-tab]").forEach(b=>b.onclick=()=>{
   R=null; clearInterval(G&&G.tm); ({play:home,gigs:()=>gigList(),quotes:quoteList,crew,browse})[b.dataset.tab]();
 });
 
-fetch("gear.json").then(r=>r.json()).then(d=>{GEAR=d;d.forEach(g=>byId[g.id]=g);GD.setShop(d);QD.setShop(d);renderStats();home();connect()})
+/*ARCADE*/
+
+fetch("gear.json").then(r=>r.json()).then(d=>{GEAR=d;d.forEach(g=>byId[g.id]=g);GD.setShop(d);QD.setShop(d);renderStats();home();attract();connect()})
   .catch(()=>{view.innerHTML=`<p>The gear list didn't load. Reload the page to try again.</p>`});
 })();
 </script>
