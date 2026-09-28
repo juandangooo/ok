@@ -3,28 +3,30 @@
    Map and Primark wordmark are raster separations of the user-supplied map. */
 const P={paper:'#eee6cf',ink:'#3e3034',red:'#ad5045',blue:'#559b9e',muted:'#7b7970',line:'#b8b3a1'};
 const images={};
+// Road case finish: black with light etched lines and aluminium trim.
+const CASE={front:'#2e2c2f',side:'#19181a',top:'#403e41',inside:'#121113',lid:'#2f2d30',etch:'rgba(225,215,195,.13)'};
 const num=n=>String(n).padStart(2,'0');
 function text(c,s,x,y,size=20,color=P.ink,font='Avenir Next',weight='500',align='left'){
  c.fillStyle=color;c.font=`${weight} ${size}px "${font}", sans-serif`;c.textAlign=align;c.fillText(s,x,y);c.textAlign='left';
 }
 function rule(c,x,y,w,col=P.ink){Etch.line(c,[[x,y],[x+w,y+.4]],col,.8,11,.6)}
 function paper(c){c.fillStyle=P.paper;c.fillRect(0,0,1080,1350);const r=Etch.rng(90);c.fillStyle='rgba(73,59,41,.075)';for(let i=0;i<27000;i++){const x=r()*1080,y=r()*1350;c.fillRect(x,y,r()*.7+.15,r()*.5+.15)} }
-function logo(c,x,y,w){c.save();c.translate(x,y);c.scale(w/2500,w/2500);for(const p of HellhoundLogoPaths){c.save();c.translate(p.x,p.y);c.fillStyle=p.fill;c.fill(new Path2D(p.d));c.restore()}c.restore()}
+function logo(c,x,y,w,light=false){c.save();c.translate(x,y);c.scale(w/2500,w/2500);for(const p of HellhoundLogoPaths){c.save();c.translate(p.x,p.y);c.fillStyle=light&&p.x>=900&&p.fill==='#050708'?P.paper:p.fill;c.fill(new Path2D(p.d));c.restore()}c.restore()}
 function brands(c,y=1247){logo(c,57,y,265);c.drawImage(images.wordmark,763,y+24,262,57)}
 function stamp(c,id,x,y,r=13){c.save();c.fillStyle='rgba(50,32,23,.14)';c.beginPath();c.arc(x+1.8,y+2,r,0,Math.PI*2);c.fill();const p=Etch.ellipse(x,y,r,r);Etch.fill(c,p,P.red);Etch.outline(c,p,P.ink,.65,id);text(c,num(id),x,y+(r>=20?7:4.7),r>=20?19:12,P.paper,'Avenir Next','700','center');c.restore()}
 function pin(c,id,x,y,dx=0,dy=-23){const bx=x+dx,by=y+dy;Etch.line(c,[[x,y],[bx,by]],P.ink,1,id,.35);c.fillStyle=P.ink;c.beginPath();c.arc(x,y,2,0,Math.PI*2);c.fill();stamp(c,id,bx,by)}
 function roadcase(c,x,y,s=1,lid=0){
  c.save();c.translate(x,y);c.scale(s,s);
  const front=new Path2D('M 0 33 L 165 52 L 165 214 L 0 193 Z'),side=new Path2D('M 165 52 L 239 13 L 239 169 L 165 214 Z'),top=new Path2D('M 0 33 L 71 0 L 239 13 L 165 52 Z');
- if(lid){const lp=new Path2D(`M71 0 L${71-lid*25} ${-150*lid} L${239-lid*25} ${13-150*lid} L239 13 Z`);Etch.fill(c,lp,'#be8b70');Etch.hatch(c,lp,[40,-160,210,180],{seed:71,angle:1.2,spacing:3,color:'rgba(65,34,35,.4)'});Etch.outline(c,lp,P.ink,1.2);}
- Etch.fill(c,front,'#bc6b55');Etch.fill(c,side,'#88362e');Etch.fill(c,top,lid?'#463b3c':'#dba592');
- Etch.hatch(c,front,[0,33,165,181],{angle:1.2,spacing:3,length:17,color:'rgba(78,33,28,.32)',seed:21,density:(a,b)=>a>140||b>174?.9:.18});
- Etch.hatch(c,side,[165,13,75,202],{angle:-.55,spacing:2.5,length:25,color:'rgba(37,27,25,.6)',seed:22});
- Etch.hatch(c,top,[0,0,240,52],{angle:-.35,spacing:3.5,length:22,color:'rgba(43,36,28,.30)',seed:23});
+ if(lid){const lp=new Path2D(`M71 0 L${71-lid*25} ${-150*lid} L${239-lid*25} ${13-150*lid} L239 13 Z`);Etch.fill(c,lp,CASE.lid);Etch.hatch(c,lp,[40,-160,210,180],{seed:71,angle:1.2,spacing:3,color:CASE.etch});Etch.outline(c,lp,P.ink,1.2);}
+ Etch.fill(c,front,CASE.front);Etch.fill(c,side,CASE.side);Etch.fill(c,top,lid?CASE.inside:CASE.top);
+ Etch.hatch(c,front,[0,33,165,181],{angle:1.2,spacing:3,length:17,color:CASE.etch,seed:21,density:(a,b)=>a>140||b>174?.9:.18});
+ Etch.hatch(c,side,[165,13,75,202],{angle:-.55,spacing:2.5,length:25,color:'rgba(0,0,0,.55)',seed:22});
+ Etch.hatch(c,top,[0,0,240,52],{angle:-.35,spacing:3.5,length:22,color:CASE.etch,seed:23});
  for(const p of [front,side,top])Etch.outline(c,p,P.ink,1.4,33);
  for(const pts of [[[0,33],[0,193],[165,214],[239,169]],[[0,57],[165,76],[239,37]],[[165,52],[165,214]],[[239,13],[239,169]]]){Etch.line(c,pts,'#dfd5be',7,8);Etch.line(c,pts,P.ink,.8,8)}
  for(const [xx,yy] of [[13,65],[145,82],[13,182],[145,200]]){c.fillStyle='#d6d4c8';c.fillRect(xx-5,yy-8,10,16);c.strokeStyle=P.ink;c.lineWidth=.7;c.strokeRect(xx-5,yy-8,10,16);c.fillStyle=P.ink;c.fillRect(xx-1,yy-1,2,2)}
- c.save();c.transform(1,.11,0,1,0,0);logo(c,16,83,132);text(c,'OPENING DAYS',22,165,13,P.paper,'DIN Condensed','700');c.restore();
+ c.save();c.transform(1,.11,0,1,0,0);logo(c,16,83,132,true);text(c,'OPENING DAYS',22,165,13,P.paper,'DIN Condensed','700');c.restore();
  const handle=new Path2D('M187 94 L217 79 L217 100 L187 115 Z');Etch.fill(c,handle,'#b7aba0');Etch.outline(c,handle,P.ink,1);Etch.line(c,[[192,102],[192,98],[211,88],[211,93]],P.ink,3);
  for(const [xx,yy] of [[20,200],[153,220],[221,181]]){Etch.fill(c,Etch.ellipse(xx,yy+5,8,14),P.ink);Etch.outline(c,Etch.ellipse(xx+2,yy+5,4,10),'#869593',1)}
  // A coiled audio cable, separate from the geography.

@@ -47,11 +47,11 @@ Verified the per-frame marker counts 0, 0, 0, 3, 7, 11, 17, 25, 28, 32, 35, 36, 
 - fonts/: open-licence stand-ins (Barlow Condensed, Nunito Sans, Libre Baskerville), used only when DIN Condensed, Avenir Next or Baskerville are not installed.
 
 Timeline (seconds):
-- 0–2.2: the case etches in and the title wipes up.
-- 2.2–4.4: the lid swings open on its hinge, then the mic and speaker rise out while sound rings pulse.
-- 4.4–6.6: the map unfolds panel by panel behind the case.
-- 6.6–8.0: the case and map glide into the map layout, and the close-up panels slide in.
-- 8.0–25.0: eight chapters. Each opening lands as its own pin with a ripple. Its state inks in from the first pin, the counter ticks up, and its row types in at the bottom.
-- 25.0–30.0: the dashed Pentagon City marker draws on, a thank-you pulse runs through all 36 markers in order, then a hold.
+- 0–3.0: quick intro. The black case etches in, the lid swings open, the mic and speaker pop out, and the map unfolds and settles.
+- 3.4–25.2: openings 01–35 arrive on a steady beat, one every 0.64 s. Each one gets:
+  - its pin on the map, with its state inking in (NY/NJ and MD/VA openings use numbered badges beside the map);
+  - a large "now opening" callout with the name, city and date beside the counter;
+  - a permanent line in the 36-slot ledger, so every store visited stays on screen.
+- 26.0–30.0: the dashed Pentagon City marker lands as NEXT, a thank-you pulse runs through every marker, then a hold.
 
-To change the pacing, edit the `beats` / `landT` block and the times in `openerAt`, `gearAt` and `mapAt` in motion.js.
+To change the pacing, edit `FIRST` and `STEP` (the opening beat) and the intro times in `caseScene`, `gearAt` and `mapAt` in motion.js. The case finish is the `CASE` palette in drawing-kit.js.
