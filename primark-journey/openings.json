@@ -7,8 +7,13 @@
     "state": "NY",
     "address_as_supplied": "630 Old Country Rd.",
     "panel": "metro",
-    "map_point": null,
-    "status": "completed"
+    "map_point": [
+      1695,
+      486
+    ],
+    "status": "completed",
+    "lon": -73.613,
+    "lat": 40.7385
   },
   {
     "id": 2,
@@ -18,8 +23,13 @@
     "state": "NY",
     "address_as_supplied": "162-10 Jamaica Ave., 11432",
     "panel": "metro",
-    "map_point": null,
-    "status": "completed"
+    "map_point": [
+      1690,
+      488
+    ],
+    "status": "completed",
+    "lon": -73.7985,
+    "lat": 40.704
   },
   {
     "id": 3,
@@ -29,8 +39,13 @@
     "state": "NY",
     "address_as_supplied": "445 Albee Square, 11201",
     "panel": "metro",
-    "map_point": null,
-    "status": "completed"
+    "map_point": [
+      1684,
+      490
+    ],
+    "status": "completed",
+    "lon": -73.9833,
+    "lat": 40.6906
   },
   {
     "id": 4,
@@ -41,10 +56,12 @@
     "address_as_supplied": "1 Walden Galleria, 14225",
     "panel": "national",
     "map_point": [
-      1540,
-      412
+      1511,
+      426
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -78.7627,
+    "lat": 42.9057
   },
   {
     "id": 5,
@@ -54,8 +71,13 @@
     "state": "NY",
     "address_as_supplied": "2034 Green Acres Rd.",
     "panel": "metro",
-    "map_point": null,
-    "status": "completed"
+    "map_point": [
+      1693,
+      490
+    ],
+    "status": "completed",
+    "lon": -73.7222,
+    "lat": 40.6627
   },
   {
     "id": 6,
@@ -65,8 +87,13 @@
     "state": "NJ",
     "address_as_supplied": "651 Kapkowski Rd., Suite 200, 07201",
     "panel": "metro",
-    "map_point": null,
-    "status": "completed"
+    "map_point": [
+      1678,
+      493
+    ],
+    "status": "completed",
+    "lon": -74.1732,
+    "lat": 40.6618
   },
   {
     "id": 7,
@@ -77,10 +104,12 @@
     "address_as_supplied": "1 Crossgates Mall Rd., 12203",
     "panel": "national",
     "map_point": [
-      1672,
-      350
+      1668,
+      403
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -73.8484,
+    "lat": 42.6892
   },
   {
     "id": 8,
@@ -90,8 +119,13 @@
     "state": "MD",
     "address_as_supplied": "7000 Arundel Mills Cir., 21076",
     "panel": "capital",
-    "map_point": null,
-    "status": "completed"
+    "map_point": [
+      1609,
+      577
+    ],
+    "status": "completed",
+    "lon": -76.7263,
+    "lat": 39.1577
   },
   {
     "id": 9,
@@ -102,10 +136,12 @@
     "address_as_supplied": "5 Woodfield Mall, 60173",
     "panel": "national",
     "map_point": [
-      1224,
-      520
+      1219,
+      503
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -88.0371,
+    "lat": 42.0467
   },
   {
     "id": 10,
@@ -115,8 +151,13 @@
     "state": "NY",
     "address_as_supplied": "408 Burr Ln., 11755",
     "panel": "metro",
-    "map_point": null,
-    "status": "completed"
+    "map_point": [
+      1710,
+      477
+    ],
+    "status": "completed",
+    "lon": -73.133,
+    "lat": 40.8605
   },
   {
     "id": 11,
@@ -127,10 +168,12 @@
     "address_as_supplied": "8111 Concord Mills Blvd.",
     "panel": "national",
     "map_point": [
-      1519,
-      746
+      1503,
+      768
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -80.7263,
+    "lat": 35.3654
   },
   {
     "id": 12,
@@ -140,8 +183,13 @@
     "state": "VA",
     "address_as_supplied": "1961 Chain Bridge Rd., 22102",
     "panel": "capital",
-    "map_point": null,
-    "status": "completed"
+    "map_point": [
+      1595,
+      591
+    ],
+    "status": "completed",
+    "lon": -77.2215,
+    "lat": 38.9179
   },
   {
     "id": 13,
@@ -152,10 +200,12 @@
     "address_as_supplied": "8001 S Orange Blossom Trl.",
     "panel": "national",
     "map_point": [
-      1575,
-      1068
+      1526,
+      1075
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -81.3963,
+    "lat": 28.446
   },
   {
     "id": 14,
@@ -166,10 +216,12 @@
     "address_as_supplied": "4612 Baldwin Rd., 48326",
     "panel": "national",
     "map_point": [
-      1389,
-      444
+      1368,
+      458
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -83.3013,
+    "lat": 42.7058
   },
   {
     "id": 15,
@@ -179,8 +231,13 @@
     "state": "NY",
     "address_as_supplied": "90-15 Queens Blvd.",
     "panel": "metro",
-    "map_point": null,
-    "status": "completed"
+    "map_point": [
+      1687,
+      488
+    ],
+    "status": "completed",
+    "lon": -73.8697,
+    "lat": 40.7349
   },
   {
     "id": 16,
@@ -191,10 +248,12 @@
     "address_as_supplied": "2200 S Tenth St.",
     "panel": "national",
     "map_point": [
-      939,
-      1192
+      871,
+      1215
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -98.2393,
+    "lat": 26.2193
   },
   {
     "id": 17,
@@ -204,8 +263,13 @@
     "state": "VA",
     "address_as_supplied": "2700 Potomac Mills Cir.",
     "panel": "capital",
-    "map_point": null,
-    "status": "completed"
+    "map_point": [
+      1594,
+      603
+    ],
+    "status": "completed",
+    "lon": -77.2957,
+    "lat": 38.645
   },
   {
     "id": 18,
@@ -216,10 +280,12 @@
     "address_as_supplied": "2760 N Germantown Pkwy., 38133",
     "panel": "national",
     "map_point": [
-      1250,
-      814
+      1182,
+      812
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -89.7919,
+    "lat": 35.2067
   },
   {
     "id": 19,
@@ -229,8 +295,13 @@
     "state": "NJ",
     "address_as_supplied": "30 Mall Dr. W, 07310",
     "panel": "metro",
-    "map_point": null,
-    "status": "completed"
+    "map_point": [
+      1682,
+      489
+    ],
+    "status": "completed",
+    "lon": -74.0376,
+    "lat": 40.7271
   },
   {
     "id": 20,
@@ -241,10 +312,12 @@
     "address_as_supplied": "8401 Gateway Blvd. W, 79925",
     "panel": "national",
     "map_point": [
-      625,
-      995
+      574,
+      950
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -106.3797,
+    "lat": 31.778
   },
   {
     "id": 21,
@@ -255,10 +328,12 @@
     "address_as_supplied": "1800 Galleria Blvd., 37067",
     "panel": "national",
     "map_point": [
-      1370,
-      774
+      1285,
+      770
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -86.8132,
+    "lat": 35.9543
   },
   {
     "id": 22,
@@ -269,10 +344,12 @@
     "address_as_supplied": "6170 W Grand Ave., 60031",
     "panel": "national",
     "map_point": [
-      1237,
-      495
+      1220,
+      488
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -87.9538,
+    "lat": 42.3811
   },
   {
     "id": 23,
@@ -283,10 +360,12 @@
     "address_as_supplied": "5000 Katy Mills Cir., 77494",
     "panel": "national",
     "map_point": [
-      1034,
-      1058
+      968,
+      1060
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -95.8034,
+    "lat": 29.7741
   },
   {
     "id": 24,
@@ -297,10 +376,12 @@
     "address_as_supplied": "3000 Grapevine Mills Pkwy., 76051",
     "panel": "national",
     "map_point": [
-      963,
-      947
+      922,
+      918
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -97.0417,
+    "lat": 32.969
   },
   {
     "id": 25,
@@ -311,10 +392,12 @@
     "address_as_supplied": "11401 NW 12th St., 33172",
     "panel": "national",
     "map_point": [
-      1630,
-      1177
+      1584,
+      1183
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -80.3808,
+    "lat": 25.788
   },
   {
     "id": 26,
@@ -325,10 +408,12 @@
     "address_as_supplied": "1101 Melbourne Rd., Suite 4000, 76053",
     "panel": "national",
     "map_point": [
-      952,
-      957
+      916,
+      924
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -97.198,
+    "lat": 32.828
   },
   {
     "id": 27,
@@ -338,8 +423,13 @@
     "state": "NY",
     "address_as_supplied": "150 W 34th Street",
     "panel": "metro",
-    "map_point": null,
-    "status": "completed"
+    "map_point": [
+      1683,
+      488
+    ],
+    "status": "completed",
+    "lon": -73.9895,
+    "lat": 40.7497
   },
   {
     "id": 28,
@@ -349,8 +439,13 @@
     "state": "MD",
     "address_as_supplied": "3500 East-West Hwy., 20782",
     "panel": "capital",
-    "map_point": null,
-    "status": "completed"
+    "map_point": [
+      1603,
+      587
+    ],
+    "status": "completed",
+    "lon": -76.9551,
+    "lat": 38.9677
   },
   {
     "id": 29,
@@ -361,11 +456,13 @@
     "address_as_supplied": "3881 S Cooper St., Suite 1020, 76015",
     "panel": "national",
     "map_point": [
-      979,
-      971
+      919,
+      931
     ],
     "status": "completed",
-    "date_note": "Original 5/20/2026 crossed out; handwritten correction read as 6/25/2026."
+    "date_note": "Original 5/20/2026 crossed out; handwritten correction read as 6/25/2026.",
+    "lon": -97.1142,
+    "lat": 32.678
   },
   {
     "id": 30,
@@ -376,10 +473,12 @@
     "address_as_supplied": "2000 Willowbrook Mall, 77070",
     "panel": "national",
     "map_point": [
-      1048,
-      1065
+      978,
+      1051
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -95.5475,
+    "lat": 29.9602
   },
   {
     "id": 31,
@@ -390,10 +489,12 @@
     "address_as_supplied": "6020 E. 82nd Street, 46250",
     "panel": "national",
     "map_point": [
-      1310,
-      608
+      1293,
+      592
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -86.069,
+    "lat": 39.9142
   },
   {
     "id": 32,
@@ -404,10 +505,12 @@
     "address_as_supplied": "8200 Vineland Ave., 32821",
     "panel": "national",
     "map_point": [
-      1572,
-      1066
+      1523,
+      1078
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -81.4946,
+    "lat": 28.3858
   },
   {
     "id": 33,
@@ -418,10 +521,12 @@
     "address_as_supplied": "2131 Lindau Lane, Suite 500, 55425",
     "panel": "national",
     "map_point": [
-      1082,
-      413
+      1046,
+      389
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -93.2422,
+    "lat": 44.8549
   },
   {
     "id": 34,
@@ -432,10 +537,12 @@
     "address_as_supplied": "5900 Sugarloaf Pkwy., 30043",
     "panel": "national",
     "map_point": [
-      1485,
-      863
+      1392,
+      846
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -84.0867,
+    "lat": 33.9829
   },
   {
     "id": 35,
@@ -446,10 +553,12 @@
     "address_as_supplied": "3450 Wrightsboro Rd., 30909",
     "panel": "national",
     "map_point": [
-      1525,
-      893
+      1467,
+      859
     ],
-    "status": "completed"
+    "status": "completed",
+    "lon": -82.0823,
+    "lat": 33.4726
   },
   {
     "id": 36,
@@ -459,7 +568,12 @@
     "state": "VA",
     "address_as_supplied": "1100 South Hayes St., 22202",
     "panel": "capital",
-    "map_point": null,
-    "status": "upcoming"
+    "map_point": [
+      1600,
+      592
+    ],
+    "status": "upcoming",
+    "lon": -77.06,
+    "lat": 38.8625
   }
 ]

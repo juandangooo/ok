@@ -44,6 +44,9 @@ Verified the per-frame marker counts 0, 0, 0, 3, 7, 11, 17, 25, 28, 32, 35, 36, 
 - motion.html: player with play/pause and a scrubber. Serve the folder (python3 -m http.server 8768) and open http://localhost:8768/motion.html.
 - motion.js: the timeline. It reuses the same drawing kit, map geometry, logo and openings data.
 - render-motion.mjs: export script. Run `node render-motion.mjs` (needs Playwright and ffmpeg; set FFMPEG=/path/to/ffmpeg if it is not on PATH). It supersamples each frame at 2× to keep the hatching steady. Use `--stills 2.4,12,29` to export PNG stills instead.
+- Map: real state boundaries from the U.S. Census Bureau cartographic boundary file (cb_2023_us_state_500k), in an Albers equal-area projection. This replaces the traced map, which had state abbreviations cut into the shapes (the "W" in West Virginia, "M" in Massachusetts, "V" in Vermont), a split Virginia, and no Upper Peninsula or Rhode Island. Rebuild with `node tools/build-map.mjs <dir>` (the steps are in the script header). Stores are placed from real coordinates (`lat`/`lon` in openings.json).
+- NYC and DC close-ups (top right) use the same Census data at full 1:500k detail.
+- Intro gear, drawn to real proportions: a Shure SM58 (51 mm ball grille, 162 mm long, tapering charcoal handle) and a JBL VRX ground stack (one VRX918S sub at 508 × 597 × 749 mm, three VRX932LA-1 at 343 × 597 × 376 mm with trapezoid sides and front rigging).
 - fonts/: open-licence stand-ins (Barlow Condensed, Nunito Sans, Libre Baskerville), used only when DIN Condensed, Avenir Next or Baskerville are not installed.
 
 Timeline (seconds):

@@ -1,14 +1,13 @@
 /* The Primark Journey: continuous 30-second Etched Motion.
    Reuses the drawing kit (etch.js, drawing-kit.js, map-paths.js, hellhound-logo.js, openings.js).
-   A three-second intro (case opens, gear out, map unfolds), then every opening lands on a steady
-   beat: pin on the map, big "now opening" callout, and a permanent line in the ledger below. */
+   A three-second intro (case opens, SM58 and a JBL VRX ground stack come out, the map unfolds), then
+   every opening lands on a steady beat: pin on the map (NYC and DC stores in real-geography close-ups),
+   a big "now opening" callout, and a permanent line in the ledger below. */
 (function () {
 'use strict';
 const W = 1080, H = 1350, DURATION = 30, FPS = 30;
 
 /* ---------- Copy ---------- */
-offsets[20] = [24, 12];
-Object.assign(offsets, {29:[55,-15],30:[45,15],31:[5,-22],32:[45,-6],33:[-8,-23],34:[-24,-26],35:[25,10]});
 const counts = [0,0,0,3,7,11,17,25,28,32,35,36];
 const titles = [['THE SOUND OF','OPENING DAY.'],null,null,['THE FIRST','OPENING DAYS.'],['THE JOURNEY','GROWS.'],['MORE DOORS.','MORE MOMENTS.'],['NEW PLACES.','SAME PRIDE.'],['EVERY OPENING','MATTERS.'],['THE WORK','KEEPS MOVING.'],['MORE TRUST.','MORE MILESTONES.'],['35 OPENINGS.','ONE PROUD CREW.'],['A JOURNEY','BUILT ON TRUST.']];
 const spans = ['HELLHOUND AUDIO  ×  PRIMARK  /  2022–2026',null,null,'NOV–DEC 2022','APR–JUL 2023','SEP–NOV 2023','JUL 2024–APR 2025','JUL–DEC 2025','APR–MAY 2026','JUN–AUG 2026','SEPTEMBER 2026','35 OPENINGS  ·  13 STATES  ·  THANK YOU, PRIMARK'];
@@ -25,7 +24,7 @@ const eBack = x => { const k = 1.9; return 1 + (k + 1) * Math.pow(x - 1, 3) + k 
 const mixColor = (a, b, t) => { const p = h => [1,3,5].map(i => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return `rgb(${A.map((v, i) => Math.round(lerp(v, B[i], t))).join(',')})`; };
 
 /* ---------- Timeline ----------
-   0.0 – 3.0   case etches in, lid opens, gear pops out, map unfolds, layout settles
+   0.0 – 3.0   case etches in, lid opens, gear out, map unfolds, layout settles
    3.4 – 25.2  openings 01–35, one every 0.64 s; chapter titles change with the first of each batch
    26.0 – 30.0 the upcoming 36th, a thank-you wave through every marker, hold */
 const FIRST = 3.4, STEP = .64;
@@ -38,19 +37,36 @@ const beatAt = t => { let i = 0; while (i < 11 && t >= beats[i + 1]) i++; return
 const prevShown = i => shown[shown.indexOf(i) - 1];
 const pinP = (t, id) => clamp((t - landT[id]) / .55);
 const latest = t => { let n = 0; for (let id = 1; id <= 36; id++) if (t >= landT[id]) n = id; return n; };
-const stateT = {};
-for (const d of PrimarkOpenings) if (stateT[d.state] === undefined || landT[d.id] < stateT[d.state]) stateT[d.state] = landT[d.id];
+const stateT = {}, stateFirst = {};
+for (const d of PrimarkOpenings) if (stateT[d.state] === undefined || landT[d.id] < stateT[d.state]) { stateT[d.state] = landT[d.id]; stateFirst[d.state] = d; }
 
 /* ---------- Layout ---------- */
-const MX = 98, MY = 214, MS = .47;                      // national map placement
+const MS = 900 / 1827, MX = 90 - 35 * MS, MY = 262 - 105 * MS;   // national map: 900 px wide, top at y 262
 const mapPt = (x, y) => [MX + x * MS, MY + y * MS];
-const clusters = {                                      // metro openings get their own badges beside the map
-  metro:   {label: 'NY / NJ', ids: [1,2,3,5,6,10,15,19,27], at: [1715, 445], x: 975, y: 406, cols: 3},
-  capital: {label: 'MD / VA', ids: [8,12,17,28,36],        at: [1635, 583], x: 975, y: 514, cols: 3},
+// Badge offsets where real locations sit close together (DFW, Houston, Orlando, Chicago, Georgia).
+const pinOffset = {4:[-14,-24],7:[0,-26],9:[-26,16],22:[-26,-16],14:[0,-26],11:[0,-26],13:[26,-14],32:[-28,4],25:[24,-6],16:[0,-26],20:[0,-26],
+  24:[8,-30],26:[-28,-14],29:[-18,24],30:[20,-22],23:[-12,26],18:[-6,-26],21:[0,-26],31:[0,-26],33:[0,-26],34:[-10,-26],35:[14,-24]};
+// Label nudges (map-frame units) so state letters clear the pins.
+const labelAt = Object.assign({}, MapLabels, {TN:[1375,765],IN:[1290,640],FL:[1500,1160],TX:[800,1060],MN:[990,280],MI:[1310,500],NC:[1600,760],MD:[1560,560],NJ:[1672,560]});
+// Metro close-ups (real geography) in the top-right corner.
+const INSETS = {
+  nyc: {title: 'NEW YORK CITY AREA', rect: [580, 96, 290, 154], view: [-74.32, 40.47, -73.02, 40.98], at: [-73.93, 40.72],
+    ids: [1,2,3,5,6,10,15,19,27], off: {27:[-6,-30],19:[-32,-14],3:[-8,28],6:[-8,24],15:[6,-34],2:[4,30],5:[22,22],1:[8,-32],10:[0,28]},
+    labels: [['NEW JERSEY', -74.24, 40.80], ['LONG ISLAND', -73.42, 40.79]]},
+  dc: {title: 'WASHINGTON, DC AREA', rect: [882, 96, 144, 154], view: [-77.50, 38.52, -76.56, 39.28], at: [-77.03, 38.90],
+    ids: [8,12,17,28,36], off: {8:[6,30],12:[-20,-22],28:[-4,-30],36:[24,14],17:[26,0]},
+    labels: [['MARYLAND', -76.86, 38.62], ['VIRGINIA', -77.36, 38.78]]},
 };
-const clusterPos = {};
-for (const g of Object.values(clusters)) g.ids.forEach((id, k) => { clusterPos[id] = [g.x + (k % g.cols) * 27, g.y + Math.floor(k / g.cols) * 27]; });
-const casePoses = [[280, 390, 1.5], [330, 480, 1.35], [118, 462, .68]];
+const insetOf = {};
+for (const k in INSETS) for (const id of INSETS[k].ids) insetOf[id] = k;
+function insetFit(ins) {
+  const data = MapInsets[ins === INSETS.nyc ? 'nyc' : 'dc'], [bw, , , bn] = data.box, cs = data.cos;
+  const [vw, vs, ve, vn] = ins.view, [rx, ry, rw, rh] = ins.rect;
+  const uw = (ve - vw) * cs * 100, uh = (vn - vs) * 100, sc = Math.min(rw / uw, rh / uh);
+  const tx = (rw - uw * sc) / 2 - (vw - bw) * cs * 100 * sc, ty = (rh - uh * sc) / 2 - (bn - vn) * 100 * sc;
+  return {data, sc, tx, ty, pt: (lon, lat) => [rx + tx + (lon - bw) * cs * 100 * sc, ry + ty + (bn - lat) * 100 * sc]};
+}
+const casePoses = [[280, 390, 1.5], [330, 480, 1.35], [104, 468, .64]];
 const mixPose = (a, b, k) => a.map((v, i) => lerp(v, b[i], k));
 
 /* ---------- Cached art ---------- */
@@ -59,37 +75,102 @@ function paperLayer() {
   if (!cache.paper) cache.paper = Etch.layer(W * cache.scale, H * cache.scale, c => { c.scale(cache.scale, cache.scale); paper(c); });
   return cache.paper;
 }
-function creases(c) {
-  for (const x of [450, 920, 1370]) { Etch.line(c, [[x, 0], [x - 10, 1344]], 'rgba(248,240,213,.7)', 3, 12); Etch.line(c, [[x + 4, 0], [x - 6, 1344]], 'rgba(80,59,48,.15)', 2, 12); }
-}
+const inactiveStyle = (i, s) => ({seed: 201 + i, angle: .25, spacing: 7, length: 32, width: .55, color: 'rgba(93,83,68,.19)', density: x => .4 + ((x - s.bounds[0]) / Math.max(1, s.bounds[2])) * .5});
+const activeStyle = (i, s) => ({seed: 201 + i, angle: -.7, spacing: 4.4, length: 23, width: .55, color: 'rgba(51,67,56,.38)', density: x => .4 + ((x - s.bounds[0]) / Math.max(1, s.bounds[2])) * .5});
 function mapBase() {
   if (cache.base) return cache.base;
   return cache.base = Etch.layer(1881, 1344, c => {
-    MapShapes.forEach((s, i) => { const p = new Path2D(s.d); Etch.fill(c, p, '#d5d0ba'); Etch.hatch(c, p, s.bounds, {seed: 201 + i, angle: .25, spacing: 7, length: 32, width: .55, color: 'rgba(93,83,68,.19)', density: (x) => .4 + ((x - s.bounds[0]) / Math.max(1, s.bounds[2])) * .5}); Etch.outline(c, p, '#999482', .8, 200 + i); });
-    const whole = new Path2D(); for (const s of MapShapes) whole.addPath(new Path2D(s.d));
-    Etch.withClip(c, whole, () => creases(c));
+    MapShapes.forEach((s, i) => { const p = new Path2D(s.d); Etch.fill(c, p, '#d5d0ba'); Etch.hatch(c, p, s.bounds, inactiveStyle(i, s)); Etch.outline(c, p, '#999482', .9, 200 + i); });
   });
 }
 function stateLayer(state) {
   cache.states = cache.states || {};
   if (cache.states[state]) return cache.states[state];
-  const shapes = MapShapes.map((s, i) => [s, i]).filter(([s]) => s.state === state);
-  let [x0, y0, x1, y1] = [1e9, 1e9, -1e9, -1e9];
-  for (const [s] of shapes) { x0 = Math.min(x0, s.bounds[0]); y0 = Math.min(y0, s.bounds[1]); x1 = Math.max(x1, s.bounds[0] + s.bounds[2]); y1 = Math.max(y1, s.bounds[1] + s.bounds[3]); }
-  x0 -= 6; y0 -= 6; x1 += 6; y1 += 6;
-  const cv = Etch.layer(x1 - x0, y1 - y0, c => {
-    c.translate(-x0, -y0);
-    const whole = new Path2D();
-    for (const [s, i] of shapes) { const p = new Path2D(s.d); whole.addPath(p); Etch.fill(c, p, '#82aaa0'); Etch.hatch(c, p, s.bounds, {seed: 201 + i, angle: -.7, spacing: 4.4, length: 23, width: .55, color: 'rgba(51,67,56,.38)', density: (x) => .4 + ((x - s.bounds[0]) / Math.max(1, s.bounds[2])) * .5}); Etch.outline(c, p, '#514b45', 1.4, 200 + i); }
-    Etch.withClip(c, whole, () => creases(c));
-  });
-  return cache.states[state] = {cv, x0, y0, w: x1 - x0, h: y1 - y0};
+  const i = MapShapes.findIndex(s => s.state === state), s = MapShapes[i];
+  const [x0, y0] = [s.bounds[0] - 6, s.bounds[1] - 6], w = s.bounds[2] + 12, h = s.bounds[3] + 12;
+  const cv = Etch.layer(w, h, c => { c.translate(-x0, -y0); const p = new Path2D(s.d); Etch.fill(c, p, '#82aaa0'); Etch.hatch(c, p, s.bounds, activeStyle(i, s)); Etch.outline(c, p, '#514b45', 1.4, 200 + i); });
+  return cache.states[state] = {cv, x0, y0, w, h};
 }
-const labelPos = {NY:[1630,383],NJ:[1699,502],MD:[1625,548],VA:[1596,645],NC:[1604,729],TN:[1330,780],IL:[1195,592],MI:[1344,461],FL:[1575,1096],TX:[887,1008],MN:[1005,341],IN:[1310,573],GA:[1490,927]};
+// Close-up layers: base (every state quiet) and one inked layer per state with openings.
+function insetLayer(key, only) {
+  const id = key + ':' + (only || 'base') + ':' + cache.scale; cache.insets = cache.insets || {};
+  if (cache.insets[id]) return cache.insets[id];
+  const ins = INSETS[key], f = insetFit(ins), [rx, ry, rw, rh] = ins.rect, S = cache.scale;
+  return cache.insets[id] = Etch.layer(Math.ceil(rw * S), Math.ceil(rh * S), c => {
+    c.scale(S, S);
+    if (!only) { c.fillStyle = 'rgba(120,168,166,.16)'; c.fillRect(0, 0, rw, rh); }
+    f.data.shapes.forEach((s, i) => {
+      if (only && s.state !== only) return;
+      const p = new Path2D(); p.addPath(new Path2D(s.d), new DOMMatrix([f.sc, 0, 0, f.sc, f.tx, f.ty]));
+      const on = !!only, b = [0, 0, rw, rh];
+      Etch.fill(c, p, on ? '#82aaa0' : '#d5d0ba');
+      Etch.hatch(c, p, b, on ? {seed: 401 + i, angle: -.7, spacing: 4.4, length: 20, width: .55, color: 'rgba(51,67,56,.38)'} : {seed: 401 + i, angle: .25, spacing: 6, length: 26, width: .55, color: 'rgba(93,83,68,.2)'});
+      Etch.outline(c, p, on ? '#514b45' : '#999482', on ? 1.1 : .8, 410 + i);
+    });
+  });
+}
 
-/* ---------- Gear (from journey.js) ---------- */
-function speaker(c, x, y, angle = 0, scale = 1) { c.save(); c.translate(x, y); c.rotate(angle); c.scale(scale, scale); const p = new Path2D('M0 0 L94 -8 L114 14 L106 179 L9 185 L-8 164 Z'); Etch.fill(c, p, '#5f665b'); Etch.hatch(c, p, [-10, -10, 125, 205], {seed: 320, angle: 1.5, spacing: 2.7, length: 12, color: 'rgba(28,29,27,.5)'}); Etch.outline(c, p, P.ink, 1.4); for (const [yy, rx, ry] of [[44, 29, 25], [125, 39, 38]]) { const e = Etch.ellipse(49, yy, rx, ry); Etch.fill(c, e, '#454940'); Etch.hatch(c, e, [8, yy - 40, 85, 80], {seed: 321 + yy, angle: .4, spacing: 2, color: 'rgba(199,194,159,.24)'}); Etch.outline(c, e, '#b8b4a0', 1); } c.restore(); }
-function mic(c, x, y, angle = 0, scale = 1) { c.save(); c.translate(x, y); c.rotate(angle); c.scale(scale, scale); const head = Etch.ellipse(0, 0, 27, 34), body = new Path2D('M-13 28 L13 28 L8 148 L-8 148 Z'); Etch.fill(c, body, '#887a65'); Etch.hatch(c, body, [-16, 24, 32, 125], {seed: 64, angle: 1.5, spacing: 2, color: 'rgba(41,32,36,.6)'}); Etch.outline(c, body, P.ink, 1.2); Etch.fill(c, head, '#c9c3a8'); for (const a of [-.6, .6]) Etch.hatch(c, head, [-29, -36, 58, 72], {seed: 68, angle: a, spacing: 3, length: 15, color: 'rgba(41,32,36,.56)'}); Etch.outline(c, head, P.ink, 1.2); c.restore(); }
+/* ---------- Gear: Shure SM58 and a JBL VRX ground stack ---------- */
+// SM58: 51 mm ball grille, 162 mm long, handle tapering to a 23 mm shank; origin at the grille centre.
+function sm58(c, x, y, angle = 0, scale = 1) {
+  c.save(); c.translate(x, y); c.rotate(angle); c.scale(scale, scale);
+  const handle = new Path2D('M-16.5 25 L16.5 25 L10.8 124 L-10.8 124 Z');
+  Etch.fill(c, handle, '#38393c');
+  Etch.hatch(c, handle, [-17, 24, 34, 101], {seed: 581, angle: 1.52, spacing: 2.2, length: 14, width: .5, color: 'rgba(0,0,0,.45)'});
+  Etch.line(c, [[-10.5, 30], [-6.8, 120]], 'rgba(235,235,235,.22)', 3, 582, .2);
+  Etch.outline(c, handle, P.ink, 1.1, 583);
+  c.save(); c.translate(0, 46); text(c, 'SHURE', 0, 0, 7.5, '#f2f0ea', 'Avenir Next', '700', 'center'); c.restore();
+  const tail = new Path2D('M-10.8 124 L10.8 124 L10.6 130 L-10.6 130 Z'); Etch.fill(c, tail, '#9a9da2'); Etch.outline(c, tail, P.ink, .9, 584);
+  const collar = new Path2D('M-18.6 16 L18.6 16 L17.2 25.5 L-17.2 25.5 Z'); Etch.fill(c, collar, '#aeb1b5');
+  Etch.hatch(c, collar, [-19, 15, 38, 12], {seed: 585, angle: 0, spacing: 2, length: 30, width: .4, color: 'rgba(40,40,45,.35)'}); Etch.outline(c, collar, P.ink, 1, 585);
+  const ball = new Path2D(); ball.moveTo(18.4, 15.4); ball.arc(0, 0, 24, .698, 2.443, true); ball.closePath();
+  Etch.fill(c, ball, '#c4c7cb');
+  for (const a of [.785, -.785]) Etch.hatch(c, ball, [-26, -26, 52, 44], {seed: 586 + a * 10, angle: a, spacing: 2.3, length: 60, jitter: 0, width: .45, color: 'rgba(45,46,52,.55)'});
+  c.save(); c.clip(ball); const g = c.createRadialGradient(-8, -10, 2, 0, 0, 30); g.addColorStop(0, 'rgba(255,255,255,.55)'); g.addColorStop(.45, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(20,22,26,.45)'); c.fillStyle = g; c.fillRect(-26, -26, 52, 44); c.restore();
+  Etch.outline(c, ball, P.ink, 1.1, 587);
+  c.restore();
+}
+// Black DuraFlex cabinets, perforated steel grilles. Width 597 mm = 150 units; oblique depth at 0.51.
+function grillePattern(c) {
+  if (!cache.grille) { cache.grille = Etch.layer(4, 4, g => { g.fillStyle = '#2b2b2e'; g.fillRect(0, 0, 4, 4); g.fillStyle = '#4a4a4f'; g.beginPath(); g.arc(2, 2, .8, 0, Math.PI * 2); g.fill(); }); }
+  return c.createPattern(cache.grille, 'repeat');
+}
+function jblBadge(c, x, y) {
+  c.fillStyle = '#0d0d0e'; c.fillRect(x, y, 27, 10); c.strokeStyle = '#6d6d72'; c.lineWidth = .5; c.strokeRect(x, y, 27, 10);
+  c.fillStyle = '#f26522'; c.fillRect(x + 1.5, y + 1.5, 4.5, 7);
+  text(c, 'JBL', x + 16.5, y + 8.3, 8.5, '#fff', 'Avenir Next', '700', 'center');
+}
+function cabinet(c, w, h, d, taper, seed, sideHandle) {
+  const [dx, dy] = d;
+  const front = new Path2D(`M0 ${-h} H${w} V0 H0 Z`);
+  const side = new Path2D(`M${w} ${-h} L${w + dx} ${-h + dy + taper} L${w + dx} ${dy - taper} L${w} 0 Z`);
+  const top = new Path2D(`M0 ${-h} L${dx} ${-h + dy + taper} L${w + dx} ${-h + dy + taper} L${w} ${-h} Z`);
+  Etch.fill(c, top, '#2c2b2e'); Etch.hatch(c, top, [0, -h + dy - 2, w + dx, -dy + 4], {seed, angle: -.35, spacing: 3.2, length: 20, color: CASE.etch});
+  Etch.fill(c, side, '#161518'); Etch.hatch(c, side, [w, -h + dy, dx, h - dy], {seed: seed + 1, angle: -.55, spacing: 2.6, length: 18, color: 'rgba(225,215,195,.09)'});
+  Etch.fill(c, front, '#1d1c1f');
+  c.save(); c.fillStyle = grillePattern(c); c.fillRect(4, -h + 4, w - 8, h - 8); c.restore();
+  c.strokeStyle = 'rgba(0,0,0,.6)'; c.lineWidth = 1; c.strokeRect(4, -h + 4, w - 8, h - 8);
+  if (sideHandle) { const hp = new Path2D(`M${w + dx * .35} ${-h * .55 + dy * .35} l${dx * .3} ${dy * .3} v10 l${-dx * .3} ${-dy * .3} Z`); Etch.fill(c, hp, '#08080a'); Etch.outline(c, hp, '#56565a', .6); }
+  for (const p of [top, side, front]) Etch.outline(c, p, '#0c0b0d', 1.1, seed + 2);
+  jblBadge(c, 8, -16);
+  return side;
+}
+function vrxStack(c, x, y, s, t, t0, alpha = 1) {
+  c.save(); c.translate(x, y); c.scale(s, s); c.globalAlpha *= alpha;
+  // VRX918S sub: 508 x 597 x 749 mm.
+  const sp = eBack(prog(t, t0, .45));
+  if (sp > 0) { c.save(); c.translate(0, -90 * (1 - sp)); c.globalAlpha *= clamp(sp * 3); cabinet(c, 150, 128, [96 * .885, -96 * .466], 0, 700, true); c.restore(); }
+  // Three VRX932LA-1: 343 x 597 x 376 mm, trapezoid sides, steel rigging at the front corners.
+  for (let k = 0; k < 3; k++) {
+    const p = eBack(prog(t, t0 + .16 + k * .1, .4)); if (p <= 0) continue;
+    c.save(); c.translate(0, -128 - k * 86 - 90 * (1 - p)); c.globalAlpha *= clamp(p * 3);
+    cabinet(c, 150, 86, [48 * .885, -48 * .466], 16, 710 + k * 5, false);
+    c.fillStyle = '#8c8e92'; c.fillRect(150, -84, 5, 82); c.strokeStyle = P.ink; c.lineWidth = .6; c.strokeRect(150, -84, 5, 82);
+    for (const yy of [-76, -10]) { c.fillStyle = '#2a2a2c'; c.beginPath(); c.arc(152.5, yy, 1.6, 0, Math.PI * 2); c.fill(); }
+    c.restore();
+  }
+  c.restore();
+}
 
 /* ---------- Black road case with a hinged lid (0 closed, 1 open) ---------- */
 function caseAt(c, x, y, s, lid) {
@@ -116,7 +197,7 @@ function caseAt(c, x, y, s, lid) {
 function foldedMap(u) {
   const src = mapBase(), cv = cache.fold || (cache.fold = Etch.layer(1881, 1344, () => {})), c = cv.getContext('2d');
   c.clearRect(0, 0, 1881, 1344);
-  const edges = [0, 450, 920, 1370, 1881], f = [0, 1, 2, 3].map(i => .1 + .9 * eInOut(clamp((u - i * .17) / .5)));
+  const edges = [0, 470, 940, 1410, 1881], f = [0, 1, 2, 3].map(i => .1 + .9 * eInOut(clamp((u - i * .17) / .5)));
   const widths = f.map((k, i) => (edges[i + 1] - edges[i]) * k), total = widths.reduce((a, b) => a + b);
   let x = (1881 - total) / 2;
   for (let i = 0; i < 4; i++) {
@@ -170,69 +251,82 @@ function headerAt(c, t) {
   rule(c, 54, 73, 972);
   c.save(); c.strokeStyle = P.red; c.lineWidth = 2; c.lineCap = 'round'; c.beginPath(); c.moveTo(54, 73); c.lineTo(54 + 972 * clamp(t / DURATION), 73.4); c.stroke(); c.restore();
 }
-// One line: ink phrase + red phrase, shrunk to fit the column.
-function titleLine(c, pair, off) {
-  let size = 64; c.font = `700 ${size}px "DIN Condensed"`;
-  const w = c.measureText(pair[0] + ' ' + pair[1]).width; if (w > 972) size *= 972 / w;
-  c.font = `700 ${size}px "DIN Condensed"`; const w0 = c.measureText(pair[0] + ' ').width;
-  c.save(); c.beginPath(); c.rect(0, 84, W, 82); c.clip();
-  text(c, pair[0], 52, 152 + off, size, P.ink, 'DIN Condensed', '700'); text(c, pair[1], 52 + w0, 152 + off, size, P.red, 'DIN Condensed', '700');
-  c.restore();
+function titleLine(c, s, y, size, color, box, off) {
+  c.font = `700 ${size}px "DIN Condensed"`; const w = c.measureText(s).width; if (w > 505) size *= 505 / w;
+  c.save(); c.beginPath(); c.rect(0, box[0], 575, box[1] - box[0]); c.clip(); text(c, s, 52, y + off, size, color, 'DIN Condensed', '700'); c.restore();
 }
 function titlesAt(c, t) {
-  const i = beatAt(t), prev = prevShown(i), q = eInOut(prog(t, beats[i] + (i === 0 ? .05 : 0), .6));
-  if (prev !== undefined && q < 1) titleLine(c, titles[prev], -q * 80);
-  if (q > 0) titleLine(c, titles[i], (1 - q) * 80);
+  const i = beatAt(t), prev = prevShown(i);
+  for (const [n, y, size, color, box, delay] of [[0, 134, 52, P.ink, [86, 142], 0], [1, 192, 58, P.red, [142, 200], .08]]) {
+    const q = eInOut(prog(t, beats[i] + delay + (i === 0 ? .05 : 0), .6));
+    if (prev !== undefined && q < 1) titleLine(c, titles[prev][n], y, size, color, box, -q * 62);
+    if (q > 0) titleLine(c, titles[i][n], y, size, color, box, (1 - q) * 62);
+  }
   const s = prog(t, beats[i] + .15, .5);
-  c.save(); if (prev !== undefined && s < 1) { c.globalAlpha = 1 - s; text(c, spans[prev], 54, 190 - 6 * s, 17, P.muted, 'Avenir Next', '700'); }
-  c.globalAlpha = s; text(c, spans[i], 54, 190 + 6 * (1 - s), 17, P.muted, 'Avenir Next', '700'); c.restore();
+  c.save(); if (prev !== undefined && s < 1) { c.globalAlpha = 1 - s; text(c, spans[prev], 54, 232 - 6 * s, 16, P.muted, 'Avenir Next', '700'); }
+  c.globalAlpha = s; text(c, spans[i], 54, 232 + 6 * (1 - s), 16, P.muted, 'Avenir Next', '700'); c.restore();
 }
 function mapAt(c, t) {
   const u = prog(t, 1.25, 1.15); if (u <= 0) return;
   const m = eInOut(prog(t, 2.35, .8)), rise = eOut(clamp(u / .45));
-  const cx = lerp(545, MX + 940.5 * MS, m), cy = lerp(470 + 80 * (1 - rise), MY + 672 * MS, m), rot = lerp(-.08, 0, m);
+  const cx = lerp(545, MX + 940.5 * MS, m), cy = lerp(500 + 80 * (1 - rise), MY + 672 * MS, m), rot = lerp(-.08, 0, m);
   const sx = lerp(.46 * lerp(.85, 1, rise), MS, m), sy = lerp(.34 * lerp(.85, 1, rise), MS, m);
   c.save(); c.globalAlpha = rise; c.translate(cx, cy); c.rotate(rot); c.scale(sx, sy); c.translate(-940.5, -672);
   c.drawImage(u < 1 ? foldedMap(u) : mapBase(), 0, 0);
   for (const st in stateT) {
     const p = eInOut(prog(t, stateT[st] + .05, .9)); if (p <= 0) continue;
-    const L = stateLayer(st), first = PrimarkOpenings.find(d => d.state === st && landT[d.id] === stateT[st]);
-    const [ox, oy] = first.map_point || clusters[first.panel].at;
+    const L = stateLayer(st), [ox, oy] = stateFirst[st].map_point;
     const R = Math.max(...[[L.x0, L.y0], [L.x0 + L.w, L.y0], [L.x0, L.y0 + L.h], [L.x0 + L.w, L.y0 + L.h]].map(([a, b]) => Math.hypot(a - ox, b - oy)));
     c.save(); c.beginPath(); c.arc(ox, oy, 8 + R * p, 0, Math.PI * 2); c.clip(); c.globalAlpha *= clamp(p * 2.5); c.drawImage(L.cv, L.x0, L.y0); c.restore();
-    const la = prog(t, stateT[st] + .55, .5); if (la > 0) { c.save(); c.globalAlpha *= la; const [lx, ly] = labelPos[st]; text(c, st, lx, ly, 35, '#354b48', 'DIN Condensed', '700', 'center'); c.restore(); }
+    const la = prog(t, stateT[st] + .55, .5); if (la > 0) { c.save(); c.globalAlpha *= la; const [lx, ly] = labelAt[st]; text(c, st, lx, ly, 34, '#354b48', 'DIN Condensed', '700', 'center'); c.restore(); }
   }
   c.restore();
 }
+function insetsAt(c, t) {
+  const a = eOut(prog(t, 2.55, .55)); if (a <= 0) return;
+  for (const key in INSETS) {
+    const ins = INSETS[key], f = insetFit(ins), [rx, ry, rw, rh] = ins.rect;
+    c.save(); c.globalAlpha = a; c.translate(0, -10 * (1 - a));
+    // Where this close-up sits on the national map.
+    const [mx, my] = mapPt(...MapProject(...ins.at)), nx = W / 2 + (mx - W / 2) * cache.zoom, ny = 545 + (my - 545) * cache.zoom, lastLand = Math.max(-9, ...ins.ids.filter(id => t >= landT[id]).map(id => landT[id]));
+    const pulse = Math.sin(Math.PI * prog(t, lastLand, .45));
+    c.strokeStyle = P.ink; c.lineWidth = 1; c.beginPath(); c.arc(nx, ny, 6 + 4 * pulse, 0, Math.PI * 2); c.stroke();
+    c.save(); c.setLineDash([2, 3]); c.strokeStyle = 'rgba(62,48,52,.6)'; c.beginPath(); c.moveTo(nx + (key === 'nyc' ? -4 : 3), ny - 6); c.lineTo(rx + rw / 2, ry + rh); c.stroke(); c.restore();
+    // Land, then each state inks in from its first opening, as on the big map.
+    c.drawImage(insetLayer(key), rx, ry, rw, rh);
+    c.save(); c.beginPath(); c.rect(rx, ry, rw, rh); c.clip();
+    for (const s of f.data.shapes) {
+      const st = s.state; if (stateT[st] === undefined || !INSETS[key].ids.some(id => byId[id].state === st)) continue;
+      const p = eInOut(prog(t, stateT[st] + .05, .9)); if (p <= 0) continue;
+      const first = byId[INSETS[key].ids.filter(id => byId[id].state === st).sort((x, y) => landT[x] - landT[y])[0]], [px, py] = f.pt(first.lon, first.lat);
+      c.save(); c.beginPath(); c.arc(px, py, 6 + 420 * p, 0, Math.PI * 2); c.clip(); c.globalAlpha *= clamp(p * 2.5); c.drawImage(insetLayer(key, st), rx, ry, rw, rh); c.restore();
+    }
+    for (const [label, lon, lat] of ins.labels) { const [lx, ly] = f.pt(lon, lat); text(c, label, lx, ly, 8.5, P.muted, 'Avenir Next', '700', 'center'); }
+    c.restore();
+    Etch.outline(c, new Path2D(`M${rx} ${ry} H${rx + rw} V${ry + rh} H${rx} Z`), P.ink, .9, 90);
+    c.fillStyle = P.paper; c.font = '700 9.5px "Avenir Next"'; const tw = c.measureText(ins.title).width; c.fillRect(rx + 1, ry + 1, tw + 12, 15);
+    text(c, ins.title, rx + 6, ry + 12, 9.5, P.ink, 'Avenir Next', '700');
+    c.restore();
+    for (const id of ins.ids) { const d = byId[id], [px, py] = f.pt(d.lon, d.lat), [dx, dy] = ins.off[id]; c.save(); c.translate(0, -10 * (1 - a)); pinAt(c, t, id, px, py, dx, dy, 10); c.restore(); }
+  }
+}
 function pinsAt(c, t) {
   if (t < 2.6) return;
-  for (const d of PrimarkOpenings) if (d.panel === 'national') { const [dx, dy] = offsets[d.id] || [0, -23]; const [x, y] = mapPt(...d.map_point); pinAt(c, t, d.id, x, y, dx, dy); }
-  // NY/NJ and MD/VA openings: a numbered block beside the map, tied to the city with a leader.
-  const a = prog(t, 2.6, .5);
-  for (const g of Object.values(clusters)) {
-    const [cx, cy] = mapPt(...g.at), gx = g.x - 14, gy = g.y;
-    c.save(); c.globalAlpha = a;
-    c.fillStyle = P.ink; c.beginPath(); c.arc(cx, cy, 2.5, 0, Math.PI * 2); c.fill();
-    Etch.line(c, [[cx, cy], [gx, gy]], P.ink, .8, 61, .3);
-    text(c, g.label, g.x - 12, g.y - 17, 10, P.ink, 'Avenir Next', '700');
-    c.restore();
-    for (const id of g.ids) stampAt(c, t, id, ...clusterPos[id], 11);
-  }
+  for (const d of PrimarkOpenings) if (d.panel === 'national') { const [dx, dy] = pinOffset[d.id] || [0, -24]; const [x, y] = mapPt(...d.map_point); pinAt(c, t, d.id, x, y, dx, dy); }
 }
 function gearAt(c, t, pose) {
   const [x, y, s] = pose, mouth = [x + 120 * s, y + 20 * s];
-  const back = eInOut(prog(t, 2.3, .5));
-  for (const [draw, B, start] of [[mic, [190, 560, -.22, .95], .85], [speaker, [780, 520, .1, .9], .95]]) {
-    const out = eOut(prog(t, start, .65)); if (out <= 0 || back >= 1) continue;
-    const k = out * (1 - back), arc = Math.sin(Math.PI * k) * 70 * (1 - back);
-    const gx = lerp(mouth[0], B[0], k), gy = lerp(mouth[1], B[1], k) - arc;
-    c.save(); c.globalAlpha = clamp(k * 2.5); draw(c, gx, gy, B[2] * k, B[3] * lerp(.3, 1, k)); c.restore();
-    if (draw === speaker && k > .9) for (let j = 0; j < 3; j++) {
-      const ph = ((t * 1.4 + j / 3) % 1), sc = B[3];
-      c.save(); c.translate(gx, gy); c.rotate(B[2]); c.globalAlpha = (1 - ph) * .8 * clamp((k - .9) * 10); c.strokeStyle = P.red; c.lineWidth = 2;
-      for (const [yy, base] of [[44, 38], [125, 50]]) { c.beginPath(); c.arc(49 * sc, yy * sc, (base + ph * 46) * sc, -.55, .55); c.stroke(); }
-      c.restore();
-    }
+  const back = eInOut(prog(t, 2.25, .5));
+  // SM58 pops out of the case.
+  const out = eOut(prog(t, .85, .65));
+  if (out > 0 && back < 1) {
+    const B = [205, 520, -.22, 1.05], k = out * (1 - back), arc = Math.sin(Math.PI * k) * 70 * (1 - back);
+    c.save(); c.globalAlpha = clamp(k * 2.5); sm58(c, lerp(mouth[0], B[0], k), lerp(mouth[1], B[1], k) - arc, B[2] * k, B[3] * lerp(.3, 1, k)); c.restore();
+  }
+  // JBL VRX918S + three VRX932LA-1 set down piece by piece beside it.
+  if (t > .8 && back < 1) {
+    const sx = 752, sy = 772, sc = .93;
+    vrxStack(c, sx, sy + 40 * back, sc, t, .8, 1 - back);
   }
 }
 function caseScene(c, t) {
@@ -249,7 +343,7 @@ function caseScene(c, t) {
   if (wipe < 1) { c.beginPath(); const e = lerp(-300, 1300, wipe); c.moveTo(0, 0); c.lineTo(e + 250, 0); c.lineTo(e - 250, H); c.lineTo(0, H); c.clip(); }
   caseAt(c, x, y, s, lid);
   c.restore();
-  const cap = prog(t, 3, .6); if (cap > 0) { c.save(); c.globalAlpha = cap; text(c, 'Every pin, a proud moment.', 100, 768, 20, P.ink, 'Baskerville'); c.restore(); }
+  const cap = prog(t, 3, .6); if (cap > 0) { c.save(); c.globalAlpha = cap; text(c, 'Every pin, a proud moment.', 94, 804, 20, P.ink, 'Baskerville'); c.restore(); }
 }
 
 /* ---------- Now opening + ledger ---------- */
@@ -280,7 +374,6 @@ function calloutAt(c, t) {
     calloutRow(c, t, n, (1 - q) * 90);
   }
   c.restore();
-  // Counter
   let done = 0, lastT = -1; for (let id = 1; id <= 35; id++) if (t >= landT[id]) { done = id; lastT = landT[id]; }
   const ca = prog(t, 2.7, .5), bump = 1 + .12 * Math.sin(Math.PI * prog(t, lastT, .3));
   c.save(); c.globalAlpha = ca;
@@ -296,7 +389,7 @@ function ledgerAt(c, t) {
     const d = byId[id], col = Math.floor((id - 1) / 12), row = (id - 1) % 12, x = 54 + col * 330, y = 978 + row * 21.5;
     const a = prog(t, landT[id] - .05, .35);
     c.save(); c.globalAlpha = a0;
-    if (a < 1) { // empty slot still to fill
+    if (a < 1) {
       c.save(); c.globalAlpha *= .4 * clamp(1 - a * 3); text(c, num(id), x, y, 14, P.line, 'Avenir Next', '700');
       c.strokeStyle = P.line; c.lineWidth = 1; c.setLineDash([1.5, 4]); c.beginPath(); c.moveTo(x + 28, y - 4); c.lineTo(x + 310, y - 4); c.stroke(); c.restore();
     }
@@ -318,10 +411,11 @@ function renderInto(c, t, scale = 1) {
   if (cache.scale !== scale) { cache.scale = scale; cache.paper = null; }
   c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.drawImage(paperLayer(), 0, 0); c.restore();
   c.save(); c.scale(scale, scale);
-  // A slow push-in on the artwork keeps it breathing; type and logos stay locked.
-  c.save(); const zoom = 1 + .02 * eInOut(t / DURATION); c.translate(W / 2, 516); c.scale(zoom, zoom); c.translate(-W / 2, -516);
+  // A slow push-in on the national map keeps it breathing; type, close-ups and logos stay locked.
+  c.save(); const zoom = cache.zoom = 1 + .018 * eInOut(t / DURATION); c.translate(W / 2, 545); c.scale(zoom, zoom); c.translate(-W / 2, -545);
   mapAt(c, t); pinsAt(c, t); caseScene(c, t);
   c.restore();
+  insetsAt(c, t);
   headerAt(c, t); titlesAt(c, t); calloutAt(c, t); ledgerAt(c, t);
   rule(c, 54, 1248, 972); logo(c, 54, 1260, 215); if (images.wordmark) c.drawImage(images.wordmark, 810, 1290, 215, 47);
   c.restore();
