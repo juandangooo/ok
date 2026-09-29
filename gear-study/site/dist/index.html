@@ -395,13 +395,16 @@ details.venues .picks{margin-top:8px}
   transition:transform .7s cubic-bezier(.2,.8,.2,1),opacity .4s,border-color .3s}
 .ax-tile img{width:90%;height:90%;object-fit:contain;image-rendering:auto}
 /* photos sit in a soft spotlight that fades into the stage colour; multiply turns each photo's white backdrop into that light */
-.ax-tile.photo,.ax-hero{background:radial-gradient(closest-side,#fff 0%,#fff 52%,color-mix(in srgb,#fff 45%,var(--field)) 78%,var(--field) 100%)!important;border-color:transparent!important}
-.ax-tile.photo img,.ax-hero img{mix-blend-mode:multiply}
-.ax-tile.photo img{position:absolute;inset:14%;width:72%;height:72%;max-width:none!important;max-height:none!important;object-fit:contain}
+/* cut-out gear sits straight on the stage colour: a faint glow for contrast, a soft shadow to ground it */
+.ax-tile.photo,.ax-hero{background:radial-gradient(closest-side,rgba(255,255,255,.26),rgba(255,255,255,.08) 70%,transparent)!important;border-color:transparent!important}
+#arcade[data-f="coal"] .ax-tile.photo,#arcade[data-f="coal"] .ax-hero{background:radial-gradient(closest-side,rgba(255,255,255,.2),rgba(255,255,255,.06) 70%,transparent)!important}
+.ax-tile.photo img,.ax-hero img{filter:drop-shadow(0 6px 8px rgba(0,0,0,.28)) drop-shadow(0 1px 1px rgba(0,0,0,.18))}
+.ax-tile.photo img{position:absolute;inset:8%;width:84%;height:84%;max-width:none!important;max-height:none!important;object-fit:contain}
 .ax-tile.photo:hover,.ax-tile.photo:focus-visible{outline:1.5px solid var(--line);outline-offset:-1px}
-.ax-hero{position:relative;width:min(64vw,300px);aspect-ratio:1;justify-self:center}
-.ax-hero.sm{width:min(42vw,190px)}
-.ax-hero img{position:absolute;inset:14%;width:72%;height:72%;object-fit:contain}
+.ax-hero{position:relative;width:min(70vw,320px);aspect-ratio:1;justify-self:center}
+.ax-hero.sm{width:min(46vw,200px)}
+.ax-hero img{position:absolute;inset:6%;width:88%;height:88%;object-fit:contain}
+.ax-hero.boxed{background:#fff!important;border-radius:4px}.ax-hero.boxed img{filter:none}
 .ax-clock{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
 .ax-secs{font:500 22px/1 "Archivo",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums;min-width:2ch;text-align:right}
 .ax-pts{font:600 15px "Archivo",Helvetica,Arial,sans-serif;font-variant-numeric:tabular-nums}
@@ -1861,7 +1864,7 @@ function stageCard(){
 function pickLoad(n){
   // only sharp photos in the formation: a blurry tile teaches nothing
   const inDept = g => A.dept==="All" || g.c===A.dept;
-  const sharp = GEAR.filter(g=>g.img&&!g.sub&&(g.iw||0)>=300);
+  const sharp = GEAR.filter(g=>g.img&&!g.sub&&g.cut&&(g.iw||0)>=300);
   const mine = sharp.filter(inDept).length>=15 ? sharp.filter(inDept) : GEAR.filter(g=>g.img&&!g.sub&&inDept(g));
   const pool = shuffle(mine.filter(g=>g.q>0&&g.n.length<70));
   return pool.slice(0,n).map((g,wi)=>{
@@ -1882,7 +1885,9 @@ function pickLoad(n){
   });
 }
 function pickPrice(n){
-  return shuffle(GEAR.filter(g=>g.p!=null&&g.img&&!g.sub&&(A.dept==="All"||g.c===A.dept))).slice(0,n).map(g=>({kind:"price", dept:g.c, k:"WHAT DOES IT COST NEW?", q:g.n, img:g.img,
+  const priced = GEAR.filter(g=>g.p!=null&&g.img&&!g.sub&&(A.dept==="All"||g.c===A.dept));
+  const clean = priced.filter(g=>g.cut);
+  return shuffle(clean.length>=n?clean:priced).slice(0,n).map(g=>({kind:"price", dept:g.c, k:"WHAT DOES IT COST NEW?", q:g.n, img:g.img,
     opts:shuffle(priceOpts(g.p).map(v=>({price:v, ok:v===g.p}))), hint:`${g.t}.`, answer:g}));
 }
 function pickGig(){
@@ -1940,7 +1945,7 @@ function wave(){
   axShell(`<span>${S.id==="price"?"Bonus":S.id==="gig"?esc(A.gig.venue):"Stage 1"}</span><span></span><span class="n">${A.score.toLocaleString()}</span>`,
     `<div class="ax-hud">${livesHTML()}<span>${DEPT_WORD[W.dept]||""} · ${A.wi+1} of ${A.waves.length}</span></div>
      <div class="ax-prompt"><span class="k">${esc(W.k)}</span><span class="q">${esc(prompt)}</span>${W.kind==="gig"&&A.wi===0?`<span class="k" style="letter-spacing:.04em;line-height:1.4">${esc(A.gig.town)} · ${esc(A.gig.cap)} · “${esc(A.gig.request)}”</span>`:""}</div>
-     ${price||nameQ?`<div class="ax-hero${price?" sm":""}"><img alt="" src="${W.answer.img}"></div>`:""}
+     ${price||nameQ?`<div class="ax-hero${price?" sm":""}${W.answer.cut?"":" boxed"}"><img alt="" src="${W.answer.img}"></div>`:""}
      <div class="ax-clock"><div class="ax-timer"><span id="axt"></span></div><span class="ax-secs" id="axs">${T}</span></div>
      <div class="${formCls}">${tiles}</div>
      <div class="ax-name" id="axname"></div>

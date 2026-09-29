@@ -149,7 +149,7 @@ function stageCard(){
 function pickLoad(n){
   // only sharp photos in the formation: a blurry tile teaches nothing
   const inDept = g => A.dept==="All" || g.c===A.dept;
-  const sharp = GEAR.filter(g=>g.img&&!g.sub&&(g.iw||0)>=300);
+  const sharp = GEAR.filter(g=>g.img&&!g.sub&&g.cut&&(g.iw||0)>=300);
   const mine = sharp.filter(inDept).length>=15 ? sharp.filter(inDept) : GEAR.filter(g=>g.img&&!g.sub&&inDept(g));
   const pool = shuffle(mine.filter(g=>g.q>0&&g.n.length<70));
   return pool.slice(0,n).map((g,wi)=>{
@@ -170,7 +170,9 @@ function pickLoad(n){
   });
 }
 function pickPrice(n){
-  return shuffle(GEAR.filter(g=>g.p!=null&&g.img&&!g.sub&&(A.dept==="All"||g.c===A.dept))).slice(0,n).map(g=>({kind:"price", dept:g.c, k:"WHAT DOES IT COST NEW?", q:g.n, img:g.img,
+  const priced = GEAR.filter(g=>g.p!=null&&g.img&&!g.sub&&(A.dept==="All"||g.c===A.dept));
+  const clean = priced.filter(g=>g.cut);
+  return shuffle(clean.length>=n?clean:priced).slice(0,n).map(g=>({kind:"price", dept:g.c, k:"WHAT DOES IT COST NEW?", q:g.n, img:g.img,
     opts:shuffle(priceOpts(g.p).map(v=>({price:v, ok:v===g.p}))), hint:`${g.t}.`, answer:g}));
 }
 function pickGig(){
@@ -228,7 +230,7 @@ function wave(){
   axShell(`<span>${S.id==="price"?"Bonus":S.id==="gig"?esc(A.gig.venue):"Stage 1"}</span><span></span><span class="n">${A.score.toLocaleString()}</span>`,
     `<div class="ax-hud">${livesHTML()}<span>${DEPT_WORD[W.dept]||""} · ${A.wi+1} of ${A.waves.length}</span></div>
      <div class="ax-prompt"><span class="k">${esc(W.k)}</span><span class="q">${esc(prompt)}</span>${W.kind==="gig"&&A.wi===0?`<span class="k" style="letter-spacing:.04em;line-height:1.4">${esc(A.gig.town)} · ${esc(A.gig.cap)} · “${esc(A.gig.request)}”</span>`:""}</div>
-     ${price||nameQ?`<div class="ax-hero${price?" sm":""}"><img alt="" src="${W.answer.img}"></div>`:""}
+     ${price||nameQ?`<div class="ax-hero${price?" sm":""}${W.answer.cut?"":" boxed"}"><img alt="" src="${W.answer.img}"></div>`:""}
      <div class="ax-clock"><div class="ax-timer"><span id="axt"></span></div><span class="ax-secs" id="axs">${T}</span></div>
      <div class="${formCls}">${tiles}</div>
      <div class="ax-name" id="axname"></div>

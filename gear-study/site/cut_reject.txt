@@ -1,0 +1,7 @@
+# Items whose background cut-out failed a visual check: keep their original photo, keep them out of the photo grid.
+# Reasons: white hole inside the item, faint white fringe, badges or caption text in the photo, too small to read.
+p01-01 p01-17 p01-31 p01-06 p01-38 p02-37 p04-19
+p04-27 p04-35 p04-37 p05-06 p05-24 p05-25 p05-33 p06-03 p06-05 p07-14 p07-12 p07-13
+p07-37 p07-38 p07-39 p10-02
+p13-21 p14-03 p14-04 p14-05 p14-06 p15-26 p15-28 p15-29
+p17-24 p17-26 p18-02 p18-04 p19-36 p19-37
