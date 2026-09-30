@@ -3,7 +3,7 @@
 offsets[20]=[24,12];Object.assign(offsets,{29:[55,-15],30:[45,15],31:[5,-22],32:[45,-6],33:[-8,-23],34:[-24,-26],35:[25,10]});
 const counts=[0,0,0,3,7,11,17,25,28,32,35,36];
 const titles=[['THE SOUND OF','OPENING DAY.'],['PACKED WITH','POSSIBILITY.'],['ONE CREW.','A BIG JOURNEY.'],['THE FIRST','OPENING DAYS.'],['THE JOURNEY','GROWS.'],['MORE DOORS.','MORE MOMENTS.'],['NEW PLACES.','SAME PRIDE.'],['EVERY OPENING','MATTERS.'],['THE WORK','KEEPS MOVING.'],['MORE TRUST.','MORE MILESTONES.'],['35 OPENINGS.','ONE PROUD CREW.'],['A JOURNEY','BUILT ON TRUST.']];
-const spans=['READY TO ROLL','THE CASE OPENS','THE MAP UNFOLDS','NOV–DEC 2022','APR–JUL 2023','SEP–NOV 2023','JUL 2024–APR 2025','JUL–DEC 2025','APR–MAY 2026','JUN–AUG 2026','SEPTEMBER 2026','NEXT: NOVEMBER 19, 2026'];
+const spans=['READY TO ROLL','THE CASE OPENS','THE MAP UNFOLDS','NOV–DEC 2022','APR–JUL 2023','SEP–NOV 2023','JUL 2024–APR 2025','JUL–DEC 2025','APR–MAY 2026','JUN–AUG 2026','SEPTEMBER 2026','NEXT: DATE TBD'];
 const mapCache=new Map();let activeFrame=0;
 const originalStamp=stamp;
 stamp=function(c,id,x,y,r=13){if(id>counts[activeFrame])return;if(id===36){const e=Etch.ellipse(x,y,r,r);Etch.fill(c,e,P.paper);c.save();c.setLineDash([3,2]);Etch.outline(c,e,P.red,1.5,36);c.restore();text(c,'36',x,y+4.7,12,P.red,'Avenir Next','700','center');}else originalStamp(c,id,x,y,r);if(activeFrame>2&&activeFrame<11&&id>(counts[activeFrame-1]||0)){for(let k=0;k<3;k++){const a=-2.4+k*.85;Etch.line(c,[[x+Math.cos(a)*(r+5),y+Math.sin(a)*(r+5)],[x+Math.cos(a)*(r+11),y+Math.sin(a)*(r+11)]],P.red,.8,50+id)}}};
@@ -38,9 +38,9 @@ function frameCanvas(frame,scale=1){activeFrame=Math.max(0,Math.min(11,Math.floo
  text(c,titles[f][0],52,155,76,P.ink,'DIN Condensed','700');text(c,titles[f][1],52,235,86,P.red,'DIN Condensed','700');text(c,spans[f],1025,279,16,P.muted,'Avenir Next','600','right');
  if(f<3)opener(c,f);else field(c,f);
  rule(c,54,1135,972);if(f<3){text(c,['Every opening starts with a crew.','The tools. The care. The people behind the day.','A story that reaches across thirteen states.'][f],54,1183,29,P.ink,'Baskerville');text(c,'An illustrated celebration of the work and the trust behind it.',54,1220,18,P.muted);}
- else if(f===11){text(c,'35 openings. 13 states. Thank you, Primark.',54,1181,31,P.ink,'Baskerville');text(c,'NEXT: 36  Pentagon City Mall, Arlington, VA  /  NOV 19, 2026',54,1218,19,P.muted);}
+ else if(f===11){text(c,'35 openings. 13 states. Thank you, Primark.',54,1181,31,P.ink,'Baskerville');text(c,'NEXT: 36  Pentagon City Mall, Arlington, VA  /  DATE TBD',54,1218,19,P.muted);}
  else{const prev=counts[f-1];const rows=PrimarkOpenings.filter(d=>d.id>prev&&d.id<=counts[f]);rows.forEach((d,i)=>{const two=rows.length>4;const col=two?Math.floor(i/4):0,row=two?i%4:i;const label=two?`${num(d.id)}  ${d.name} / ${d.state}`:`${num(d.id)}   ${d.name} / ${d.city}, ${d.state}`;text(c,label,54+col*510,1160+row*23,two?16:18,P.ink,'Avenir Next','500')});}
- rule(c,54,1248,972);logo(c,54,1260,215);c.drawImage(images.wordmark,810,1290,215,47);
+ rule(c,54,1248,972);logo(c,54,1260,215);primarkLogo(c,811,1297,215);
  return cv;}
 window.renderFrame=(t,scale=1)=>frameCanvas(Math.min(11,Math.max(0,Math.floor(t))),scale);
 window.renderKeyframe=frameCanvas;
@@ -49,4 +49,4 @@ let current=0,playing=false,timer;
 function showFrame(i){current=Math.max(0,Math.min(11,i));const old=document.querySelector('#stage canvas'),cv=frameCanvas(current,1);if(old)old.replaceWith(cv);else document.querySelector('#stage').appendChild(cv);document.querySelector('#seek').value=current;document.querySelector('#position').textContent=`Frame ${num(current+1)} / 12`;}
 function play(){playing=!playing;document.querySelector('#play').textContent=playing?'Pause':'Play';if(playing)tick();else clearTimeout(timer)}
 function tick(){timer=setTimeout(()=>{showFrame((current+1)%12);if(playing)tick()},current===11?3000:1000)}
-const wordmark=new Image;wordmark.onload=()=>{images.wordmark=wordmark;showFrame(0);window.ready=true};wordmark.src='primark-wordmark.png';
+showFrame(0);window.ready=true;

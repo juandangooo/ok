@@ -75,12 +75,12 @@ function paperLayer() {
   if (!cache.paper) cache.paper = Etch.layer(W * cache.scale, H * cache.scale, c => { c.scale(cache.scale, cache.scale); paper(c); });
   return cache.paper;
 }
-const inactiveStyle = (i, s) => ({seed: 201 + i, angle: .25, spacing: 7, length: 32, width: .55, color: 'rgba(93,83,68,.19)', density: x => .4 + ((x - s.bounds[0]) / Math.max(1, s.bounds[2])) * .5});
-const activeStyle = (i, s) => ({seed: 201 + i, angle: -.7, spacing: 4.4, length: 23, width: .55, color: 'rgba(51,67,56,.38)', density: x => .4 + ((x - s.bounds[0]) / Math.max(1, s.bounds[2])) * .5});
+const inactiveStyle = (i, s) => ({seed: 201 + i, angle: .25, spacing: 7, length: 32, width: .55, color: 'rgba(80,88,96,.16)', density: x => .4 + ((x - s.bounds[0]) / Math.max(1, s.bounds[2])) * .5});
+const activeStyle = (i, s) => ({seed: 201 + i, angle: -.7, spacing: 4.4, length: 23, width: .55, color: 'rgba(0,60,90,.30)', density: x => .4 + ((x - s.bounds[0]) / Math.max(1, s.bounds[2])) * .5});
 function mapBase() {
   if (cache.base) return cache.base;
   return cache.base = Etch.layer(1881, 1344, c => {
-    MapShapes.forEach((s, i) => { const p = new Path2D(s.d); Etch.fill(c, p, '#d5d0ba'); Etch.hatch(c, p, s.bounds, inactiveStyle(i, s)); Etch.outline(c, p, '#999482', .9, 200 + i); });
+    MapShapes.forEach((s, i) => { const p = new Path2D(s.d); Etch.fill(c, p, '#e7e9eb'); Etch.hatch(c, p, s.bounds, inactiveStyle(i, s)); Etch.outline(c, p, '#a7abb0', .9, 200 + i); });
   });
 }
 function stateLayer(state) {
@@ -88,7 +88,7 @@ function stateLayer(state) {
   if (cache.states[state]) return cache.states[state];
   const i = MapShapes.findIndex(s => s.state === state), s = MapShapes[i];
   const [x0, y0] = [s.bounds[0] - 6, s.bounds[1] - 6], w = s.bounds[2] + 12, h = s.bounds[3] + 12;
-  const cv = Etch.layer(w, h, c => { c.translate(-x0, -y0); const p = new Path2D(s.d); Etch.fill(c, p, '#82aaa0'); Etch.hatch(c, p, s.bounds, activeStyle(i, s)); Etch.outline(c, p, '#514b45', 1.4, 200 + i); });
+  const cv = Etch.layer(w, h, c => { c.translate(-x0, -y0); const p = new Path2D(s.d); Etch.fill(c, p, P.blue); Etch.hatch(c, p, s.bounds, activeStyle(i, s)); Etch.outline(c, p, '#006f8e', 1.4, 200 + i); });
   return cache.states[state] = {cv, x0, y0, w, h};
 }
 // Close-up layers: base (every state quiet) and one inked layer per state with openings.
@@ -98,14 +98,14 @@ function insetLayer(key, only) {
   const ins = INSETS[key], f = insetFit(ins), [rx, ry, rw, rh] = ins.rect, S = cache.scale;
   return cache.insets[id] = Etch.layer(Math.ceil(rw * S), Math.ceil(rh * S), c => {
     c.scale(S, S);
-    if (!only) { c.fillStyle = 'rgba(120,168,166,.16)'; c.fillRect(0, 0, rw, rh); }
+    if (!only) { c.fillStyle = 'rgba(0,166,208,.10)'; c.fillRect(0, 0, rw, rh); }
     f.data.shapes.forEach((s, i) => {
       if (only && s.state !== only) return;
       const p = new Path2D(); p.addPath(new Path2D(s.d), new DOMMatrix([f.sc, 0, 0, f.sc, f.tx, f.ty]));
       const on = !!only, b = [0, 0, rw, rh];
-      Etch.fill(c, p, on ? '#82aaa0' : '#d5d0ba');
-      Etch.hatch(c, p, b, on ? {seed: 401 + i, angle: -.7, spacing: 4.4, length: 20, width: .55, color: 'rgba(51,67,56,.38)'} : {seed: 401 + i, angle: .25, spacing: 6, length: 26, width: .55, color: 'rgba(93,83,68,.2)'});
-      Etch.outline(c, p, on ? '#514b45' : '#999482', on ? 1.1 : .8, 410 + i);
+      Etch.fill(c, p, on ? P.blue : '#e7e9eb');
+      Etch.hatch(c, p, b, on ? {seed: 401 + i, angle: -.7, spacing: 4.4, length: 20, width: .55, color: 'rgba(0,60,90,.30)'} : {seed: 401 + i, angle: .25, spacing: 6, length: 26, width: .55, color: 'rgba(80,88,96,.16)'});
+      Etch.outline(c, p, on ? '#006f8e' : '#a7abb0', on ? 1.1 : .8, 410 + i);
     });
   });
 }
@@ -146,7 +146,7 @@ function cabinet(c, w, h, d, taper, seed, sideHandle) {
   const side = new Path2D(`M${w} ${-h} L${w + dx} ${-h + dy + taper} L${w + dx} ${dy - taper} L${w} 0 Z`);
   const top = new Path2D(`M0 ${-h} L${dx} ${-h + dy + taper} L${w + dx} ${-h + dy + taper} L${w} ${-h} Z`);
   Etch.fill(c, top, '#2c2b2e'); Etch.hatch(c, top, [0, -h + dy - 2, w + dx, -dy + 4], {seed, angle: -.35, spacing: 3.2, length: 20, color: CASE.etch});
-  Etch.fill(c, side, '#161518'); Etch.hatch(c, side, [w, -h + dy, dx, h - dy], {seed: seed + 1, angle: -.55, spacing: 2.6, length: 18, color: 'rgba(225,215,195,.09)'});
+  Etch.fill(c, side, '#161518'); Etch.hatch(c, side, [w, -h + dy, dx, h - dy], {seed: seed + 1, angle: -.55, spacing: 2.6, length: 18, color: 'rgba(220,222,226,.09)'});
   Etch.fill(c, front, '#1d1c1f');
   c.save(); c.fillStyle = grillePattern(c); c.fillRect(4, -h + 4, w - 8, h - 8); c.restore();
   c.strokeStyle = 'rgba(0,0,0,.6)'; c.lineWidth = 1; c.strokeRect(4, -h + 4, w - 8, h - 8);
@@ -189,7 +189,7 @@ function caseAt(c, x, y, s, lid) {
   Etch.hatch(c, new Path2D('M-2 -2 H170 V102 H-2 Z'), [0, 0, 168, 100], {seed: 71, angle: .35, spacing: 4, length: 22, width: .7, color: CASE.etch});
   c.restore();
   Etch.outline(c, lp, P.ink, 1.2);
-  Etch.line(c, [F1, F2], '#dfd5be', 5, 8); Etch.line(c, [F1, F2], P.ink, .8, 8);
+  Etch.line(c, [F1, F2], '#d4d7db', 5, 8); Etch.line(c, [F1, F2], P.ink, .8, 8);
   c.restore();
 }
 
@@ -218,7 +218,7 @@ function badge(c, id, r, t, p) {
     c.beginPath(); c.arc(0, 0, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * eOut(p)); c.stroke(); c.setLineDash([]);
     c.globalAlpha *= clamp((p - .4) * 3); text(c, '36', 0, r * .36, r * .92, P.red, 'Avenir Next', '700', 'center');
   } else {
-    c.fillStyle = 'rgba(50,32,23,.14)'; c.beginPath(); c.arc(1.8, 2, r, 0, Math.PI * 2); c.fill();
+    c.fillStyle = 'rgba(30,30,35,.14)'; c.beginPath(); c.arc(1.8, 2, r, 0, Math.PI * 2); c.fill();
     const e = Etch.ellipse(0, 0, r, r); Etch.fill(c, e, P.red); Etch.outline(c, e, P.ink, .65, id);
     text(c, num(id), 0, r * .36, r * .92, P.paper, 'Avenir Next', '700', 'center');
   }
@@ -246,7 +246,7 @@ function pinAt(c, t, id, x, y, dx, dy, r = 13) {
 /* ---------- Header, title, map ---------- */
 function headerAt(c, t) {
   text(c, 'HELLHOUND AUDIO  /  THE PRIMARK JOURNEY', 54, 52, 16, P.ink, 'Avenir Next', '700');
-  const n = latest(t), year = n === 36 ? '2026 →' : n ? byId[n].date.slice(0, 4) : '2022';
+  const n = latest(t), year = n === 36 ? 'NEXT →' : n ? byId[n].date.slice(0, 4) : '2022';
   text(c, year, 1026, 52, 16, P.muted, 'Avenir Next', '700', 'right');
   rule(c, 54, 73, 972);
   c.save(); c.strokeStyle = P.red; c.lineWidth = 2; c.lineCap = 'round'; c.beginPath(); c.moveTo(54, 73); c.lineTo(54 + 972 * clamp(t / DURATION), 73.4); c.stroke(); c.restore();
@@ -278,7 +278,7 @@ function mapAt(c, t) {
     const L = stateLayer(st), [ox, oy] = stateFirst[st].map_point;
     const R = Math.max(...[[L.x0, L.y0], [L.x0 + L.w, L.y0], [L.x0, L.y0 + L.h], [L.x0 + L.w, L.y0 + L.h]].map(([a, b]) => Math.hypot(a - ox, b - oy)));
     c.save(); c.beginPath(); c.arc(ox, oy, 8 + R * p, 0, Math.PI * 2); c.clip(); c.globalAlpha *= clamp(p * 2.5); c.drawImage(L.cv, L.x0, L.y0); c.restore();
-    const la = prog(t, stateT[st] + .55, .5); if (la > 0) { c.save(); c.globalAlpha *= la; const [lx, ly] = labelAt[st]; text(c, st, lx, ly, 34, '#354b48', 'DIN Condensed', '700', 'center'); c.restore(); }
+    const la = prog(t, stateT[st] + .55, .5); if (la > 0) { c.save(); c.globalAlpha *= la; const [lx, ly] = labelAt[st]; text(c, st, lx, ly, 34, '#063a4d', 'DIN Condensed', '700', 'center'); c.restore(); }
   }
   c.restore();
 }
@@ -291,7 +291,7 @@ function insetsAt(c, t) {
     const [mx, my] = mapPt(...MapProject(...ins.at)), nx = W / 2 + (mx - W / 2) * cache.zoom, ny = 545 + (my - 545) * cache.zoom, lastLand = Math.max(-9, ...ins.ids.filter(id => t >= landT[id]).map(id => landT[id]));
     const pulse = Math.sin(Math.PI * prog(t, lastLand, .45));
     c.strokeStyle = P.ink; c.lineWidth = 1; c.beginPath(); c.arc(nx, ny, 6 + 4 * pulse, 0, Math.PI * 2); c.stroke();
-    c.save(); c.setLineDash([2, 3]); c.strokeStyle = 'rgba(62,48,52,.6)'; c.beginPath(); c.moveTo(nx + (key === 'nyc' ? -4 : 3), ny - 6); c.lineTo(rx + rw / 2, ry + rh); c.stroke(); c.restore();
+    c.save(); c.setLineDash([2, 3]); c.strokeStyle = 'rgba(38,36,38,.55)'; c.beginPath(); c.moveTo(nx + (key === 'nyc' ? -4 : 3), ny - 6); c.lineTo(rx + rw / 2, ry + rh); c.stroke(); c.restore();
     // Land, then each state inks in from its first opening, as on the big map.
     c.drawImage(insetLayer(key), rx, ry, rw, rh);
     c.save(); c.beginPath(); c.rect(rx, ry, rw, rh); c.clip();
@@ -301,7 +301,7 @@ function insetsAt(c, t) {
       const first = byId[INSETS[key].ids.filter(id => byId[id].state === st).sort((x, y) => landT[x] - landT[y])[0]], [px, py] = f.pt(first.lon, first.lat);
       c.save(); c.beginPath(); c.arc(px, py, 6 + 420 * p, 0, Math.PI * 2); c.clip(); c.globalAlpha *= clamp(p * 2.5); c.drawImage(insetLayer(key, st), rx, ry, rw, rh); c.restore();
     }
-    for (const [label, lon, lat] of ins.labels) { const [lx, ly] = f.pt(lon, lat); text(c, label, lx, ly, 8.5, P.muted, 'Avenir Next', '700', 'center'); }
+    for (const [label, lon, lat] of ins.labels) { const [lx, ly] = f.pt(lon, lat); text(c, label, lx, ly, 8.5, '#063a4d', 'Avenir Next', '700', 'center'); }
     c.restore();
     Etch.outline(c, new Path2D(`M${rx} ${ry} H${rx + rw} V${ry + rh} H${rx} Z`), P.ink, .9, 90);
     c.fillStyle = P.paper; c.font = '700 9.5px "Avenir Next"'; const tw = c.measureText(ins.title).width; c.fillRect(rx + 1, ry + 1, tw + 12, 15);
@@ -336,7 +336,7 @@ function caseScene(c, t) {
   const lid = eBack(prog(t, .45, .6)), hop = -8 * Math.sin(Math.PI * prog(t, .45, .3));
   const [x, y0, s] = pose, y = y0 + hop + 24 * (1 - eOut(prog(t, 0, .5)));
   const sh = (1 - toField) * prog(t, 0, .4);
-  if (sh > 0) { c.save(); c.globalAlpha = sh; const e = Etch.ellipse(x + 121 * s, y - hop + 229 * s, 137 * s, 20 * s); Etch.hatch(c, e, [x - 40 * s, y + 200 * s, 330 * s, 60 * s], {seed: 900, angle: .06, spacing: 3, length: 30, color: 'rgba(67,46,38,.28)'}); c.restore(); }
+  if (sh > 0) { c.save(); c.globalAlpha = sh; const e = Etch.ellipse(x + 121 * s, y - hop + 229 * s, 137 * s, 20 * s); Etch.hatch(c, e, [x - 40 * s, y + 200 * s, 330 * s, 60 * s], {seed: 900, angle: .06, spacing: 3, length: 30, color: 'rgba(40,44,50,.22)'}); c.restore(); }
   gearAt(c, t, [x, y, s]);
   const wipe = eInOut(prog(t, 0, .55));
   c.save();
@@ -356,7 +356,7 @@ function calloutRow(c, t, id, off) {
   c.save(); c.translate(0, off);
   c.save(); c.translate(80, 896); badge(c, id, 25, t, 1); c.restore();
   fitText(c, d.name, 124, 894, 36, 740, P.ink, 'Avenir Next', '700');
-  const sub = `${d.city}, ${d.state}   ·   ${dateLabel(d.date)}${id === 36 ? '   ·   UPCOMING' : ''}`;
+  const sub = id === 36 ? `${d.city}, ${d.state}   ·   COMING SOON   ·   DATE TBD` : `${d.city}, ${d.state}   ·   ${dateLabel(d.date)}`;
   text(c, sub, 125, 925, 18, id === 36 ? P.red : P.muted, 'Avenir Next', '600');
   c.restore();
 }
@@ -395,10 +395,10 @@ function ledgerAt(c, t) {
     }
     if (a > 0) {
       const hl = id === n ? 1 - prog(t, landT[id + 1] ?? 99, .5) : (id === n - 1 ? 1 - prog(t, landT[n], .5) : 0);
-      if (hl > 0) { c.save(); c.globalAlpha *= hl * a; c.fillStyle = 'rgba(173,80,69,.13)'; c.fillRect(x - 6, y - 15, 322, 20); c.restore(); }
+      if (hl > 0) { c.save(); c.globalAlpha *= hl * a; c.fillStyle = 'rgba(241,48,55,.10)'; c.fillRect(x - 6, y - 15, 322, 20); c.restore(); }
       c.globalAlpha *= a; const dx = 12 * (1 - eOut(a));
       text(c, num(id), x + dx, y, 14, P.red, 'Avenir Next', '700');
-      fitText(c, d.name, x + 28 + dx, y, 16, 250, id === 36 ? P.muted : mixColor('#3e3034', '#ad5045', hl), 'Avenir Next', '600');
+      fitText(c, d.name, x + 28 + dx, y, 16, 250, id === 36 ? P.muted : mixColor(P.ink, P.red, hl), 'Avenir Next', '600');
       text(c, id === 36 ? 'NEXT' : d.state, x + 312, y, 12, id === 36 ? P.red : P.muted, 'Avenir Next', '700', 'right');
     }
     c.restore();
@@ -417,7 +417,7 @@ function renderInto(c, t, scale = 1) {
   c.restore();
   insetsAt(c, t);
   headerAt(c, t); titlesAt(c, t); calloutAt(c, t); ledgerAt(c, t);
-  rule(c, 54, 1248, 972); logo(c, 54, 1260, 215); if (images.wordmark) c.drawImage(images.wordmark, 810, 1290, 215, 47);
+  rule(c, 54, 1248, 972); logo(c, 54, 1260, 215); primarkLogo(c, 811, 1297, 215);
   c.restore();
 }
 function render(t, scale = 1, canvas) {

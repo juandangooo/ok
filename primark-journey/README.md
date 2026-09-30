@@ -26,7 +26,7 @@ Exactly 12 authored keyframes, in 4:5 portrait format. Each PNG is 2160 × 2700 
 9. Twenty-eight openings reached, April–May 2026.
 10. Thirty-two openings reached, June–August 2026.
 11. Thirty-five completed openings reached, September 2026.
-12. Thirty-six markers across thirteen states: 35 completed openings plus Pentagon City Mall, upcoming November 19, 2026, drawn with a hollow dashed marker.
+12. Thirty-six markers across thirteen states: 35 completed openings plus Pentagon City Mall, upcoming (date not yet announced, shown as TBD), drawn with a hollow dashed marker.
 
 ## Source and limits
 

@@ -26,7 +26,6 @@ input{width:220px;accent-color:#bc6b55}
   const M = JourneyMotion, cv = document.getElementById('stage'), seek = document.getElementById('seek'), pos = document.getElementById('position'), btn = document.getElementById('play');
   const params = new URLSearchParams(location.search), scale = +(params.get('scale') || 1);
   cv.width = M.W * scale; cv.height = M.H * scale;
-  const wordmark = new Image; wordmark.src = 'primark-wordmark.png'; await wordmark.decode(); images.wordmark = wordmark;
   await Promise.all(['700 20px "DIN Condensed"', '500 20px "Avenir Next"', '600 20px "Avenir Next"', '700 20px "Avenir Next"', '400 20px "Baskerville"'].map(f => document.fonts.load(f)));
   M.warm();
   const ctx = cv.getContext('2d');

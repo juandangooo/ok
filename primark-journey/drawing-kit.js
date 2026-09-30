@@ -1,18 +1,22 @@
 /* Hellhound Audio / Primark: editable, deterministic Canvas artwork.
    Layout coordinates are 1080 x 1350; exports render at 2x.
-   Map and Primark wordmark are raster separations of the user-supplied map. */
-const P={paper:'#eee6cf',ink:'#3e3034',red:'#ad5045',blue:'#559b9e',muted:'#7b7970',line:'#b8b3a1'};
+   Map geometry comes from map-paths.js; the Primark logo is the 2024 wordmark as vector paths. */
+// White page, Hellhound red (from the Hellhound logo) and Primark blue (from the 2024 Primark logo).
+const P={paper:'#ffffff',ink:'#262426',red:'#f13037',blue:'#00a6d0',muted:'#6e7277',line:'#c6c9cc'};
 const images={};
 // Road case finish: black with light etched lines and aluminium trim.
-const CASE={front:'#2e2c2f',side:'#19181a',top:'#403e41',inside:'#121113',lid:'#2f2d30',etch:'rgba(225,215,195,.13)'};
+const CASE={front:'#2e2c2f',side:'#19181a',top:'#403e41',inside:'#121113',lid:'#2f2d30',etch:'rgba(220,223,228,.13)'};
 const num=n=>String(n).padStart(2,'0');
 function text(c,s,x,y,size=20,color=P.ink,font='Avenir Next',weight='500',align='left'){
  c.fillStyle=color;c.font=`${weight} ${size}px "${font}", sans-serif`;c.textAlign=align;c.fillText(s,x,y);c.textAlign='left';
 }
 function rule(c,x,y,w,col=P.ink){Etch.line(c,[[x,y],[x+w,y+.4]],col,.8,11,.6)}
-function paper(c){c.fillStyle=P.paper;c.fillRect(0,0,1080,1350);const r=Etch.rng(90);c.fillStyle='rgba(73,59,41,.075)';for(let i=0;i<27000;i++){const x=r()*1080,y=r()*1350;c.fillRect(x,y,r()*.7+.15,r()*.5+.15)} }
+function paper(c){c.fillStyle=P.paper;c.fillRect(0,0,1080,1350);const r=Etch.rng(90);c.fillStyle='rgba(60,64,70,.035)';for(let i=0;i<27000;i++){const x=r()*1080,y=r()*1350;c.fillRect(x,y,r()*.7+.15,r()*.5+.15)} }
 function logo(c,x,y,w,light=false){c.save();c.translate(x,y);c.scale(w/2500,w/2500);for(const p of HellhoundLogoPaths){c.save();c.translate(p.x,p.y);c.fillStyle=light&&p.x>=900&&p.fill==='#050708'?P.paper:p.fill;c.fill(new Path2D(p.d));c.restore()}c.restore()}
-function brands(c,y=1247){logo(c,57,y,265);c.drawImage(images.wordmark,763,y+24,262,57)}
+// Primark 2024 wordmark (Wikimedia Commons, public domain), viewBox 1825 x 260.85.
+const PrimarkLogoPaths=["M 33.64,62.48 H 11.78 v 52.16 h 6.29 V 93.26 h 15.56 c 11.1,0 18.33,-5.75 18.33,-15.22 0,-9.47 -7.24,-15.56 -18.33,-15.56 z M 33.37,87.71 H 18.08 V 67.95 h 15.29 c 8.32,0 12.31,3.79 12.31,10.08 0,6.29 -3.99,9.67 -12.31,9.67 z", "m 106.37,77.56 c 0,-8.73 -6.16,-15.09 -16.78,-15.09 H 68.82 v 52.16 h 6.22 V 93.25 h 12.65 l 12.11,21.38 h 6.97 L 94.46,92.71 c 7.58,-1.83 11.91,-7.78 11.91,-15.15 z M 75.04,87.78 V 67.89 h 13.8 c 7.17,0 11.3,3.32 11.3,10.01 0,6.69 -4.13,9.88 -11.3,9.88 z", "M124.84 62.48h6.29v52.16h-6.29Z", "M 178.01,108.75 159.2,62.47 h -6.83 v 52.16 h 6.09 V 74.44 c 0.54,1.96 1.42,4.53 2.64,7.44 l 13.6,32.75 h 6.49 l 13.67,-32.81 c 1.15,-2.84 2.1,-5.41 2.64,-7.37 v 40.19 h 6.09 V 62.48 h -6.9 l -18.67,46.28 z", "m 239.92,62.48 -20.91,52.16 h 6.63 l 5.48,-14.28 c 7.98,2.57 16.03,2.57 24.02,0 l 5.55,14.28 h 6.63 L 246.35,62.48 Z m -6.7,32.61 8.52,-21.79 c 0.74,-1.83 1.42,-3.92 1.42,-3.92 0,0 0.68,2.1 1.42,3.92 l 8.46,21.79 c -6.63,2.5 -13.19,2.5 -19.82,0 z", "m 320.29,77.56 c 0,-8.73 -6.16,-15.09 -16.78,-15.09 h -20.77 v 52.16 h 6.22 V 93.25 h 12.58 l 12.18,21.38 h 6.9 L 308.37,92.71 c 7.58,-1.83 11.91,-7.78 11.91,-15.15 z M 288.97,87.78 V 67.89 h 13.8 c 7.17,0 11.23,3.32 11.23,10.01 0,6.69 -4.06,9.88 -11.23,9.88 z", "m 375.23,62.48 h -7.31 c -5.07,12.45 -14.07,21.31 -22.94,24.36 V 62.48 h -6.29 v 52.16 h 6.29 V 93.6 c 3.11,-1.08 6.22,-2.77 9.27,-4.8 l 15.22,25.84 h 7.31 L 359.32,84.87 c 6.36,-5.41 11.98,-12.92 15.9,-22.39 z"];
+function primarkLogo(c,x,y,w,color=P.blue){c.save();c.translate(x,y);c.scale(w/1825,w/1825);c.transform(5,0,0,5,-58.9,-312.35);c.fillStyle=color;for(const d of PrimarkLogoPaths)c.fill(new Path2D(d));c.restore()}
+function brands(c,y=1247){logo(c,57,y,265);primarkLogo(c,763,y+32,262)}
 function stamp(c,id,x,y,r=13){c.save();c.fillStyle='rgba(50,32,23,.14)';c.beginPath();c.arc(x+1.8,y+2,r,0,Math.PI*2);c.fill();const p=Etch.ellipse(x,y,r,r);Etch.fill(c,p,P.red);Etch.outline(c,p,P.ink,.65,id);text(c,num(id),x,y+(r>=20?7:4.7),r>=20?19:12,P.paper,'Avenir Next','700','center');c.restore()}
 function pin(c,id,x,y,dx=0,dy=-23){const bx=x+dx,by=y+dy;Etch.line(c,[[x,y],[bx,by]],P.ink,1,id,.35);c.fillStyle=P.ink;c.beginPath();c.arc(x,y,2,0,Math.PI*2);c.fill();stamp(c,id,bx,by)}
 function roadcase(c,x,y,s=1,lid=0){
@@ -24,10 +28,10 @@ function roadcase(c,x,y,s=1,lid=0){
  Etch.hatch(c,side,[165,13,75,202],{angle:-.55,spacing:2.5,length:25,color:'rgba(0,0,0,.55)',seed:22});
  Etch.hatch(c,top,[0,0,240,52],{angle:-.35,spacing:3.5,length:22,color:CASE.etch,seed:23});
  for(const p of [front,side,top])Etch.outline(c,p,P.ink,1.4,33);
- for(const pts of [[[0,33],[0,193],[165,214],[239,169]],[[0,57],[165,76],[239,37]],[[165,52],[165,214]],[[239,13],[239,169]]]){Etch.line(c,pts,'#dfd5be',7,8);Etch.line(c,pts,P.ink,.8,8)}
- for(const [xx,yy] of [[13,65],[145,82],[13,182],[145,200]]){c.fillStyle='#d6d4c8';c.fillRect(xx-5,yy-8,10,16);c.strokeStyle=P.ink;c.lineWidth=.7;c.strokeRect(xx-5,yy-8,10,16);c.fillStyle=P.ink;c.fillRect(xx-1,yy-1,2,2)}
+ for(const pts of [[[0,33],[0,193],[165,214],[239,169]],[[0,57],[165,76],[239,37]],[[165,52],[165,214]],[[239,13],[239,169]]]){Etch.line(c,pts,'#d4d7db',7,8);Etch.line(c,pts,P.ink,.8,8)}
+ for(const [xx,yy] of [[13,65],[145,82],[13,182],[145,200]]){c.fillStyle='#d0d3d6';c.fillRect(xx-5,yy-8,10,16);c.strokeStyle=P.ink;c.lineWidth=.7;c.strokeRect(xx-5,yy-8,10,16);c.fillStyle=P.ink;c.fillRect(xx-1,yy-1,2,2)}
  c.save();c.transform(1,.11,0,1,0,0);logo(c,16,83,132,true);text(c,'OPENING DAYS',22,165,13,P.paper,'DIN Condensed','700');c.restore();
- const handle=new Path2D('M187 94 L217 79 L217 100 L187 115 Z');Etch.fill(c,handle,'#b7aba0');Etch.outline(c,handle,P.ink,1);Etch.line(c,[[192,102],[192,98],[211,88],[211,93]],P.ink,3);
+ const handle=new Path2D('M187 94 L217 79 L217 100 L187 115 Z');Etch.fill(c,handle,'#b5b8bc');Etch.outline(c,handle,P.ink,1);Etch.line(c,[[192,102],[192,98],[211,88],[211,93]],P.ink,3);
  for(const [xx,yy] of [[20,200],[153,220],[221,181]]){Etch.fill(c,Etch.ellipse(xx,yy+5,8,14),P.ink);Etch.outline(c,Etch.ellipse(xx+2,yy+5,4,10),'#869593',1)}
  // A coiled audio cable, separate from the geography.
  c.strokeStyle=P.ink;c.lineWidth=2;for(let j=0;j<4;j++){c.beginPath();c.ellipse(264+j*2,206-j*3,32,10,-.2,0,Math.PI*2);c.stroke()}
