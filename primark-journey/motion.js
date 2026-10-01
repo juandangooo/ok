@@ -318,12 +318,6 @@ function pinsAt(c, t) {
 function gearAt(c, t, pose) {
   const [x, y, s] = pose, mouth = [x + 120 * s, y + 20 * s];
   const back = eInOut(prog(t, 2.25, .5));
-  // SM58 pops out of the case.
-  const out = eOut(prog(t, .85, .65));
-  if (out > 0 && back < 1) {
-    const B = [205, 520, -.22, 1.05], k = out * (1 - back), arc = Math.sin(Math.PI * k) * 70 * (1 - back);
-    c.save(); c.globalAlpha = clamp(k * 2.5); sm58(c, lerp(mouth[0], B[0], k), lerp(mouth[1], B[1], k) - arc, B[2] * k, B[3] * lerp(.3, 1, k)); c.restore();
-  }
   // JBL VRX918S + three VRX932LA-1 set down piece by piece beside it.
   if (t > .8 && back < 1) {
     const sx = 752, sy = 772, sc = .93;
@@ -350,8 +344,9 @@ function caseScene(c, t) {
 }
 
 /* ---------- Sketched TV on truss ----------
-   Three loose ink lines (ballpoint navy, Primark blue, a thread of Hellhound red) chase each other
-   out of the case and draw the truss and TV in one continuous path, then keep gently boiling.
+   Three loose ink lines (ballpoint navy, Primark blue, a thread of Hellhound red) rise out of the
+   open case and draw the truss and TV in one continuous path, then keep boiling; ballpoint
+   scratches and ink pulses run through them like current.
    Everything on the TV moves on damped springs; each opening's photo springs onto the screen as its
    pin lands (01–28), then the Primark logo for the rest. */
 const TV = {x: 54, y: 270, w: 440, h: 248, bezel: 12};
@@ -368,24 +363,38 @@ const kick = (tau, f = 3.2, z = .35) => tau <= 0 ? 0 : Math.exp(-z * 2 * Math.PI
 // One unbroken path: up the left chord, round the TV with corner loops, round the screen,
 // down the truss in a zigzag, back up the right chord, and a little curl to finish.
 function sketchPath(mx, my) {
-  const pts = [], {x, y, w, h, bezel: b} = TV, yB = y + h, L = tvCx - 12, Rr = tvCx + 12;
+  const pts = [], {x, y, w, h, bezel: b} = TV, yB = y + h, L = tvCx - 12, Rr = tvCx + 12, deep = my + 70;
   const to = (px, py) => { const [ax, ay] = pts[pts.length - 1], n = Math.max(1, Math.ceil(Math.hypot(px - ax, py - ay) / 3)); for (let i = 1; i <= n; i++) pts.push([ax + (px - ax) * i / n, ay + (py - ay) * i / n]); };
-  const loop = (cx, cy, r, a0, turns = 1) => { for (let i = 1; i <= 24 * turns; i++) { const a = a0 + i / 24 * Math.PI * 2; pts.push([cx + Math.cos(a) * r - Math.cos(a0) * r, cy + Math.sin(a) * r - Math.sin(a0) * r]); } };
-  pts.push([L, my]);
+  // Corners overshoot a hair and snap back, the way a quick ballpoint turns.
+  const corner = (px, py, ox, oy) => { to(px + ox, py + oy); to(px, py); };
+  pts.push([L, deep]);                       // from inside the case
   to(L, yB);
-  to(x + 6, yB); loop(x + 6, yB, 6, Math.PI * .5);
-  to(x, y + 6); loop(x, y + 6, 6, Math.PI);
-  to(x + w - 6, y); loop(x + w - 6, y, 6, -Math.PI * .5);
-  to(x + w, yB - 6); loop(x + w, yB - 6, 6, 0);
+  corner(x, yB, -5, 2); corner(x, y, -2, -5); corner(x + w, y, 5, -2); corner(x + w, yB, 2, 5);
   to(x + w - b, yB - b);
-  to(x + w - b, y + b); to(x + b, y + b); to(x + b, yB - b); to(Rr, yB - b);
+  corner(x + w - b, y + b, 2, -3); corner(x + b, y + b, -3, -2); corner(x + b, yB - b, -2, 3); to(Rr, yB - b);
+  to(Rr, deep);                              // down the right chord, back into the case
+  let up = deep, left = true;
+  while (up - 14 > yB) { up -= 14; to(left ? L : Rr, up); left = !left; }   // lacing climbs back out
   to(Rr, yB);
-  let down = yB, left = false;
-  while (down + 14 < my) { down += 14; to(left ? Rr : L, down); left = !left; }
-  to(Rr, my); to(Rr, yB + 8);
-  loop(Rr + 7, yB + 2, 7, Math.PI, 1.25);
   let s = 0;
   return pts.map((p, i) => { if (i) s += Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]); return [p[0], p[1], s]; });
+}
+// The case body in canvas space (final pose): the lines are hidden behind it, so they rise out of the open top.
+function caseBody() {
+  const [cx, cy, cs] = casePoses[2], p = new Path2D(), pts = [[0, 33], [165, 52], [239, 13], [239, 169], [165, 214], [0, 193]];
+  pts.forEach(([a, b2], i) => i ? p.lineTo(cx + a * cs, cy + b2 * cs) : p.moveTo(cx + a * cs, cy + b2 * cs)); p.closePath();
+  return p;
+}
+// Scribble tiles that slide like current: along the TV frame and up the truss out of the case.
+function currentTile(key, w, h, opts) {
+  const id = key + cache.scale; cache.tiles = cache.tiles || {};
+  if (!cache.tiles[id]) cache.tiles[id] = Etch.layer(Math.ceil(w * cache.scale), Math.ceil(h * cache.scale), g => { g.scale(cache.scale, cache.scale); Etch.hatch(g, new Path2D(`M0 0 H${w} V${h} H0 Z`), [-20, -20, w + 40, h + 40], opts); });
+  return cache.tiles[id];
+}
+function flowFill(c, tile, dx, dy, alpha) {
+  const pat = c.createPattern(tile, 'repeat'), S = cache.scale;
+  pat.setTransform(new DOMMatrix([1 / S, 0, 0, 1 / S, dx, dy]));
+  c.save(); c.globalAlpha *= alpha; c.fillStyle = pat; c.fillRect(-2000, -2000, 5000, 5000); c.restore();
 }
 const INKS = [
   {col: '#2547b5', w: 2.1, lag: 0, ph: 0, amp: 1.5, a: .95},
@@ -437,18 +446,25 @@ function tvSketchAt(c, t, mouth) {
   const k = 1 + .025 * (1 - settle) * (t > SKETCH_T1 - .15 ? 1 : 0) + (n ? .014 * kick(t - landT[n]) : 0);
   c.save(); c.translate(tvCx, TV.y + TV.h); c.scale(k, k); c.translate(-tvCx, -(TV.y + TV.h));
   screenAt(c, t, x + b, y + b, w - 2 * b, h - 2 * b);
-  // Loose ink shading on the bezel, drifting slightly so it never sits dead still.
-  const hs = prog(t, SKETCH_T1 - .12, .3);
+  // Ballpoint scratches running like current: round the frame, and up the truss out of the case.
+  const hs = prog(t, SKETCH_T1 - .25, .35), flick = .78 + .22 * Math.sin(t * 13) * Math.sin(t * 7.3);
   if (hs > 0) {
     const band = new Path2D(); band.rect(x, y, w, h); band.rect(x + b, y + b, w - 2 * b, h - 2 * b);
-    c.save(); c.globalAlpha = hs; c.clip(band, 'evenodd'); c.translate(Math.sin(t * 1.9) * 1.5, Math.cos(t * 1.6) * 1.5);
-    Etch.hatch(c, band, [x - 4, y - 4, w + 8, h + 8], {seed: 640, angle: -.8, spacing: 3.6, length: 16, width: .8, color: 'rgba(37,71,181,.4)'});
-    Etch.hatch(c, band, [x - 4, y - 4, w + 8, h + 8], {seed: 641, angle: .7, spacing: 7, length: 12, width: .7, color: 'rgba(0,166,208,.45)'});
+    const navy = currentTile('navy', 300, 120, {seed: 640, angle: -.8, spacing: 3.6, length: 16, width: .8, color: 'rgba(37,71,181,.55)'});
+    const cyan = currentTile('cyan', 260, 140, {seed: 641, angle: .7, spacing: 6.5, length: 12, width: .7, color: 'rgba(0,166,208,.6)'});
+    c.save(); c.globalAlpha = hs; c.clip(band, 'evenodd');
+    flowFill(c, navy, t * 70, Math.sin(t * 2) * 3, flick); flowFill(c, cyan, -t * 48, t * 9, 1 - (flick - .78));
+    c.restore();
+    const shaft = new Path2D(); shaft.rect(tvCx - 13, y + h, 26, my + 90 - y - h);
+    c.save(); c.globalAlpha = hs * .9; c.clip(shaft); c.clip(caseBodyInverse(), 'evenodd');
+    flowFill(c, currentTile('up', 40, 200, {seed: 642, angle: -1.25, spacing: 3.2, length: 10, width: .8, color: 'rgba(37,71,181,.6)'}), 0, -t * 120, flick);
+    flowFill(c, currentTile('up2', 40, 160, {seed: 643, angle: 1.2, spacing: 5, length: 8, width: .7, color: 'rgba(0,166,208,.65)'}), 3, -t * 75, 1);
     c.restore();
   }
   // Three inks race along the same path, each with its own living wobble.
   const dur = SKETCH_T1 - SKETCH_T0;
   c.lineCap = c.lineJoin = 'round';
+  c.save(); c.clip(caseBodyInverse(), 'evenodd');
   for (const ink of INKS) {
     const drawn = total * eInOut(prog(t, SKETCH_T0 + ink.lag * dur, dur * (1 - ink.lag * .6)));
     if (drawn <= 0) continue;
@@ -462,11 +478,24 @@ function tvSketchAt(c, t, mouth) {
       i ? c.lineTo(hx, hy) : c.moveTo(hx, hy);
     }
     c.stroke();
-    if (drawn < total) { c.fillStyle = ink.col; c.beginPath(); c.arc(hx, hy, ink.w * 1.6, 0, Math.PI * 2); c.fill(); }
     c.restore();
   }
+  // Once drawn, pulses of ink keep running along the line like current.
+  const live = prog(t, SKETCH_T1, .3);
+  if (live > 0) for (const off of [0, .5]) {
+    const head = (((t - SKETCH_T1) * 420) / total + off) % 1 * total, ink = INKS[0];
+    c.save(); c.globalAlpha = .9 * live; c.strokeStyle = P.blue; c.lineWidth = 3; c.beginPath(); let started = false;
+    for (const [px, py, s2] of path) {
+      if (s2 < head - 80 || s2 > head) continue;
+      const hx = px + ink.amp * .65 * (Math.sin(s2 * .045 + t * 2.3) * .8 + Math.sin(s2 * .13 - t * 3.4) * .35), hy = py + ink.amp * .65 * (Math.cos(s2 * .05 + t * 2.0) * .8 + Math.sin(s2 * .17 - t * 2.9) * .35);
+      started ? c.lineTo(hx, hy) : (c.moveTo(hx, hy), started = true);
+    }
+    c.stroke(); c.restore();
+  }
+  c.restore();
   c.restore();
 }
+function caseBodyInverse() { const p = new Path2D(); p.rect(-50, -50, W + 100, H + 100); p.addPath(caseBody()); cache.inv = p; return p; }
 
 /* ---------- Now opening + ledger ---------- */
 function fitText(c, s, x, y, size, max, color, font, weight, align) {
