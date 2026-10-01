@@ -349,11 +349,11 @@ function caseScene(c, t) {
 }
 
 /* ---------- Liquid TV on truss ----------
-   A glossy liquid column rises out of the case, its tip swells and flattens into a TV, the column
-   hardens into box truss. The TV then flashes each opening's photo as its pin lands (01–28) and the
+   The PRIMARK wordmark pours out of the case as glossy liquid, bursts into bubbles, and the bubbles
+   flow together into the box truss and the TV. The TV then flashes each opening's photo as its pin lands (01–28) and the
    Primark logo for the rest. Deliberately smooth and glossy, apart from the etched style. */
 const TV = {x: 62, y: 282, w: 380, h: 214, bezel: 7};
-const TV_FORM = 2.35, TV_SOLID = 3.05, TV_ON = 3.15;
+const TV_FORM = 2.3, TV_SOLID = 3.22, TV_ON = 3.32;
 const tvCx = TV.x + TV.w / 2, tvCy = TV.y + TV.h / 2;
 function superellipse(cx, cy, a, b, n, wob, t) {
   const p = new Path2D();
@@ -365,45 +365,85 @@ function superellipse(cx, cy, a, b, n, wob, t) {
   }
   p.closePath(); return p;
 }
+// Liquid PRIMARK: the wordmark pours out of the case as glossy liquid, bursts into bubbles, and the
+// bubbles flow together and merge into the truss and the TV.
+const WORD_W = 380, WORD_H = WORD_W * 260.85 / 1825;
+function wordBubbles() {
+  if (cache.bubbles) return cache.bubbles;
+  const h = Math.ceil(WORD_H) + 10, cv = Etch.layer(WORD_W + 10, h, g => primarkLogo(g, 5, 5, WORD_W, '#000'));
+  const d = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data, pts = [], r = Etch.rng(77);
+  for (let y = 3; y < h; y += 6) for (let x = 3; x < cv.width; x += 6) if (d[(y * cv.width + x) * 4 + 3] > 100) pts.push([x - cv.width / 2, y - h / 2]);
+  return cache.bubbles = pts.map((p, i) => {
+    const ang = Math.atan2(p[1], p[0] * .4) + (r() - .5) * 1.6, sp = 14 + r() * 34, truss = i % 5 === 0;
+    return {p, burst: [Math.cos(ang) * sp, Math.sin(ang) * sp * .8], delay: r() * .25, size: 4 + r() * 5, u: r(), truss,
+      target: truss ? [tvCx + (r() - .5) * 16, 0] : [TV.x + 16 + r() * (TV.w - 32), TV.y + 14 + r() * (TV.h - 28)]};
+  });
+}
+function bubbleAt(g, x, y, r, dark) {
+  const s = g.createRadialGradient(x - r * .35, y - r * .4, r * .05, x, y, r);
+  s.addColorStop(0, '#ffffff'); s.addColorStop(.25, mixColor('#8fe2f6', '#5a626c', dark)); s.addColorStop(.7, mixColor('#00a6d0', '#15181c', dark)); s.addColorStop(1, mixColor('#005f78', '#050607', dark));
+  g.fillStyle = s; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
+}
 function liquidAt(c, t, mouth) {
-  const p = prog(t, TV_FORM, TV_SOLID + .2 - TV_FORM); if (p <= 0 || p >= 1) return;
-  const S = cache.scale, R = [10, 240, 500, 470], cw = Math.ceil(R[2] * S), ch = Math.ceil(R[3] * S);
+  const T0 = TV_FORM, T1 = TV_SOLID + .25; if (t <= T0 || t >= T1) return;
+  const [mx, my] = mouth;
+  const rise = eOut(prog(t, T0, .38)), burst = prog(t, T0 + .46, .28), flow = prog(t, T0 + .58, .5), merge = eInOut(prog(t, T0 + .78, .3)), fill = eInOut(prog(t, T0 + .85, .25));
+  const wx = lerp(mx, tvCx, rise), wy = lerp(my - 10, tvCy - 6, rise), ws = lerp(.16, 1, rise);
+  const S = cache.scale, R = [10, 200, 520, 520], cw = Math.ceil(R[2] * S), ch = Math.ceil(R[3] * S);
   const off = cache.liquid || (cache.liquid = document.createElement('canvas'));
   if (off.width !== cw) { off.width = cw; off.height = ch; }
   const g = off.getContext('2d', {willReadFrequently: true});
-  g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, cw, ch);
-  g.setTransform(S, 0, 0, S, -R[0] * S, -R[1] * S);
-  g.filter = `blur(${9 * S}px)`; g.fillStyle = '#fff';
-  // Rise: the stream climbs from the case mouth to the TV centre, wobbling.
-  const rise = eOut(clamp(p / .45)), form = eInOut(clamp((p - .35) / .5)), settle = 1 - form;
-  const [mx, my] = mouth, tipY = lerp(my, tvCy, rise), tipX = lerp(mx, tvCx, rise);
-  for (let k = 0; k <= 40; k++) {
-    const u = k / 40, yy = lerp(my, tipY, u), xx = lerp(mx, tipX, u) + Math.sin(u * 9 - t * 14) * 7 * settle * (1 - u * .3);
-    const r = lerp(16, 22, Math.sin(u * Math.PI)) * lerp(1, .55, form);
-    g.beginPath(); g.arc(xx, yy, r, 0, Math.PI * 2); g.fill();
+  const mask = (blur, draw, shade) => {
+    g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1; g.clearRect(0, 0, cw, ch);
+    g.setTransform(S, 0, 0, S, -R[0] * S, -R[1] * S); g.fillStyle = g.strokeStyle = '#fff'; g.filter = `blur(${blur * S}px)`; draw(); g.filter = 'none';
+    const img = g.getImageData(0, 0, cw, ch), d = img.data;
+    for (let i = 3; i < d.length; i += 4) d[i] = d[i] < 96 ? 0 : d[i] > 136 ? 255 : (d[i] - 96) * 6.4;
+    g.putImageData(img, 0, 0); g.globalCompositeOperation = 'source-atop'; shade(); g.globalCompositeOperation = 'source-over';
+    return off;
+  };
+  const wordA = 1 - clamp(burst / .3);
+  if (wordA > 0) {
+    // The wordmark, dilated so it reads as thick poured liquid, with a pour from the case mouth.
+    mask(1.6, () => {
+      g.save(); g.translate(wx, wy + Math.sin(t * 16) * 2 * (1 - rise)); g.scale(ws, ws * (1 + .1 * Math.sin(t * 12) * (1 - rise))); g.translate(-WORD_W / 2, -WORD_H / 2);
+      for (let k = 0; k < 10; k++) { const a = k / 10 * Math.PI * 2; primarkLogo(g, Math.cos(a) * 3, Math.sin(a) * 3, WORD_W, '#fff'); }
+      g.restore();
+      if (rise < 1) { g.lineWidth = 9 * (1 - rise) + 2; g.lineCap = 'round'; g.beginPath(); g.moveTo(mx, my); g.quadraticCurveTo(mx + 12 * Math.sin(t * 12), (my + wy) / 2, wx, wy + WORD_H * ws * .4); g.stroke(); }
+    }, () => {
+      const top = wy - WORD_H * ws / 2 - 4, bot = wy + WORD_H * ws / 2 + 4, gr = g.createLinearGradient(0, top, 0, bot);
+      gr.addColorStop(0, '#9be7f8'); gr.addColorStop(.35, '#00a6d0'); gr.addColorStop(1, '#005a73'); g.fillStyle = gr; g.fillRect(R[0], R[1], R[2], R[3]);
+      const pour = g.createLinearGradient(0, bot, 0, my); pour.addColorStop(0, 'rgba(0,90,115,0)'); pour.addColorStop(1, 'rgba(0,90,115,.6)'); g.fillStyle = pour; g.fillRect(R[0], bot, R[2], my - bot + 20);
+      // Specular streak along the tops of the letters.
+      const sp = g.createLinearGradient(0, top, 0, top + (bot - top) * .45); sp.addColorStop(0, 'rgba(255,255,255,.85)'); sp.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = sp; g.fillRect(R[0], top, R[2], (bot - top) * .45);
+    });
+    c.save(); c.globalAlpha = wordA; c.drawImage(off, R[0], R[1], R[2], R[3]); c.restore();
   }
-  // Bulb: swells from a droplet, then flattens into the 16:9 panel.
-  const a = lerp(lerp(18, 72, rise), TV.w / 2, form), b = lerp(lerp(18, 64, rise), TV.h / 2, form), n = lerp(2, 9, form);
-  g.fill(superellipse(tipX, lerp(tipY, tvCy, form), a, b, n, .07 * settle + .015, t));
-  g.filter = 'none';
-  // Threshold the blur into a crisp liquid edge.
-  const img = g.getImageData(0, 0, cw, ch), d = img.data;
-  for (let i = 3; i < d.length; i += 4) d[i] = d[i] < 100 ? 0 : d[i] > 140 ? 255 : (d[i] - 100) * 6.4;
-  g.putImageData(img, 0, 0);
-  // Glossy black liquid: dark body, cool sheen, Primark-blue rim light.
-  g.globalCompositeOperation = 'source-in';
-  const base = g.createLinearGradient(0, R[1], 0, R[1] + R[3]); base.addColorStop(0, '#3b434d'); base.addColorStop(.5, '#121418'); base.addColorStop(1, '#050607');
-  g.fillStyle = base; g.fillRect(R[0], R[1], R[2], R[3]);
-  g.globalCompositeOperation = 'source-atop';
-  const bx = lerp(tipX, tvCx, form), rim = g.createLinearGradient(bx + a * .45, 0, bx + a + 12, 0); rim.addColorStop(0, 'rgba(0,166,208,0)'); rim.addColorStop(1, 'rgba(0,166,208,.7)');
-  g.fillStyle = rim; g.fillRect(R[0], R[1], R[2], R[3]);
-  const hx = tipX - a * .45, hy = lerp(tipY, tvCy, form) - b * .55, spec = g.createRadialGradient(hx, hy, 2, hx, hy, Math.max(30, a * .7));
-  spec.addColorStop(0, 'rgba(255,255,255,.75)'); spec.addColorStop(.35, 'rgba(255,255,255,.18)'); spec.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = spec; g.fillRect(R[0], R[1], R[2], R[3]);
-  const streak = g.createLinearGradient(mx - 20, 0, mx + 20, 0); streak.addColorStop(0, 'rgba(255,255,255,0)'); streak.addColorStop(.35, 'rgba(255,255,255,.35)'); streak.addColorStop(.5, 'rgba(255,255,255,0)');
-  g.fillStyle = streak; g.fillRect(mx - 20, tvCy + b, 40, my - tvCy);
-  g.globalCompositeOperation = 'source-over';
-  c.save(); c.globalAlpha = 1 - prog(t, TV_SOLID, .2); c.drawImage(off, R[0], R[1], R[2], R[3]); c.restore();
+  const bubbles = wordBubbles(), pos = b => {
+    const k = eOut(clamp((burst - b.delay * .4) / .75)), f = eInOut(clamp((flow - b.delay) / (1 - b.delay * .8)));
+    const bx = wx + b.p[0] * ws + b.burst[0] * k, by = wy + b.p[1] * ws + b.burst[1] * k;
+    const tx = b.target[0], ty = b.truss ? lerp(TV.y + TV.h, my, b.u) : b.target[1];
+    const wob = (1 - f) * 2.5;
+    return [lerp(bx, tx, f) + Math.sin(t * 9 + b.u * 20) * wob, lerp(by, ty, f) + Math.cos(t * 7 + b.u * 17) * wob, lerp(lerp(2.5, b.size, k), b.truss ? 9 : 14, f), k];
+  };
+  if (burst > 0 && merge < 1) {
+    // Separate glossy bubbles, cooling from Primark blue to black as they head for their places.
+    const dark = eInOut(clamp(flow * 1.3));
+    c.save(); c.globalAlpha = 1 - merge;
+    for (const b of bubbles) { const [x, y, r, k] = pos(b); if (k > 0) bubbleAt(c, x, y, r, dark); }
+    c.restore();
+  }
+  if (merge > 0) {
+    // The bubbles pool and merge into the panel and the column.
+    mask(lerp(4, 7, merge), () => {
+      for (const b of bubbles) { const [x, y, r] = pos(b); g.beginPath(); g.arc(x, y, r * lerp(1, 1.25, merge), 0, Math.PI * 2); g.fill(); }
+      if (fill > 0) { g.globalAlpha = fill; g.beginPath(); g.roundRect(TV.x + (1 - fill) * 24, TV.y + (1 - fill) * 14, TV.w - (1 - fill) * 48, TV.h - (1 - fill) * 28, 8); g.fill(); g.fillRect(tvCx - 13, TV.y + TV.h - 4, 26, my - TV.y - TV.h + 4); g.globalAlpha = 1; }
+    }, () => {
+      const k = g.createLinearGradient(0, TV.y, 0, my); k.addColorStop(0, '#3b434d'); k.addColorStop(.35, '#121418'); k.addColorStop(1, '#050607'); g.fillStyle = k; g.fillRect(R[0], R[1], R[2], R[3]);
+      const rim = g.createLinearGradient(TV.x + TV.w - 70, 0, TV.x + TV.w + 6, 0); rim.addColorStop(0, 'rgba(0,166,208,0)'); rim.addColorStop(1, 'rgba(0,166,208,.7)'); g.fillStyle = rim; g.fillRect(R[0], R[1], R[2], R[3]);
+      const spec = g.createRadialGradient(TV.x + 90, TV.y + 46, 2, TV.x + 90, TV.y + 46, 170); spec.addColorStop(0, 'rgba(255,255,255,.6)'); spec.addColorStop(.3, 'rgba(255,255,255,.16)'); spec.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = spec; g.fillRect(R[0], R[1], R[2], R[3]);
+    });
+    c.save(); c.globalAlpha = merge * (1 - prog(t, TV_SOLID, .25)); c.drawImage(off, R[0], R[1], R[2], R[3]); c.restore();
+  }
 }
 function trussAt(c, x0, yTop, yBot) {
   const w = 28, l = x0 - w / 2, r = x0 + w / 2;
