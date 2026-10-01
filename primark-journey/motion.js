@@ -25,7 +25,7 @@ const mixColor = (a, b, t) => { const p = h => [1,3,5].map(i => parseInt(h.slice
 
 /* ---------- Timeline ----------
    0.0 – 2.6   case etches in, lid opens, gear out, map unfolds, layout settles
-   2.6 – 3.5   a ballpoint pen draws the truss and TV out of the case in one line
+   2.6 – 3.5   three ink lines draw the truss and TV out of the case in one continuous path
    3.7 – 25.5  openings 01–35, one every 0.64 s; chapter titles change with the first of each batch
    26.3 – 30.0 the upcoming 36th, a thank-you wave through every marker, hold */
 const FIRST = 3.7, STEP = .64;
@@ -349,14 +349,22 @@ function caseScene(c, t) {
   const cap = prog(t, 3, .6); if (cap > 0) { c.save(); c.globalAlpha = cap; text(c, 'Every pin, a proud moment.', 94, 804, 20, P.ink, 'Baskerville'); c.restore(); }
 }
 
-/* ---------- Ballpoint TV on truss ----------
-   A little ballpoint pen draws the truss and the TV out of the case in one continuous line, never
-   lifting off the page, with loops at the corners. The TV stays a sketch; as each pin lands its
-   screen flashes that opening's photo (01–28), then the Primark logo for the rest. */
+/* ---------- Sketched TV on truss ----------
+   Three loose ink lines (ballpoint navy, Primark blue, a thread of Hellhound red) chase each other
+   out of the case and draw the truss and TV in one continuous path, then keep gently boiling.
+   Everything on the TV moves on damped springs; each opening's photo springs onto the screen as its
+   pin lands (01–28), then the Primark logo for the rest. */
 const TV = {x: 62, y: 282, w: 380, h: 214, bezel: 11};
-const SKETCH_T0 = 2.62, SKETCH_T1 = 3.5, TV_ON = 3.52;
-const INK = '#2547b5';
-const tvCx = TV.x + TV.w / 2;
+const SKETCH_T0 = 2.62, SKETCH_T1 = 3.5, TV_ON = 3.5;
+const tvCx = TV.x + TV.w / 2, tvCy = TV.y + TV.h / 2;
+// Closed-form damped spring 0 → 1 (pure function of time, so any frame renders on its own).
+function spring(tau, f = 3, z = .6) {
+  if (tau <= 0) return 0;
+  const w = 2 * Math.PI * f, wd = w * Math.sqrt(1 - z * z);
+  return 1 - Math.exp(-z * w * tau) * (Math.cos(wd * tau) + (z * w / wd) * Math.sin(wd * tau));
+}
+// A decaying wobble for "kicks" (0 at rest).
+const kick = (tau, f = 3.2, z = .35) => tau <= 0 ? 0 : Math.exp(-z * 2 * Math.PI * f * tau) * Math.sin(2 * Math.PI * f * Math.sqrt(1 - z * z) * tau);
 // One unbroken path: up the left chord, round the TV with corner loops, round the screen,
 // down the truss in a zigzag, back up the right chord, and a little curl to finish.
 function sketchPath(mx, my) {
@@ -376,68 +384,88 @@ function sketchPath(mx, my) {
   while (down + 14 < my) { down += 14; to(left ? Rr : L, down); left = !left; }
   to(Rr, my); to(Rr, yB + 8);
   loop(Rr + 7, yB + 2, 7, Math.PI, 1.25);
-  // Wobble like a real hand, measured along the line.
   let s = 0;
-  return pts.map((p, i) => {
-    if (i) s += Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]);
-    return [p[0] + Math.sin(s * .045) * 1.3 + Math.sin(s * .17 + 1) * .5, p[1] + Math.cos(s * .05 + 2) * 1.3 + Math.sin(s * .21) * .5, s];
-  });
+  return pts.map((p, i) => { if (i) s += Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]); return [p[0], p[1], s]; });
 }
-function penAt(c, x, y, a) {
-  // Clear-barrel ballpoint with a blue cap, tip on the paper.
-  c.save(); c.translate(x, y); c.rotate(-.85); c.globalAlpha *= a;
-  c.fillStyle = '#c9ced6'; c.beginPath(); c.moveTo(0, 0); c.lineTo(5, -12); c.lineTo(-5, -12); c.closePath(); c.fill();
-  c.fillStyle = 'rgba(232,240,250,.95)'; c.strokeStyle = '#7b8494'; c.lineWidth = 1; c.beginPath(); c.roundRect(-6, -78, 12, 66, 3); c.fill(); c.stroke();
-  c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.moveTo(0, -14); c.lineTo(0, -74); c.stroke();
-  c.fillStyle = INK; c.beginPath(); c.roundRect(-6.5, -96, 13, 22, 3); c.fill();
-  c.fillRect(4, -94, 3, 26);
-  c.restore();
-}
+const INKS = [
+  {col: '#2547b5', w: 2.1, lag: 0, ph: 0, amp: 1.5, a: .95},
+  {col: '#00a6d0', w: 1.7, lag: .07, ph: 2.1, amp: 2.4, a: .9},
+  {col: '#f13037', w: 1, lag: .13, ph: 4.4, amp: 2.8, a: .8},
+];
 function photoCover(c, img, x, y, w, h, zoom) {
   const s = Math.max(w / img.width, h / img.height) * zoom, iw = img.width * s, ih = img.height * s;
   c.drawImage(img, x + (w - iw) / 2, y + (h - ih) * .42, iw, ih);
 }
-function screenAt(c, t, x, y, w, h) {
-  const on = prog(t, TV_ON, .25); if (on <= 0) return;
-  c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip(); c.globalAlpha = on;
-  const n = latest(t), photos = window.JourneyPhotos || {};
+function screenContent(c, n, x, y, w, h, zoom) {
+  const photos = window.JourneyPhotos || {};
   const logoScreen = (bg, fg, sub) => {
     c.fillStyle = bg; c.fillRect(x, y, w, h);
     primarkLogo(c, x + w * .19, y + h * .43, w * .62, fg);
     if (sub) text(c, sub, x + w / 2, y + h * .74, 15, fg, 'Avenir Next', '700', 'center');
   };
   if (n === 0) logoScreen('#e3f4fa', P.blue);
-  else if (n <= 28 && photos[n]) photoCover(c, photos[n], x, y, w, h, 1.12 - .12 * eOut(prog(t, landT[n], .64)));
+  else if (n <= 28 && photos[n]) photoCover(c, photos[n], x, y, w, h, zoom);
   else if (n === 36) logoScreen(P.blue, '#ffffff', 'COMING SOON');
   else logoScreen(n % 2 ? P.blue : '#e3f4fa', n % 2 ? '#ffffff' : P.blue);
-  if (n > 0) {
-    const f = 1 - prog(t, landT[n], .22);
-    if (f > 0) { c.fillStyle = `rgba(255,255,255,${f * .95})`; c.fillRect(x, y, w, h); }
-    c.save(); c.translate(x + 22, y + 20); badge(c, n, 13, t, n === 36 ? clamp((t - landT[36]) / .55) : 1); c.restore();
+}
+function screenAt(c, t, x, y, w, h) {
+  // The screen opens from the centre on a spring once the frame is drawn.
+  const open = spring(t - TV_ON, 2.2, .55); if (open <= 0) return;
+  const ow = w * Math.min(1, open), oh = h * Math.min(1, open);
+  c.save(); c.beginPath(); c.rect(x + (w - ow) / 2, y + (h - oh) / 2, ow, oh); c.clip();
+  const n = latest(t);
+  if (n === 0) screenContent(c, 0, x, y, w, h, 1);
+  else {
+    // Previous opening underneath; the new one springs up into place over it.
+    const tau = t - landT[n], sp = spring(tau, 2.6, .62);
+    screenContent(c, n - 1, x, y, w, h, 1 + .05 * sp);
+    c.fillStyle = `rgba(255,255,255,${.35 * Math.min(1, sp)})`; c.fillRect(x, y, w, h);
+    c.save(); c.beginPath(); c.rect(x, y + h * (1 - Math.min(1, sp * 1.15)), w, h); c.clip();
+    c.translate(0, (1 - sp) * h * .35); screenContent(c, n, x, y, w, h, 1.16 - .16 * sp); c.restore();
+    const bp = spring(tau - .1, 3.4, .5);
+    if (bp > 0) { c.save(); c.translate(x + 22, y + 20); c.scale(bp, bp); badge(c, n, 13, t, n === 36 ? clamp((t - landT[36]) / .55) : 1); c.restore(); }
   }
   c.restore();
 }
 function tvSketchAt(c, t, mouth) {
   if (t < SKETCH_T0) return;
-  const [mx, my] = mouth, path = (cache.sketch && cache.sketch.my === Math.round(my) && cache.sketch.mx === Math.round(mx)) ? cache.sketch.path : (cache.sketch = {mx: Math.round(mx), my: Math.round(my), path: sketchPath(mx, my)}).path;
-  const {x, y, w, h, bezel: b} = TV, total = path[path.length - 1][2];
-  const drawn = total * eInOut(prog(t, SKETCH_T0, SKETCH_T1 - SKETCH_T0));
+  const [mx, my] = mouth, key = Math.round(mx) + ':' + Math.round(my);
+  if (!cache.sketch || cache.sketch.key !== key) cache.sketch = {key, path: sketchPath(mx, my)};
+  const path = cache.sketch.path, total = path[path.length - 1][2], {x, y, w, h, bezel: b} = TV;
+  // The whole set settles in on a spring, and gets a little kick each time a new opening lands.
+  const n = latest(t), settle = spring(t - SKETCH_T1 + .15, 2.4, .5);
+  const k = 1 + .025 * (1 - settle) * (t > SKETCH_T1 - .15 ? 1 : 0) + (n ? .014 * kick(t - landT[n]) : 0);
+  c.save(); c.translate(tvCx, TV.y + TV.h); c.scale(k, k); c.translate(-tvCx, -(TV.y + TV.h));
   screenAt(c, t, x + b, y + b, w - 2 * b, h - 2 * b);
-  // Quick ballpoint shading on the bezel once the outline is down.
-  const hs = prog(t, SKETCH_T1 - .1, .25);
-  if (hs > 0) { const band = new Path2D(); band.rect(x, y, w, h); band.rect(x + b, y + b, w - 2 * b, h - 2 * b); c.save(); c.globalAlpha = hs; c.clip(band, 'evenodd'); Etch.hatch(c, band, [x, y, w, h], {seed: 640, angle: -.8, spacing: 3.4, length: 16, width: .8, color: 'rgba(37,71,181,.45)'}); c.restore(); }
-  // The line itself, ink pooling slightly darker, drawn up to the pen.
-  let head = path[0];
-  c.save(); c.lineCap = c.lineJoin = 'round';
-  for (const [col, wd, dx] of [['rgba(37,71,181,.35)', 1, .7], [INK, 1.9, 0]]) {
-    c.strokeStyle = col; c.lineWidth = wd; c.beginPath(); c.moveTo(path[0][0] + dx, path[0][1] + dx);
-    for (const p of path) { if (p[2] > drawn) break; c.lineTo(p[0] + dx, p[1] + dx); head = p; }
+  // Loose ink shading on the bezel, drifting slightly so it never sits dead still.
+  const hs = prog(t, SKETCH_T1 - .12, .3);
+  if (hs > 0) {
+    const band = new Path2D(); band.rect(x, y, w, h); band.rect(x + b, y + b, w - 2 * b, h - 2 * b);
+    c.save(); c.globalAlpha = hs; c.clip(band, 'evenodd'); c.translate(Math.sin(t * 1.9) * 1.5, Math.cos(t * 1.6) * 1.5);
+    Etch.hatch(c, band, [x - 4, y - 4, w + 8, h + 8], {seed: 640, angle: -.8, spacing: 3.6, length: 16, width: .8, color: 'rgba(37,71,181,.4)'});
+    Etch.hatch(c, band, [x - 4, y - 4, w + 8, h + 8], {seed: 641, angle: .7, spacing: 7, length: 12, width: .7, color: 'rgba(0,166,208,.45)'});
+    c.restore();
+  }
+  // Three inks race along the same path, each with its own living wobble.
+  const dur = SKETCH_T1 - SKETCH_T0;
+  c.lineCap = c.lineJoin = 'round';
+  for (const ink of INKS) {
+    const drawn = total * eInOut(prog(t, SKETCH_T0 + ink.lag * dur, dur * (1 - ink.lag * .6)));
+    if (drawn <= 0) continue;
+    const amp = ink.amp * (1 - .35 * prog(t, SKETCH_T1, 1));
+    c.save(); c.globalAlpha = ink.a; c.strokeStyle = ink.col; c.lineWidth = ink.w; c.beginPath();
+    let hx = 0, hy = 0;
+    for (let i = 0; i < path.length; i++) {
+      const [px, py, s] = path[i]; if (s > drawn) break;
+      hx = px + amp * (Math.sin(s * .045 + ink.ph + t * 2.3) * .8 + Math.sin(s * .13 + ink.ph * 1.7 - t * 3.4) * .35);
+      hy = py + amp * (Math.cos(s * .05 + ink.ph * 1.3 + t * 2.0) * .8 + Math.sin(s * .17 + ink.ph - t * 2.9) * .35);
+      i ? c.lineTo(hx, hy) : c.moveTo(hx, hy);
+    }
     c.stroke();
+    if (drawn < total) { c.fillStyle = ink.col; c.beginPath(); c.arc(hx, hy, ink.w * 1.6, 0, Math.PI * 2); c.fill(); }
+    c.restore();
   }
   c.restore();
-  // The pen follows the line, then lifts away.
-  const lift = prog(t, SKETCH_T1, .3);
-  if (lift < 1) penAt(c, head[0] + 30 * eOut(lift), head[1] - 40 * eOut(lift), 1 - lift);
 }
 
 /* ---------- Now opening + ledger ---------- */
