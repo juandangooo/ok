@@ -17,7 +17,7 @@ const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf('--
 const out = path.resolve(args[0] && !args[0].startsWith('--') ? args[0] : path.join(dir, 'primark-journey-30s.mp4'));
 const fps = +opt('fps', 30), ss = +opt('supersample', 2), from = +opt('from', 0), to = +opt('to', 30), stills = opt('stills');
 
-const types = {'.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png', '.woff2': 'font/woff2'};
+const types = {'.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff2': 'font/woff2'};
 const server = http.createServer((req, res) => {
   const file = path.join(dir, decodeURIComponent(new URL(req.url, 'http://x').pathname));
   if (!file.startsWith(dir) || !fs.existsSync(file)) { res.writeHead(404).end(); return; }

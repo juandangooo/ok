@@ -66,7 +66,7 @@ function insetFit(ins) {
   const tx = (rw - uw * sc) / 2 - (vw - bw) * cs * 100 * sc, ty = (rh - uh * sc) / 2 - (bn - vn) * 100 * sc;
   return {data, sc, tx, ty, pt: (lon, lat) => [rx + tx + (lon - bw) * cs * 100 * sc, ry + ty + (bn - lat) * 100 * sc]};
 }
-const casePoses = [[280, 390, 1.5], [330, 480, 1.35], [104, 468, .64]];
+const casePoses = [[280, 390, 1.5], [330, 480, 1.35], [190, 612, .52]];
 const mixPose = (a, b, k) => a.map((v, i) => lerp(v, b[i], k));
 
 /* ---------- Cached art ---------- */
@@ -343,7 +343,132 @@ function caseScene(c, t) {
   if (wipe < 1) { c.beginPath(); const e = lerp(-300, 1300, wipe); c.moveTo(0, 0); c.lineTo(e + 250, 0); c.lineTo(e - 250, H); c.lineTo(0, H); c.clip(); }
   caseAt(c, x, y, s, lid);
   c.restore();
+  const mouth = [x + 120 * s, y + 24 * s];
+  liquidAt(c, t, mouth); tvAt(c, t, mouth);
   const cap = prog(t, 3, .6); if (cap > 0) { c.save(); c.globalAlpha = cap; text(c, 'Every pin, a proud moment.', 94, 804, 20, P.ink, 'Baskerville'); c.restore(); }
+}
+
+/* ---------- Liquid TV on truss ----------
+   A glossy liquid column rises out of the case, its tip swells and flattens into a TV, the column
+   hardens into box truss. The TV then flashes each opening's photo as its pin lands (01–28) and the
+   Primark logo for the rest. Deliberately smooth and glossy, apart from the etched style. */
+const TV = {x: 62, y: 282, w: 380, h: 214, bezel: 7};
+const TV_FORM = 2.35, TV_SOLID = 3.05, TV_ON = 3.15;
+const tvCx = TV.x + TV.w / 2, tvCy = TV.y + TV.h / 2;
+function superellipse(cx, cy, a, b, n, wob, t) {
+  const p = new Path2D();
+  for (let i = 0; i <= 96; i++) {
+    const th = i / 96 * Math.PI * 2, ct = Math.cos(th), st = Math.sin(th);
+    const r = 1 + wob * (Math.sin(th * 3 + t * 9) * .6 + Math.sin(th * 5 - t * 13) * .4);
+    const x = cx + a * r * Math.sign(ct) * Math.pow(Math.abs(ct), 2 / n), y = cy + b * r * Math.sign(st) * Math.pow(Math.abs(st), 2 / n);
+    i ? p.lineTo(x, y) : p.moveTo(x, y);
+  }
+  p.closePath(); return p;
+}
+function liquidAt(c, t, mouth) {
+  const p = prog(t, TV_FORM, TV_SOLID + .2 - TV_FORM); if (p <= 0 || p >= 1) return;
+  const S = cache.scale, R = [10, 240, 500, 470], cw = Math.ceil(R[2] * S), ch = Math.ceil(R[3] * S);
+  const off = cache.liquid || (cache.liquid = document.createElement('canvas'));
+  if (off.width !== cw) { off.width = cw; off.height = ch; }
+  const g = off.getContext('2d', {willReadFrequently: true});
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, cw, ch);
+  g.setTransform(S, 0, 0, S, -R[0] * S, -R[1] * S);
+  g.filter = `blur(${9 * S}px)`; g.fillStyle = '#fff';
+  // Rise: the stream climbs from the case mouth to the TV centre, wobbling.
+  const rise = eOut(clamp(p / .45)), form = eInOut(clamp((p - .35) / .5)), settle = 1 - form;
+  const [mx, my] = mouth, tipY = lerp(my, tvCy, rise), tipX = lerp(mx, tvCx, rise);
+  for (let k = 0; k <= 40; k++) {
+    const u = k / 40, yy = lerp(my, tipY, u), xx = lerp(mx, tipX, u) + Math.sin(u * 9 - t * 14) * 7 * settle * (1 - u * .3);
+    const r = lerp(16, 22, Math.sin(u * Math.PI)) * lerp(1, .55, form);
+    g.beginPath(); g.arc(xx, yy, r, 0, Math.PI * 2); g.fill();
+  }
+  // Bulb: swells from a droplet, then flattens into the 16:9 panel.
+  const a = lerp(lerp(18, 72, rise), TV.w / 2, form), b = lerp(lerp(18, 64, rise), TV.h / 2, form), n = lerp(2, 9, form);
+  g.fill(superellipse(tipX, lerp(tipY, tvCy, form), a, b, n, .07 * settle + .015, t));
+  g.filter = 'none';
+  // Threshold the blur into a crisp liquid edge.
+  const img = g.getImageData(0, 0, cw, ch), d = img.data;
+  for (let i = 3; i < d.length; i += 4) d[i] = d[i] < 100 ? 0 : d[i] > 140 ? 255 : (d[i] - 100) * 6.4;
+  g.putImageData(img, 0, 0);
+  // Glossy black liquid: dark body, cool sheen, Primark-blue rim light.
+  g.globalCompositeOperation = 'source-in';
+  const base = g.createLinearGradient(0, R[1], 0, R[1] + R[3]); base.addColorStop(0, '#3b434d'); base.addColorStop(.5, '#121418'); base.addColorStop(1, '#050607');
+  g.fillStyle = base; g.fillRect(R[0], R[1], R[2], R[3]);
+  g.globalCompositeOperation = 'source-atop';
+  const bx = lerp(tipX, tvCx, form), rim = g.createLinearGradient(bx + a * .45, 0, bx + a + 12, 0); rim.addColorStop(0, 'rgba(0,166,208,0)'); rim.addColorStop(1, 'rgba(0,166,208,.7)');
+  g.fillStyle = rim; g.fillRect(R[0], R[1], R[2], R[3]);
+  const hx = tipX - a * .45, hy = lerp(tipY, tvCy, form) - b * .55, spec = g.createRadialGradient(hx, hy, 2, hx, hy, Math.max(30, a * .7));
+  spec.addColorStop(0, 'rgba(255,255,255,.75)'); spec.addColorStop(.35, 'rgba(255,255,255,.18)'); spec.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = spec; g.fillRect(R[0], R[1], R[2], R[3]);
+  const streak = g.createLinearGradient(mx - 20, 0, mx + 20, 0); streak.addColorStop(0, 'rgba(255,255,255,0)'); streak.addColorStop(.35, 'rgba(255,255,255,.35)'); streak.addColorStop(.5, 'rgba(255,255,255,0)');
+  g.fillStyle = streak; g.fillRect(mx - 20, tvCy + b, 40, my - tvCy);
+  g.globalCompositeOperation = 'source-over';
+  c.save(); c.globalAlpha = 1 - prog(t, TV_SOLID, .2); c.drawImage(off, R[0], R[1], R[2], R[3]); c.restore();
+}
+function trussAt(c, x0, yTop, yBot) {
+  const w = 28, l = x0 - w / 2, r = x0 + w / 2;
+  c.save();
+  const back = c.createLinearGradient(l, 0, r, 0); back.addColorStop(0, '#0d0e10'); back.addColorStop(.5, '#2b2f35'); back.addColorStop(1, '#0d0e10');
+  c.strokeStyle = '#1c1f23'; c.lineWidth = 2;
+  for (let y = yTop + 6; y < yBot - 4; y += 24) { c.beginPath(); c.moveTo(l + 3, y); c.lineTo(r - 3, y + 12); c.lineTo(l + 3, y + 24); c.stroke(); }
+  c.strokeStyle = '#3a3f46'; c.lineWidth = 1.2;
+  for (let y = yTop + 6; y < yBot - 4; y += 24) { c.beginPath(); c.moveTo(r - 3, y); c.lineTo(l + 3, y + 12); c.lineTo(r - 3, y + 24); c.stroke(); }
+  for (const cx of [l + 2.5, r - 2.5]) {
+    const g = c.createLinearGradient(cx - 3, 0, cx + 3, 0); g.addColorStop(0, '#08090a'); g.addColorStop(.45, '#5d646d'); g.addColorStop(1, '#0a0b0c');
+    c.fillStyle = g; c.fillRect(cx - 3, yTop, 6, yBot - yTop);
+  }
+  c.fillStyle = '#16181b'; c.fillRect(l - 6, yBot - 6, w + 12, 6);
+  c.restore();
+}
+function photoCover(c, img, x, y, w, h, zoom) {
+  const s = Math.max(w / img.width, h / img.height) * zoom, iw = img.width * s, ih = img.height * s;
+  c.drawImage(img, x + (w - iw) / 2, y + (h - ih) * .42, iw, ih);
+}
+function screenAt(c, t, x, y, w, h) {
+  c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip();
+  const on = prog(t, TV_ON, .3);
+  c.fillStyle = '#050607'; c.fillRect(x, y, w, h);
+  if (on > 0) {
+    c.globalAlpha = on;
+    const n = latest(t), photos = window.JourneyPhotos || {};
+    const logoScreen = (bg, fg, sub) => {
+      c.fillStyle = bg; c.fillRect(x, y, w, h);
+      primarkLogo(c, x + w * .19, y + h * .43, w * .62, fg);
+      if (sub) text(c, sub, x + w / 2, y + h * .74, 15, fg, 'Avenir Next', '700', 'center');
+    };
+    if (n === 0) logoScreen('#e3f4fa', P.blue);
+    else if (n <= 28 && photos[n]) photoCover(c, photos[n], x, y, w, h, 1.12 - .12 * eOut(prog(t, landT[n], .64)));
+    else if (n === 36) logoScreen(P.blue, '#ffffff', 'COMING SOON');
+    else logoScreen(n % 2 ? P.blue : '#e3f4fa', n % 2 ? '#ffffff' : P.blue);
+    if (n > 0) {
+      // Flash on each landing, plus the opening's number in the corner.
+      const f = 1 - prog(t, landT[n], .22);
+      if (f > 0) { c.fillStyle = `rgba(255,255,255,${f * .95})`; c.fillRect(x, y, w, h); }
+      c.save(); c.translate(x + 24, y + 22); badge(c, n, 14, t, n === 36 ? clamp((t - landT[36]) / .55) : 1); c.restore();
+    }
+    // Glass: soft diagonal reflection and vignette.
+    const gl = c.createLinearGradient(x, y, x + w, y + h); gl.addColorStop(0, 'rgba(255,255,255,.16)'); gl.addColorStop(.32, 'rgba(255,255,255,.03)'); gl.addColorStop(.33, 'rgba(255,255,255,0)'); gl.addColorStop(1, 'rgba(0,0,0,.12)');
+    c.globalAlpha = 1; c.fillStyle = gl; c.fillRect(x, y, w, h);
+  }
+  c.restore();
+}
+function tvAt(c, t, mouth) {
+  const a = prog(t, TV_SOLID, .2); if (a <= 0) return;
+  const [mx, my] = mouth;
+  c.save(); c.globalAlpha = a;
+  trussAt(c, tvCx, TV.y + TV.h - 10, my + 4);
+  // Panel: thin black bezel with a little depth so it reads as a 3D object.
+  const {x, y, w, h, bezel} = TV;
+  c.fillStyle = '#0a0b0d'; c.beginPath(); c.moveTo(x + w, y + 2); c.lineTo(x + w + 9, y - 3); c.lineTo(x + w + 9, y + h - 5); c.lineTo(x + w, y + h); c.fill();
+  c.fillStyle = 'rgba(0,0,0,.18)'; c.fillRect(x + 6, y + h + 2, w, 6);
+  const bz = c.createLinearGradient(0, y, 0, y + h); bz.addColorStop(0, '#2a2e34'); bz.addColorStop(.1, '#0e1012'); bz.addColorStop(1, '#050607');
+  c.fillStyle = bz; c.beginPath(); c.roundRect(x, y, w, h, 4); c.fill();
+  c.strokeStyle = 'rgba(0,166,208,.55)'; c.lineWidth = 1; c.beginPath(); c.roundRect(x + .5, y + .5, w - 1, h - 1, 4); c.stroke();
+  screenAt(c, t, x + bezel, y + bezel, w - bezel * 2, h - bezel * 2);
+  // A highlight sweeps across as the liquid sets.
+  const sw = prog(t, TV_SOLID, .5);
+  if (sw > 0 && sw < 1) { c.save(); c.beginPath(); c.roundRect(x, y, w, h, 4); c.clip(); const sx = lerp(x - 120, x + w + 120, eInOut(sw)), g = c.createLinearGradient(sx - 60, 0, sx + 60, 0); g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(.5, 'rgba(255,255,255,.45)'); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(x, y, w, h); c.restore(); }
+  c.restore();
 }
 
 /* ---------- Now opening + ledger ---------- */
