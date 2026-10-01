@@ -259,11 +259,11 @@ function titleLine(c, s, y, size, color, box, off) {
 function titlesAt(c, t) {
   const i = beatAt(t), prev = prevShown(i);
   for (const [n, y, size, color, box, delay] of [[0, 134, 52, P.ink, [86, 142], 0], [1, 192, 58, P.red, [142, 200], .08]]) {
-    const q = eInOut(prog(t, beats[i] + delay + (i === 0 ? .05 : 0), .6));
+    const q = eInOut(prog(t, beats[i] + delay + (i === 0 ? -.6 : 0), .6));
     if (prev !== undefined && q < 1) titleLine(c, titles[prev][n], y, size, color, box, -q * 62);
     if (q > 0) titleLine(c, titles[i][n], y, size, color, box, (1 - q) * 62);
   }
-  const s = prog(t, beats[i] + .15, .5);
+  const s = prog(t, beats[i] + (i === 0 ? -.5 : .15), .5);
   c.save(); if (prev !== undefined && s < 1) { c.globalAlpha = 1 - s; text(c, spans[prev], 54, 232 - 6 * s, 16, P.muted, 'Avenir Next', '700'); }
   c.globalAlpha = s; text(c, spans[i], 54, 232 + 6 * (1 - s), 16, P.muted, 'Avenir Next', '700'); c.restore();
 }
@@ -335,11 +335,11 @@ function caseScene(c, t) {
   let pose = mixPose(casePoses[0], casePoses[1], eInOut(prog(t, .1, .9)));
   pose = mixPose(pose, casePoses[2], toField);
   const lid = eBack(prog(t, .45, .6)), hop = -8 * Math.sin(Math.PI * prog(t, .45, .3));
-  const [x, y0, s] = pose, y = y0 + hop + 24 * (1 - eOut(prog(t, 0, .5)));
-  const sh = (1 - toField) * prog(t, 0, .4);
+  const [x, y0, s] = pose, y = y0 + hop + 24 * (1 - eOut(prog(t, -.45, .5)));
+  const sh = (1 - toField) * prog(t, -.4, .4);
   if (sh > 0) { c.save(); c.globalAlpha = sh; const e = Etch.ellipse(x + 121 * s, y - hop + 229 * s, 137 * s, 20 * s); Etch.hatch(c, e, [x - 40 * s, y + 200 * s, 330 * s, 60 * s], {seed: 900, angle: .06, spacing: 3, length: 30, color: 'rgba(40,44,50,.22)'}); c.restore(); }
   gearAt(c, t, [x, y, s]);
-  const wipe = eInOut(prog(t, 0, .55));
+  const wipe = eInOut(prog(t, -.45, .55));
   c.save();
   if (wipe < 1) { c.beginPath(); const e = lerp(-300, 1300, wipe); c.moveTo(0, 0); c.lineTo(e + 250, 0); c.lineTo(e - 250, H); c.lineTo(0, H); c.clip(); }
   caseAt(c, x, y, s, lid);
@@ -354,7 +354,7 @@ function caseScene(c, t) {
    out of the case and draw the truss and TV in one continuous path, then keep gently boiling.
    Everything on the TV moves on damped springs; each opening's photo springs onto the screen as its
    pin lands (01–28), then the Primark logo for the rest. */
-const TV = {x: 62, y: 282, w: 380, h: 214, bezel: 11};
+const TV = {x: 54, y: 270, w: 440, h: 248, bezel: 12};
 const SKETCH_T0 = 2.62, SKETCH_T1 = 3.5, TV_ON = 3.5;
 const tvCx = TV.x + TV.w / 2, tvCy = TV.y + TV.h / 2;
 // Closed-form damped spring 0 → 1 (pure function of time, so any frame renders on its own).
@@ -417,12 +417,12 @@ function screenAt(c, t, x, y, w, h) {
   if (n === 0) screenContent(c, 0, x, y, w, h, 1);
   else {
     // Previous opening underneath; the new one springs up into place over it.
-    const tau = t - landT[n], sp = spring(tau, 2.6, .62);
+    const tau = t - landT[n], sp = spring(tau, 4.2, .6);
     screenContent(c, n - 1, x, y, w, h, 1 + .05 * sp);
     c.fillStyle = `rgba(255,255,255,${.35 * Math.min(1, sp)})`; c.fillRect(x, y, w, h);
     c.save(); c.beginPath(); c.rect(x, y + h * (1 - Math.min(1, sp * 1.15)), w, h); c.clip();
     c.translate(0, (1 - sp) * h * .35); screenContent(c, n, x, y, w, h, 1.16 - .16 * sp); c.restore();
-    const bp = spring(tau - .1, 3.4, .5);
+    const bp = spring(tau - .06, 4.5, .5);
     if (bp > 0) { c.save(); c.translate(x + 22, y + 20); c.scale(bp, bp); badge(c, n, 13, t, n === 36 ? clamp((t - landT[36]) / .55) : 1); c.restore(); }
   }
   c.restore();
@@ -487,7 +487,7 @@ function calloutAt(c, t) {
   c.save(); c.beginPath(); c.rect(0, 852, 880, 90); c.clip();
   const n = latest(t);
   if (n === 0) {
-    const a = prog(t, .2, .4) * (1 - prog(t, 2.9, .4));
+    const a = prog(t, -.2, .4) * (1 - prog(t, 2.9, .4));
     if (a > 0) { c.globalAlpha = a; text(c, 'Every opening starts with a crew.', 54, 906, 32, P.ink, 'Baskerville'); }
   } else {
     const q = eInOut(prog(t, landT[n], .32));
