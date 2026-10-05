@@ -59,6 +59,7 @@ CW, CH = 120, 96            # 10 ft x 8 ft
 lw = 16.0; lh = lw * H / W  # logo size
 gap = 8.0
 cols, rows = 5, 7
+BLEED = 1.0                 # inches of bleed on every side
 
 def layout(stagger):
     pitch_x, pitch_y = lw + gap, lh + gap
@@ -77,13 +78,20 @@ def build(name, stagger):
     s = lw / W
     uses = "".join(f'<use href="#logo" transform="translate({x:.3f},{y:.3f}) scale({s:.6f})"/>'
                    for x, y in layout(stagger))
-    svg = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{CW}in" height="{CH}in" '
-           f'viewBox="0 0 {CW} {CH}"><defs>{logo_defs}</defs>'
-           f'<rect width="{CW}" height="{CH}" fill="#FFFFFF"/>{uses}</svg>')
+    svg = (f'<svg xmlns="http://www.w3.org/2000/svg" width="{CW+2*BLEED}in" height="{CH+2*BLEED}in" '
+           f'viewBox="{-BLEED} {-BLEED} {CW+2*BLEED} {CH+2*BLEED}"><defs>{logo_defs}</defs>'
+           f'<rect x="{-BLEED}" y="{-BLEED}" width="{CW+2*BLEED}" height="{CH+2*BLEED}" fill="#FFFFFF"/>{uses}</svg>')
     open(f"{name}.svg", "w").write(svg)
     # cairosvg uses 96 px/in -> PDF page = 120in x 96in
     cairosvg.svg2pdf(bytestring=svg.encode(), write_to=f"{name}.pdf",
-                     output_width=CW * 96, output_height=CH * 96)
+                     output_width=(CW + 2 * BLEED) * 96, output_height=(CH + 2 * BLEED) * 96)
+    from pypdf import PdfReader, PdfWriter
+    from pypdf.generic import RectangleObject
+    w = PdfWriter(clone_from=f"{name}.pdf"); p = w.pages[0]; b = BLEED * 72
+    W_, H_ = float(p.mediabox.width), float(p.mediabox.height)
+    p.bleedbox = RectangleObject([0, 0, W_, H_])
+    p.trimbox = RectangleObject([b, b, W_ - b, H_ - b])
+    w.write(f"{name}.pdf")
     cairosvg.svg2png(bytestring=svg.encode(), write_to=f"{name}-preview.png",
                      output_width=1500, output_height=1200)
 
