@@ -334,13 +334,28 @@ function caseScene(c, t) {
   if (sh > 0) { c.save(); c.globalAlpha = sh; const e = Etch.ellipse(x + 121 * s, y - hop + 229 * s, 137 * s, 20 * s); Etch.hatch(c, e, [x - 40 * s, y + 200 * s, 330 * s, 60 * s], {seed: 900, angle: .06, spacing: 3, length: 30, color: 'rgba(40,44,50,.22)'}); c.restore(); }
   gearAt(c, t, [x, y, s]);
   const wipe = eInOut(prog(t, -.45, .55));
+  // Once the truss is drawn the case nudges back, then rolls out from under it, off to the left.
+  const roll = caseRoll(t);
   c.save();
   if (wipe < 1) { c.beginPath(); const e = lerp(-300, 1300, wipe); c.moveTo(0, 0); c.lineTo(e + 250, 0); c.lineTo(e - 250, H); c.lineTo(0, H); c.clip(); }
-  caseAt(c, x, y, s, lid);
+  if (roll.dx > -700) {
+    const bx = x + roll.dx + 120 * s, by = y + 214 * s;
+    c.translate(bx, by + roll.dy); c.rotate(roll.lean); c.translate(-bx, -by);
+    caseAt(c, x + roll.dx, y, s, lid);
+  }
   c.restore();
   const [fx, fy, fs] = casePoses[2];
   tvSketchAt(c, t, [fx + 120 * fs, fy + 24 * fs]);
   const cap = prog(t, 3, .6); if (cap > 0) { c.save(); c.globalAlpha = cap; text(c, 'Every pin, a proud moment.', 94, 804, 20, P.ink, 'Baskerville'); c.restore(); }
+}
+
+/* ---------- Case roll-out ---------- */
+const ROLL_T = 3.62;
+function caseRoll(t) {
+  const back = Math.sin(Math.PI * prog(t, ROLL_T, .2)), p = prog(t, ROLL_T + .14, .8);
+  const dx = 9 * back - 720 * p * p * p, dy = -2.5 * Math.abs(Math.sin(p * Math.PI * 5)) * (1 - p);
+  const lean = -.07 * Math.sin(Math.PI * clamp(p * 1.6)) + .03 * back;
+  return {dx, dy, lean};
 }
 
 /* ---------- Sketched TV on truss ----------
@@ -348,8 +363,9 @@ function caseScene(c, t) {
    open case and draw the truss and TV in one continuous path, then keep boiling; ballpoint
    scratches and ink pulses run through them like current.
    Everything on the TV moves on damped springs; each opening's photo springs onto the screen as its
-   pin lands (01–28), then the Primark logo for the rest. */
+   pin lands, or the Primark logo where there is no photo. */
 const TV = {x: 54, y: 270, w: 440, h: 248, bezel: 12};
+const CASE_FLOOR = casePoses[2][1] + 214 * casePoses[2][2];
 const SKETCH_T0 = 2.62, SKETCH_T1 = 3.5, TV_ON = 3.5;
 const tvCx = TV.x + TV.w / 2, tvCy = TV.y + TV.h / 2;
 // Closed-form damped spring 0 → 1 (pure function of time, so any frame renders on its own).
@@ -363,7 +379,7 @@ const kick = (tau, f = 3.2, z = .35) => tau <= 0 ? 0 : Math.exp(-z * 2 * Math.PI
 // One unbroken path: up the left chord, round the TV with corner loops, round the screen,
 // down the truss in a zigzag, back up the right chord, and a little curl to finish.
 function sketchPath(mx, my) {
-  const pts = [], {x, y, w, h, bezel: b} = TV, yB = y + h, L = tvCx - 12, Rr = tvCx + 12, deep = my + 70;
+  const pts = [], {x, y, w, h, bezel: b} = TV, yB = y + h, L = tvCx - 12, Rr = tvCx + 12, deep = CASE_FLOOR - 3;
   const to = (px, py) => { const [ax, ay] = pts[pts.length - 1], n = Math.max(1, Math.ceil(Math.hypot(px - ax, py - ay) / 3)); for (let i = 1; i <= n; i++) pts.push([ax + (px - ax) * i / n, ay + (py - ay) * i / n]); };
   // Corners overshoot a hair and snap back, the way a quick ballpoint turns.
   const corner = (px, py, ox, oy) => { to(px + ox, py + oy); to(px, py); };
@@ -380,8 +396,8 @@ function sketchPath(mx, my) {
   return pts.map((p, i) => { if (i) s += Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]); return [p[0], p[1], s]; });
 }
 // The case body in canvas space (final pose): the lines are hidden behind it, so they rise out of the open top.
-function caseBody() {
-  const [cx, cy, cs] = casePoses[2], p = new Path2D(), pts = [[0, 33], [165, 52], [239, 13], [239, 169], [165, 214], [0, 193]];
+function caseBody(dx = 0) {
+  const [cx0, cy, cs] = casePoses[2], cx = cx0 + dx, p = new Path2D(), pts = [[0, 33], [165, 52], [239, 13], [239, 169], [165, 214], [0, 193]];
   pts.forEach(([a, b2], i) => i ? p.lineTo(cx + a * cs, cy + b2 * cs) : p.moveTo(cx + a * cs, cy + b2 * cs)); p.closePath();
   return p;
 }
@@ -413,7 +429,7 @@ function screenContent(c, n, x, y, w, h, zoom) {
     if (sub) text(c, sub, x + w / 2, y + h * .74, 15, fg, 'Avenir Next', '700', 'center');
   };
   if (n === 0) logoScreen('#e3f4fa', P.blue);
-  else if (n <= 28 && photos[n]) photoCover(c, photos[n], x, y, w, h, zoom);
+  else if (photos[n]) photoCover(c, photos[n], x, y, w, h, zoom);
   else if (n === 36) logoScreen(P.blue, '#ffffff', 'COMING SOON');
   else logoScreen(n % 2 ? P.blue : '#e3f4fa', n % 2 ? '#ffffff' : P.blue);
 }
@@ -438,13 +454,15 @@ function screenAt(c, t, x, y, w, h) {
 }
 function tvSketchAt(c, t, mouth) {
   if (t < SKETCH_T0) return;
+  cache.caseDX = caseRoll(t).dx;
   const [mx, my] = mouth, key = Math.round(mx) + ':' + Math.round(my);
   if (!cache.sketch || cache.sketch.key !== key) cache.sketch = {key, path: sketchPath(mx, my)};
   const path = cache.sketch.path, total = path[path.length - 1][2], {x, y, w, h, bezel: b} = TV;
   // The whole set settles in on a spring, and gets a little kick each time a new opening lands.
   const n = latest(t), settle = spring(t - SKETCH_T1 + .15, 2.4, .5);
   const k = 1 + .025 * (1 - settle) * (t > SKETCH_T1 - .15 ? 1 : 0) + (n ? .014 * kick(t - landT[n]) : 0);
-  c.save(); c.translate(tvCx, TV.y + TV.h); c.scale(k, k); c.translate(-tvCx, -(TV.y + TV.h));
+  const dip = 5 * kick(t - ROLL_T - .7, 2.6, .3);
+  c.save(); c.translate(tvCx, TV.y + TV.h + dip); c.scale(k, k); c.translate(-tvCx, -(TV.y + TV.h));
   screenAt(c, t, x + b, y + b, w - 2 * b, h - 2 * b);
   // Ballpoint scratches running like current: round the frame, and up the truss out of the case.
   const hs = prog(t, SKETCH_T1 - .25, .35), flick = .78 + .22 * Math.sin(t * 13) * Math.sin(t * 7.3);
@@ -455,7 +473,7 @@ function tvSketchAt(c, t, mouth) {
     c.save(); c.globalAlpha = hs; c.clip(band, 'evenodd');
     flowFill(c, navy, t * 70, Math.sin(t * 2) * 3, flick); flowFill(c, cyan, -t * 48, t * 9, 1 - (flick - .78));
     c.restore();
-    const shaft = new Path2D(); shaft.rect(tvCx - 13, y + h, 26, my + 90 - y - h);
+    const shaft = new Path2D(); shaft.rect(tvCx - 13, y + h, 26, CASE_FLOOR - y - h);
     c.save(); c.globalAlpha = hs * .9; c.clip(shaft); c.clip(caseBodyInverse(), 'evenodd');
     flowFill(c, currentTile('up', 40, 200, {seed: 642, angle: -1.25, spacing: 3.2, length: 10, width: .8, color: 'rgba(37,71,181,.6)'}), 0, -t * 120, flick);
     flowFill(c, currentTile('up2', 40, 160, {seed: 643, angle: 1.2, spacing: 5, length: 8, width: .7, color: 'rgba(0,166,208,.65)'}), 3, -t * 75, 1);
@@ -480,6 +498,17 @@ function tvSketchAt(c, t, mouth) {
     c.stroke();
     c.restore();
   }
+  // Base plate: three quick strokes under the free-standing truss once the case has rolled clear.
+  const bp = prog(t, ROLL_T + .5, .32);
+  if (bp > 0) {
+    const fy = CASE_FLOOR, segs = [[[tvCx - 34, fy], [tvCx + 34, fy]], [[tvCx - 30, fy + 4], [tvCx + 30, fy + 4]], [[tvCx - 34, fy], [tvCx - 30, fy + 4]], [[tvCx + 34, fy], [tvCx + 30, fy + 4]]];
+    INKS.forEach((ink, j) => {
+      const q = eInOut(clamp((bp - j * .12) / .7)); if (q <= 0) return;
+      c.save(); c.globalAlpha = ink.a; c.strokeStyle = ink.col; c.lineWidth = ink.w; c.beginPath();
+      for (const [[ax, ay], [bx2, by2]] of segs) { const wob = Math.sin(t * 2.4 + j * 2) * ink.amp * .6; c.moveTo(ax + wob, ay - wob * .5); c.lineTo(lerp(ax, bx2, q) + wob, lerp(ay, by2, q) + wob * .5); }
+      c.stroke(); c.restore();
+    });
+  }
   // Once drawn, pulses of ink keep running along the line like current.
   const live = prog(t, SKETCH_T1, .3);
   if (live > 0) for (const off of [0, .5]) {
@@ -495,7 +524,7 @@ function tvSketchAt(c, t, mouth) {
   c.restore();
   c.restore();
 }
-function caseBodyInverse() { const p = new Path2D(); p.rect(-50, -50, W + 100, H + 100); p.addPath(caseBody()); cache.inv = p; return p; }
+function caseBodyInverse() { const p = new Path2D(); p.rect(-50, -50, W + 100, H + 100); if (cache.caseDX > -600) p.addPath(caseBody(cache.caseDX)); return p; }
 
 /* ---------- Now opening + ledger ---------- */
 function fitText(c, s, x, y, size, max, color, font, weight, align) {

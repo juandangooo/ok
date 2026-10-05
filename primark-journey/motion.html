@@ -27,9 +27,9 @@ input{width:220px;accent-color:#bc6b55}
   const params = new URLSearchParams(location.search), scale = +(params.get('scale') || 1);
   cv.width = M.W * scale; cv.height = M.H * scale;
   await Promise.all(['700 20px "DIN Condensed"', '500 20px "Avenir Next"', '600 20px "Avenir Next"', '700 20px "Avenir Next"', '400 20px "Baskerville"'].map(f => document.fonts.load(f)));
-  // Opening photos 01–28 for the TV.
+  // Opening photos for the TV (photos/NN.jpg); openings without one show the Primark logo.
   window.JourneyPhotos = {};
-  await Promise.all(Array.from({length: 28}, (_, i) => { const n = i + 1, im = new Image(); im.src = `photos/${String(n).padStart(2, '0')}.jpg`; return im.decode().then(() => { JourneyPhotos[n] = im; }); }));
+  await Promise.all(Array.from({length: 35}, (_, i) => { const n = i + 1, im = new Image(); im.src = `photos/${String(n).padStart(2, '0')}.jpg`; return im.decode().then(() => { JourneyPhotos[n] = im; }, () => {}); }));
   M.warm();
   const ctx = cv.getContext('2d');
   let t = 0, playing = false, last = 0;
