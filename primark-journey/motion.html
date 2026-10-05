@@ -1,0 +1,44 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>The Primark Journey | 30s Etched Motion</title>
+<style>
+/* System fonts first (as in the stills); open-licence look-alikes when they are missing. */
+@font-face{font-family:'DIN Condensed';font-weight:700;src:local('DIN Condensed Bold'),local('DINCondensed-Bold'),url(fonts/BarlowCondensed.woff2) format('woff2')}
+@font-face{font-family:'Avenir Next';font-weight:500;src:local('Avenir Next Medium'),local('AvenirNext-Medium'),url(fonts/NunitoSans.woff2) format('woff2')}
+@font-face{font-family:'Avenir Next';font-weight:600;src:local('Avenir Next Demi Bold'),local('AvenirNext-DemiBold'),url(fonts/NunitoSans.woff2) format('woff2')}
+@font-face{font-family:'Avenir Next';font-weight:700;src:local('Avenir Next Bold'),local('AvenirNext-Bold'),url(fonts/NunitoSans.woff2) format('woff2')}
+@font-face{font-family:'Baskerville';font-weight:400 500;src:local('Baskerville'),local('Baskerville-Regular'),url(fonts/LibreBaskerville.woff2) format('woff2')}
+body{margin:0;background:#292a26;color:#eee6cf;font:16px 'Avenir Next',sans-serif}
+header{padding:22px 28px;display:flex;justify-content:space-between;align-items:center;gap:20px}
+h1{font-size:18px;margin:0}p{font-size:13px;color:#b8b3a1;margin:4px 0 0}
+main{display:flex;justify-content:center;padding:0 16px 25px}
+canvas{width:min(92vw,640px);height:auto;box-shadow:0 15px 40px #0005}
+nav{display:flex;align-items:center;gap:15px}
+button{padding:9px 22px;border:1px solid #a59b83;color:#eee6cf;background:transparent;cursor:pointer}
+input{width:220px;accent-color:#bc6b55}
+#position{font-variant-numeric:tabular-nums;min-width:4.5em}
+@media(max-width:750px){header{display:block}nav{margin-top:15px}input{width:150px}}
+</style>
+<header><div><h1>THE PRIMARK JOURNEY</h1><p>30-second Etched Motion · Hellhound Audio · 2022–2026</p></div>
+<nav><button id="play">Play</button><input id="seek" aria-label="Scrub" type="range" min="0" max="30" step="0.01" value="0"><span id="position">0.0 s</span></nav></header>
+<main><canvas id="stage" width="1080" height="1350"></canvas></main>
+<script src="etch.js"></script><script src="hellhound-logo.js"></script><script src="openings.js"></script><script src="drawing-kit.js"></script><script src="map-paths.js"></script><script src="motion.js"></script>
+<script>
+(async () => {
+  const M = JourneyMotion, cv = document.getElementById('stage'), seek = document.getElementById('seek'), pos = document.getElementById('position'), btn = document.getElementById('play');
+  const params = new URLSearchParams(location.search), scale = +(params.get('scale') || 1);
+  cv.width = M.W * scale; cv.height = M.H * scale;
+  await Promise.all(['700 20px "DIN Condensed"', '500 20px "Avenir Next"', '600 20px "Avenir Next"', '700 20px "Avenir Next"', '400 20px "Baskerville"'].map(f => document.fonts.load(f)));
+  // Opening photos for the TV (photos/NN.jpg); openings without one show the Primark logo.
+  window.JourneyPhotos = {};
+  await Promise.all(Array.from({length: 35}, (_, i) => { const n = i + 1, im = new Image(); im.src = `photos/${String(n).padStart(2, '0')}.jpg`; return im.decode().then(() => { JourneyPhotos[n] = im; }, () => {}); }));
+  M.warm();
+  const ctx = cv.getContext('2d');
+  let t = 0, playing = false, last = 0;
+  const draw = () => { M.renderInto(ctx, t, scale); seek.value = t; pos.textContent = t.toFixed(1) + ' s'; };
+  const loop = now => { if (!playing) return; t += (now - last) / 1000; last = now; if (t >= M.DURATION) { t = M.DURATION; playing = false; btn.textContent = 'Replay'; } draw(); requestAnimationFrame(loop); };
+  btn.onclick = () => { playing = !playing; if (playing) { if (t >= M.DURATION) t = 0; last = performance.now(); requestAnimationFrame(loop); } btn.textContent = playing ? 'Pause' : 'Play'; };
+  seek.oninput = () => { t = +seek.value; draw(); };
+  // Exporter hook: draw exactly one timeline position.
+  window.frameAt = time => { t = time; M.renderInto(ctx, time, scale); };
+  draw(); window.ready = true;
+})();
+</script></html>
