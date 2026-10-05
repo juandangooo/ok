@@ -376,8 +376,8 @@ function spring(tau, f = 3, z = .6) {
 }
 // A decaying wobble for "kicks" (0 at rest).
 const kick = (tau, f = 3.2, z = .35) => tau <= 0 ? 0 : Math.exp(-z * 2 * Math.PI * f * tau) * Math.sin(2 * Math.PI * f * Math.sqrt(1 - z * z) * tau);
-// One unbroken path: up the left chord, round the TV with corner loops, round the screen,
-// down the truss in a zigzag, back up the right chord, and a little curl to finish.
+// One unbroken path: up the left chord, round the TV frame and the screen edge (both closed),
+// down the right chord into the case, and the lacing zigzags back up.
 function sketchPath(mx, my) {
   const pts = [], {x, y, w, h, bezel: b} = TV, yB = y + h, L = tvCx - 12, Rr = tvCx + 12, deep = CASE_FLOOR - 3;
   const to = (px, py) => { const [ax, ay] = pts[pts.length - 1], n = Math.max(1, Math.ceil(Math.hypot(px - ax, py - ay) / 3)); for (let i = 1; i <= n; i++) pts.push([ax + (px - ax) * i / n, ay + (py - ay) * i / n]); };
@@ -385,9 +385,13 @@ function sketchPath(mx, my) {
   const corner = (px, py, ox, oy) => { to(px + ox, py + oy); to(px, py); };
   pts.push([L, deep]);                       // from inside the case
   to(L, yB);
+  // Outer frame, closed all the way round back to the truss.
   corner(x, yB, -5, 2); corner(x, y, -2, -5); corner(x + w, y, 5, -2); corner(x + w, yB, 2, 5);
-  to(x + w - b, yB - b);
-  corner(x + w - b, y + b, 2, -3); corner(x + b, y + b, -3, -2); corner(x + b, yB - b, -2, 3); to(Rr, yB - b);
+  to(L, yB);
+  // Screen edge, also closed all the way round.
+  to(L, yB - b);
+  corner(x + b, yB - b, -3, 2); corner(x + b, y + b, -2, -3); corner(x + w - b, y + b, 3, -2); corner(x + w - b, yB - b, 2, 3);
+  to(Rr, yB - b);
   to(Rr, deep);                              // down the right chord, back into the case
   let up = deep, left = true;
   while (up - 14 > yB) { up -= 14; to(left ? L : Rr, up); left = !left; }   // lacing climbs back out
