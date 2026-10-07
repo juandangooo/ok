@@ -17,3 +17,12 @@ ffmpeg -framerate 30 -i frames/%05d.jpg -c:v libx264 -crf 19 -pix_fmt yuv420p he
 ```
 Edit copy, photos and timings in the `PANELS`, `MONTAGE` and `T` blocks of `index.html`.
 Opening `index.html` in a browser plays a live preview.
+
+## v2: TV loop (`v2.html`, draft)
+A 3:26 seamless loop for venue TVs: red/black, film grain, warm grade, a permanent logo and website bar, six service
+chapters (audio, visual, lighting, power, truss, staging) with a logo/QR card after each, and a VHS intro/outro for the loop seam.
+`brand/` holds the logo cut-outs and the QR code (points to https://www.hellhoundaudio.com); copy it to `assets/brand/` before rendering.
+Grain textures are generated into `assets/grain/g0-7.png` (640×360 noise).
+```
+node render.mjs frames2 --html v2.html --workers 8
+```

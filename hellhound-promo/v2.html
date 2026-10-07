@@ -1,0 +1,395 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Hellhound Loop</title>
+<link rel="stylesheet" href="assets/fonts.css">
+<style>
+:root{
+  --ink:#0e0d0c; --red:#e8383b; --maroon:#7d1a1c; --cream:#ece3d3; --paper:#f3ecdf; --rust:#9b2f22;
+  --display:'Bricolage Grotesque',sans-serif; --body:'Poppins',sans-serif;
+  --serif:'Instrument Serif',serif; --mono:'DM Mono',monospace;
+  --SW:1872px; --SH:972px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden;background:var(--ink)}
+#tv{position:relative;width:1920px;height:1080px;overflow:hidden;background:var(--ink)}
+#screen{position:absolute;left:24px;top:22px;width:var(--SW);height:var(--SH);overflow:hidden;border-radius:22px;background:var(--ink)}
+#content{position:absolute;inset:0;filter:sepia(.2) saturate(.9) contrast(1.05) brightness(.97)}
+.page{position:absolute;left:0;top:0;width:var(--SW);will-change:transform}
+.sec{position:absolute;left:0;width:var(--SW);height:var(--SH);overflow:hidden}
+.fill{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.mask{display:block;overflow:hidden;padding-bottom:.14em;margin-bottom:-.14em}
+.mask>span{display:inline-block}
+.display{font-family:var(--display);font-weight:500;letter-spacing:-.035em;font-variation-settings:"opsz" 96}
+.ast{color:var(--red);display:inline-block;font-size:.6em;vertical-align:.62em;margin-left:.04em;transform-origin:50% 52%}
+.mono{font-family:var(--mono)}
+
+/* opener */
+.op .word{position:absolute;left:46px;top:20px;color:var(--paper);font-size:300px;line-height:.8;white-space:nowrap}
+.op .line{position:absolute;left:0;right:0;top:470px;text-align:center;color:var(--paper);font-family:var(--serif);font-size:84px;line-height:.95}
+.op .idx{position:absolute;left:0;right:0;bottom:34px;text-align:center;color:var(--paper);font-family:var(--mono);font-size:22px;letter-spacing:.04em}
+.inset{position:absolute;right:56px;bottom:70px;width:420px;height:280px;border:6px solid var(--red);border-radius:8px;overflow:hidden;background:var(--ink)}
+
+/* prints */
+.print{position:absolute;background:var(--paper);padding:14px 14px 46px;border-radius:4px;box-shadow:0 18px 40px rgba(0,0,0,.35)}
+.print .ph{position:relative;width:100%;height:100%;overflow:hidden}
+.print .ph img{position:absolute;left:-6%;top:-6%;width:112%;height:112%;object-fit:cover}
+.print .cap{position:absolute;left:16px;right:16px;bottom:12px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:17px;color:#3a2a22}
+.print .cap b{font-weight:400;color:var(--red)}
+
+.track{position:absolute;left:0;height:var(--SH);display:flex;will-change:transform}
+.panel{position:relative;width:var(--SW);height:var(--SH);flex:none;overflow:hidden}
+.ph1{position:absolute;font-size:190px;line-height:.84;white-space:nowrap}
+.tagw{position:absolute;font-family:var(--body);font-weight:500;font-size:24px;white-space:nowrap;letter-spacing:.02em}
+.pnum{position:absolute;left:52px;bottom:36px;font-family:var(--mono);font-size:21px;opacity:.8}
+
+/* brand card */
+.brand .lock{position:absolute;left:150px;top:200px;display:flex;flex-direction:column;align-items:flex-start;gap:44px}
+.brand .lock .row{display:flex;align-items:center;gap:48px}
+.brand .mark{height:330px}
+.brand .wordimg{height:150px}
+.brand .typed{font-family:var(--mono);font-size:54px;letter-spacing:.01em}
+.cursor{display:inline-block;width:.58em;height:1em;vertical-align:-.12em;margin-left:.1em}
+.qrwrap{position:absolute;right:170px;top:220px;width:480px;height:480px}
+.qrwrap img.qr{position:absolute;left:90px;top:90px;width:300px;height:300px;border-radius:10px}
+.qrwrap svg{position:absolute;inset:0;width:480px;height:480px}
+.qrwrap text{font-family:var(--display);font-weight:500;font-size:31px;letter-spacing:6px;text-transform:uppercase}
+
+/* statement */
+.stmt{position:absolute;left:140px;right:140px;top:200px;color:var(--paper);font-size:92px;line-height:.98}
+.stmt em{font-style:normal;color:var(--red)}
+
+/* finale */
+.fin .big{position:absolute;left:56px;top:40px;color:var(--rust);font-size:330px;line-height:.8;white-space:nowrap}
+.fin .end{position:absolute;left:66px;top:560px;color:var(--rust);font-family:var(--serif);font-size:88px;line-height:1}
+.fin .url{position:absolute;left:66px;bottom:60px;color:var(--rust);font-family:var(--mono);font-size:30px}
+
+/* vhs */
+.vhs{position:absolute;inset:0;background:var(--cream);overflow:hidden}
+.vhs .slice{position:absolute;left:0;right:0;overflow:hidden}
+.vhs .osd{position:absolute;left:70px;top:56px;font-family:var(--mono);font-size:54px;line-height:1.1;color:var(--paper);
+  text-shadow:3px 0 0 #111,-3px 0 0 #111,0 3px 0 #111,0 -3px 0 #111}
+.vhs .band{position:absolute;left:0;right:0;height:120px;background-size:640px 360px;mix-blend-mode:multiply;opacity:.85}
+
+/* overlays */
+#grain{position:absolute;inset:-40px;background-size:1280px 720px;mix-blend-mode:overlay;opacity:.26;pointer-events:none;image-rendering:pixelated}
+#warm{position:absolute;inset:0;background:#ff9a4a;mix-blend-mode:soft-light;opacity:.16;pointer-events:none}
+#vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,0) 60%,rgba(0,0,0,.38) 100%)}
+#flash{position:absolute;inset:0;background:var(--paper);opacity:0;pointer-events:none}
+
+/* bezel bar */
+#bar{position:absolute;left:24px;right:24px;top:1002px;height:72px;display:flex;align-items:center;gap:22px;color:var(--paper)}
+#bar .m{height:56px}
+#bar .w{height:36px}
+#bar .marq{flex:1;overflow:hidden;white-space:nowrap;font-family:var(--mono);font-size:22px;letter-spacing:.04em;color:#bdb3a3;mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+#bar .marq span{display:inline-block}
+#bar .site{font-family:var(--mono);font-size:26px;color:var(--paper)}
+#bar .bast{font-family:var(--display);font-size:64px;line-height:1;color:var(--red);display:inline-block;transform-origin:50% 58%;margin-top:14px}
+#menu{position:absolute;right:56px;top:48px;background:var(--red);color:var(--paper);border-radius:31px;padding:9px 26px;font-family:var(--body);font-weight:500;font-size:17px;letter-spacing:.1em;z-index:5}
+</style>
+</head>
+<body>
+<div id="tv">
+  <div id="screen">
+    <div id="content"></div>
+    <div id="warm"></div>
+    <div id="vig"></div>
+    <div id="grain"></div>
+    <div id="flash"></div>
+    <div id="menu">MENU</div>
+  </div>
+  <div id="bar">
+    <img class="m" src="assets/brand/mark.png">
+    <img class="w" src="assets/brand/word_light.png">
+    <div class="marq"><span id="marq"></span></div>
+    <div class="site">hellhoundaudio.com</div>
+    <div class="bast" id="bast">*</div>
+  </div>
+</div>
+
+<script>
+// ================= DATA =================
+const SW=1872, SH=972;
+const IMG=n=>`assets/img/${String(n).padStart(2,'0')}.jpg`;
+const CH = [
+ { key:'audio', line:['every word heard,','every beat felt'], hero:{clip:'band',speed:1}, inset:36,
+   panels:[
+    {L:'A', bg:'ink',    ph:['front of','house'],   imgs:[17,13]},
+    {L:'B', bg:'red',    ph:['crystal','clear'],    imgs:[03,04,14]},
+    {L:'C', bg:'maroon', ph:['mix','ready'],        imgs:[07,16,56]},
+    {L:'D', bg:'cream',  ph:['every room, every voice'], imgs:[35,38,42]},
+   ], tags:['front of house','monitors','wireless mics','playback','speech','band'] , brand:'cream'},
+ { key:'visual', line:['screens that pull','the whole room in'], hero:{img:46,pos:'50% 50%'}, inset:22,
+   panels:[
+    {L:'B', bg:'ink',    ph:['big','screens'],      imgs:[05,06,10]},
+    {L:'A', bg:'red',    ph:['led','walls'],        imgs:[32,47]},
+    {L:'D', bg:'cream',  ph:['press, retail, stadium, stage'], imgs:[11,29,74]},
+    {L:'C', bg:'maroon', ph:['every','angle'],      imgs:[37,23,31]},
+   ], tags:['led walls','projection','imag','live feeds','signage','playback'], brand:'ink'},
+ { key:'lighting', line:['light that sets the mood,','cue by cue'], hero:{clip:'gala',speed:.9}, inset:75,
+   panels:[
+    {L:'C', bg:'ink',    ph:['set the','mood'],     imgs:[09,02,40]},
+    {L:'A', bg:'maroon', ph:['color','wash'],       imgs:[15,41]},
+    {L:'B', bg:'red',    ph:['cue by','cue'],       imgs:[12,58,72]},
+    {L:'D', bg:'cream',  ph:['galas, tents, rings and dance floors'], imgs:[70,34,24]},
+   ], tags:['uplighting','wash & spot','haze','string lights','dmx','cues'], brand:'red'},
+ { key:'power', line:['clean power, quietly','keeping the show alive'], hero:{img:48,pos:'50% 50%'}, inset:21,
+   panels:[
+    {L:'A', bg:'ink',    ph:['always','on'],        imgs:[39,19]},
+    {L:'D', bg:'cream',  ph:['road-cased, labeled, load-in ready'], imgs:[18,20,30]},
+    {L:'B', bg:'red',    ph:['quiet','& safe'],     imgs:[44,45,69]},
+    {L:'C', bg:'maroon', ph:['show','ready'],       imgs:[26,27,28]},
+   ], tags:['distro','cable runs','generators','backline','clean power','safety'], brand:'cream'},
+ { key:'truss', line:['built strong enough','to hold everything up'], hero:{img:52,pos:'50% 50%'}, inset:71,
+   panels:[
+    {L:'B', bg:'ink',    ph:['rigged','right'],     imgs:[51,53,57]},
+    {L:'C', bg:'red',    ph:['built','strong'],     imgs:[73,65,77]},
+    {L:'A', bg:'maroon', ph:['arches &','gates'],   imgs:[71,67]},
+    {L:'D', bg:'cream',  ph:['street fairs, rings, finish lines'], imgs:[52,61,25]},
+   ], tags:['box truss','goal posts','arches','towers','banners','rigging'], brand:'ink'},
+ { key:'staging', line:['a stage for every moment','worth standing on'], hero:{clip:'build',speed:1}, inset:59,
+   panels:[
+    {L:'A', bg:'red',    ph:['center','stage'],     imgs:[60,50]},
+    {L:'C', bg:'ink',    ph:['mobile','stages'],    imgs:[49,62,64]},
+    {L:'B', bg:'maroon', ph:['rain or','shine'],    imgs:[54,55,63]},
+    {L:'D', bg:'cream',  ph:['schools, festivals, galas, tents'], imgs:[08,66,76]},
+   ], tags:['mobile stages','risers','decks','tents','skirting','ramps'], brand:'red'},
+];
+const BG={ink:'var(--ink)',red:'var(--red)',maroon:'var(--maroon)',cream:'var(--cream)'};
+const FG={ink:'var(--paper)',red:'var(--paper)',maroon:'var(--paper)',cream:'var(--ink)'};
+const TAGC={ink:'var(--red)',red:'var(--ink)',maroon:'#f0a08d',cream:'var(--red)'};
+
+// ================= TIMELINE =================
+const P = {opHold:5.2, toTrack:1.4, hold:2.9, move:1.1, brandHold:4.8, toNext:1.4};
+const T = {vhsEnd:4.2, heroA:4.2, heroHold:8.6};
+T.stmtA = T.heroA + T.heroHold;   // scroll hero -> statement
+T.stmtB = T.stmtA + 1.4;
+T.ch0  = T.stmtB + 6.2;           // statement -> chapter 1 opener scroll start
+const chStart=[];  // time chapter opener scroll begins
+let tt=T.ch0;
+for(let i=0;i<CH.length;i++){ chStart.push(tt); tt += P.toNext + P.opHold + P.toTrack + 4*P.hold + 4*P.move + P.brandHold; }
+T.finA = tt; T.finB = tt + P.toNext; T.vhsOut = T.finB + 9.5; T.END = T.vhsOut + 1.6;
+window.DURATION = T.END;
+
+// ================= BUILD DOM =================
+const content=document.getElementById('content');
+const page=document.createElement('div'); page.className='page'; content.appendChild(page);
+let Y=0; const secY={};
+function addSec(id, html, bg, h=SH){ const s=document.createElement('div'); s.className='sec'; s.id=id; s.style.top=Y+'px'; s.style.height=h+'px'; s.style.background=bg||'var(--ink)'; s.innerHTML=html; page.appendChild(s); secY[id]=Y; Y+=h; return s; }
+
+const wordHTML=(w,cls='')=>`<span class="mask"><span class="${cls}">${w}<span class="ast">*</span></span></span>`;
+
+// hero
+addSec('hero', `<img class="fill heroimg" data-clip="gala">
+  <div class="op"><div class="word display">${wordHTML('hellhound','rw')}</div>
+  <div class="line"><span class="mask"><span class="rl">from the first soundcheck</span></span><span class="mask"><span class="rl">to the last encore</span></span></div>
+  <div class="idx">[ audio · visual · lighting · power · truss · staging ]</div></div>`);
+// statement
+addSec('stmt', `<div class="stmt display">
+  <span class="mask"><span class="rl">hellhound audio<em>*</em> brings <em>audio,</em></span></span>
+  <span class="mask"><span class="rl"><em>visual, lighting, power, truss</em></span></span>
+  <span class="mask"><span class="rl"><em>&amp; staging</em> to shows of every size,</span></span>
+  <span class="mask"><span class="rl">so every night runs smooth, safe</span></span>
+  <span class="mask"><span class="rl">and sounds unforgettable.</span></span></div>
+  <div class="mono" style="position:absolute;left:144px;bottom:60px;font-size:24px;color:#bdb3a3">[ six services · one crew · hellhoundaudio.com ]</div>`, 'var(--ink)');
+
+function printHTML(n, w, h, x, y, rot, cap, extra=''){
+  return `<div class="print" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;transform:rotate(${rot}deg)" data-rot="${rot}" ${extra}>
+    <div class="ph"><img src="${IMG(n)}"></div><div class="cap"><span>${cap}</span><b>hellhound*</b></div></div>`;
+}
+function panelHTML(p, ci, pi, tags){
+  const fg=FG[p.bg], tc=TAGC[p.bg]; let h='';
+  const big=(t,x,y,size=190,al='left')=>`<div class="ph1 display pw" style="left:${x}px;top:${y}px;color:${fg};font-size:${size}px;text-align:${al}">${t}</div>`;
+  const cap=k=>`HH-${String(ci+1).padStart(2,'0')}${String.fromCharCode(65+pi)}${k}`;
+  if(p.L==='A'){ // big print left + small print, stacked phrase right
+    h+=big(`${p.ph[0]}<br>${p.ph[1]}<span style="color:${p.bg==='red'?'var(--ink)':'var(--red)'}">*</span>`, 1090, 250);
+    h+=printHTML(p.imgs[0], 880, 640, 110, 120, -2.5, cap(1));
+    h+=printHTML(p.imgs[1], 440, 340, 760, 540, 4, cap(2));
+  } else if(p.L==='B'){ // fan of three, phrase behind
+    h+=big(`${p.ph[0]} ${p.ph[1]}<span style="color:${p.bg==='red'?'var(--ink)':'var(--red)'}">*</span>`, 0, 60, 170, 'center').replace('left:0px','left:0px;right:0px');
+    h+=printHTML(p.imgs[0], 520, 400, 260, 380, -7, cap(1));
+    h+=printHTML(p.imgs[1], 520, 400, 676, 330, 1.5, cap(2));
+    h+=printHTML(p.imgs[2], 520, 400, 1090, 400, 7.5, cap(3));
+  } else if(p.L==='C'){ // split word around portrait print + two small corners
+    h+=`<div class="ph1 display pw" style="right:calc(50% + 250px);top:50%;transform:translateY(-50%);color:${fg};font-size:200px">${p.ph[0]}</div>`;
+    h+=`<div class="ph1 display pw" style="left:calc(50% + 250px);top:50%;transform:translateY(-50%);color:${fg};font-size:200px">${p.ph[1]}</div>`;
+    h+=printHTML(p.imgs[1], 380, 280, 90, 600, -5, cap(2));
+    h+=printHTML(p.imgs[2], 380, 280, 1400, 70, 5, cap(3));
+    h+=printHTML(p.imgs[0], 470, 600, SW/2-235, SH/2-300, p.bg==='ink'?-3:3, cap(1));
+  } else { // contact strip
+    h+=`<div class="ph1 display pw" style="left:90px;top:80px;color:${fg};font-size:96px;line-height:.9;max-width:1700px;white-space:normal">${p.ph[0]}<span style="color:var(--red)">.</span></div>`;
+    [0,1,2].forEach(k=> h+=printHTML(p.imgs[k], 540, 420, 90+k*580, 380+(k%2)*30, [-1.5,1,-.5][k], cap(k+1)));
+  }
+  [[90,60,-6],[1500,880,5],[1580,40,4]].forEach(([x,y,r],j)=>{ if(p.L==='D'&&j===0) return;
+    h+=`<div class="tagw" style="left:${x}px;top:${y}px;transform:rotate(${r}deg);color:${tc}">${tags[(pi*2+j)%tags.length]}</div>`; });
+  h+=`<div class="pnum" style="color:${fg}">${String(ci+1).padStart(2,'0')} ${CH[ci].key} — ${pi+1} / 4</div>`;
+  return h;
+}
+function brandHTML(bg){
+  const dark = bg!=='cream'; const fg=dark?'var(--paper)':'var(--ink)'; const ring = bg==='red'?'var(--ink)':'var(--red)';
+  return `<div class="brand">
+    <div class="lock"><div class="row"><img class="mark" src="assets/brand/mark.png"><img class="wordimg" src="assets/brand/word_${dark?'light':'dark'}.png"></div>
+      <div class="typed" style="color:${fg}"><span class="tx"></span><span class="cursor" style="background:${fg}"></span></div>
+      <div class="mono" style="font-size:26px;color:${fg};opacity:.75">audio · visual · lighting · power · truss · staging</div></div>
+    <div class="qrwrap"><img class="qr" src="assets/brand/qr.png">
+      <svg viewBox="0 0 480 480"><defs><path id="circ" d="M240,240 m-205,0 a205,205 0 1,1 410,0 a205,205 0 1,1 -410,0"/></defs>
+        <g class="ring"><text fill="${ring}"><textPath href="#circ">scan to book ✶ visit hellhoundaudio.com ✶ scan to book ✶</textPath></text></g></svg></div></div>`;
+}
+// chapters: opener section + track section
+CH.forEach((c,ci)=>{
+  const heroMedia = c.hero.clip ? `<img class="fill heroimg" data-clip="${c.hero.clip}">` : `<img class="fill heroimg" src="${IMG(c.hero.img)}" style="object-position:${c.hero.pos}">`;
+  addSec('op'+ci, `${heroMedia}<div class="op">
+    <div class="word display">${wordHTML(c.key,'rw')}</div>
+    <div class="line"><span class="mask"><span class="rl">${c.line[0]}</span></span><span class="mask"><span class="rl">${c.line[1]}</span></span></div>
+    <div class="inset"><img class="fill" src="${IMG(c.inset)}"></div>
+    <div class="idx">[ ${String(ci+1).padStart(2,'0')} / 06 — ${c.key} ]</div></div>`);
+  const s=addSec('tr'+ci, `<div class="track"></div>`);
+  const tr=s.querySelector('.track');
+  c.panels.forEach((p,pi)=>{ const d=document.createElement('div'); d.className='panel'; d.style.background=BG[p.bg]; d.innerHTML=panelHTML(p,ci,pi,c.tags); tr.appendChild(d); });
+  const b=document.createElement('div'); b.className='panel'; b.style.background=BG[c.brand]; b.innerHTML=brandHTML(c.brand); tr.appendChild(b);
+});
+// finale
+addSec('fin', `<div class="fin">
+  <div class="big display">${wordHTML('hellhound','rw')}</div>
+  <div class="end"><span class="mask"><span class="rl">from the first soundcheck</span></span><span class="mask"><span class="rl">to the last encore</span></span></div>
+  <div class="url">[ hellhoundaudio.com ]</div>
+  <div style="position:absolute;right:90px;top:330px;display:flex;flex-direction:column;align-items:center;gap:26px">
+    <img src="assets/brand/mark.png" style="height:250px"><img src="assets/brand/word_dark.png" style="height:96px"></div>
+  <div class="qrwrap" style="right:auto;left:945px;top:440px;transform:scale(.8);transform-origin:0 0"><img class="qr" src="assets/brand/qr.png">
+    <svg viewBox="0 0 480 480"><defs><path id="circ2" d="M240,240 m-205,0 a205,205 0 1,1 410,0 a205,205 0 1,1 -410,0"/></defs>
+    <g class="ring"><text fill="var(--red)"><textPath href="#circ2">scan to book ✶ visit hellhoundaudio.com ✶ scan to book ✶</textPath></text></g></svg></div>
+  </div>`, 'var(--cream)');
+
+// VHS layer (intro + outro)
+const vhs=document.createElement('div'); vhs.className='vhs'; vhs.id='vhs';
+let sl=''; for(let i=0;i<12;i++){ sl+=`<div class="slice" style="top:${i*SH/12}px;height:${SH/12+1}px"><div class="sl-in" style="position:absolute;left:0;top:${-i*SH/12}px;width:${SW}px;height:${SH}px">
+  <div style="position:absolute;left:50%;top:120px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:40px">
+  <img src="assets/brand/mark.png" style="height:470px"><img src="assets/brand/word_dark.png" style="height:150px"></div></div></div>`; }
+vhs.innerHTML = sl + `<div class="band" id="band1"></div><div class="band" id="band2" style="height:60px"></div>
+  <div class="osd" id="osd">▶ PLAY<br><span id="ctr">00:00:00</span></div>`;
+content.appendChild(vhs);
+
+document.getElementById('marq').innerHTML = Array(8).fill('audio <b style="color:var(--red)">*</b> visual <b style="color:var(--red)">*</b> lighting <b style="color:var(--red)">*</b> power <b style="color:var(--red)">*</b> truss <b style="color:var(--red)">*</b> staging <b style="color:var(--red)">*</b> book your event at hellhoundaudio.com <b style="color:var(--red)">*</b> ').join('');
+
+// ================= HELPERS =================
+function bez(x1,y1,x2,y2){return t=>{if(t<=0)return 0;if(t>=1)return 1;let u=t;for(let i=0;i<8;i++){const x=3*(1-u)*(1-u)*u*x1+3*(1-u)*u*u*x2+u*u*u-t;const dx=3*(1-u)*(1-u)*x1+6*(1-u)*u*(x2-x1)+3*u*u*(1-x2);if(Math.abs(dx)<1e-6)break;u-=x/dx;u=Math.min(1,Math.max(0,u));}return 3*(1-u)*(1-u)*u*y1+3*(1-u)*u*u*y2+u*u*u;};}
+const SCROLL=bez(.7,0,.12,1), OUT=bez(.16,1,.3,1), INOUT=bez(.65,0,.35,1);
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)), prog=(t,a,b)=>clamp((t-a)/(b-a)), lerp=(a,b,p)=>a+(b-a)*p;
+const $=id=>document.getElementById(id);
+function rand(n){ const x=Math.sin(n*127.1+311.7)*43758.5453; return x-Math.floor(x); }
+function rise(els,t,start,stagger=.1,dur=1.1){ els.forEach((e,i)=>{const p=OUT(prog(t,start+i*stagger,start+i*stagger+dur)); e.style.transform=`translateY(${(1-p)*110}%)`;}); }
+const CLIP={gala:182,band:449,build:214};
+function clipSrc(name,t){const n=CLIP[name];let f=Math.floor(Math.max(0,t)*30);f = name==='gala'? Math.min(f,n-1) : f%n; return `assets/clips/${name}/${String(f+1).padStart(4,'0')}.jpg`;}
+const pending=[]; function setSrc(img,src){ if(img.getAttribute('src')!==src){ img.setAttribute('src',src); pending.push(img.decode().catch(()=>{})); } }
+
+// scroll keyframes for the single long page
+const KEYS=[[0,0],[T.stmtA,0],[T.stmtB,secY.stmt]];
+CH.forEach((c,ci)=>{ const s=chStart[ci];
+  KEYS.push([s, ci===0?secY.stmt:secY['tr'+(ci-1)]]);
+  KEYS.push([s+P.toNext, secY['op'+ci]]);
+  KEYS.push([s+P.toNext+P.opHold, secY['op'+ci]]);
+  KEYS.push([s+P.toNext+P.opHold+P.toTrack, secY['tr'+ci]]);
+});
+KEYS.push([T.finA, secY['tr'+(CH.length-1)]],[T.finB, secY.fin]);
+function scrollY(t){ for(let i=1;i<KEYS.length;i++){ if(t<=KEYS[i][0]){ const [t0,v0]=KEYS[i-1],[t1,v1]=KEYS[i]; return t1===t0?v1:lerp(v0,v1,SCROLL(prog(t,t0,t1))); } } return KEYS[KEYS.length-1][1]; }
+
+const secs=[...document.querySelectorAll('.sec')];
+const sel=(root,s)=>[...root.querySelectorAll(s)];
+
+// ================= RENDER =================
+window.renderFrame = async function(t){
+  pending.length=0;
+  const y=scrollY(t);
+  page.style.transform=`translateY(${-y}px)`;
+  secs.forEach(s=>{ const top=+s.style.top.replace('px','')-y; s.style.visibility=(top>-SH-2&&top<SH+2)?'visible':'hidden'; });
+
+  // ---- hero
+  { const s=$('hero'); const vis=s.style.visibility==='visible';
+    if(vis){ const img=s.querySelector('.heroimg'); setSrc(img, clipSrc('gala',(t-T.heroA+.3)*.85));
+      img.style.transform=`translateY(${y*.45}px) scale(${1.04+.05*prog(t,T.heroA,T.stmtB)})`;
+      rise(sel(s,'.rw'),t,T.heroA+.3,0,1.4); rise(sel(s,'.rl'),t,T.heroA+.9,.13,1.2);
+      sel(s,'.ast').forEach(a=>a.style.transform=`rotate(${t*40}deg)`); } }
+  // ---- statement
+  { const s=$('stmt'); if(s.style.visibility==='visible'){ rise(sel(s,'.rl'),t,T.stmtA+.5,.12,1.2); } }
+
+  // ---- chapters
+  CH.forEach((c,ci)=>{
+    const s0=chStart[ci], opA=s0+P.toNext, trA=opA+P.opHold+P.toTrack;
+    const op=$('op'+ci), tr=$('tr'+ci);
+    if(op.style.visibility==='visible'){
+      const img=op.querySelector('.heroimg'); const rel=y-secY['op'+ci];
+      if(c.hero.clip) setSrc(img, clipSrc(c.hero.clip,(t-s0)*c.hero.speed));
+      img.style.transform=`translateY(${rel*.45}px) scale(${1.05+.06*prog(t,s0,trA)})`;
+      rise(sel(op,'.rw'),t,opA-.5,0,1.3); rise(sel(op,'.rl'),t,opA+.1,.14,1.2);
+      sel(op,'.ast').forEach(a=>a.style.transform=`rotate(${t*40}deg)`);
+      const ins=op.querySelector('.inset'); const ip=OUT(prog(t,opA+.9,opA+2.0));
+      ins.style.transform=`translateY(${(1-ip)*60}px)`; ins.style.opacity=ip;
+      ins.querySelector('img').style.transform=`scale(${1.1-.08*prog(t,opA,trA)})`;
+    }
+    if(tr.style.visibility==='visible'){
+      const track=tr.querySelector('.track'); let x=0;
+      for(let k=1;k<=4;k++){ const a=trA+k*P.hold+(k-1)*P.move; x+=SW*SCROLL(prog(t,a,a+P.move)); }
+      const drift=60*prog(t,trA-.6,trA+4*P.hold+4*P.move+P.brandHold);
+      track.style.transform=`translateX(${-(x+drift)}px)`;
+      [...track.children].forEach((pn,pi)=>{
+        const off=pi*SW-(x+drift); if(Math.abs(off)>SW+10) return;
+        const enter = pi===0 ? 1-OUT(prog(t,trA-P.toTrack+.5,trA+.6)) : 0;   // first panel prints rise with the scroll
+        sel(pn,'.print').forEach((pr,k)=>{ const r=+pr.dataset.rot; const sp=[-.14,.1,-.06][k%3];
+          pr.style.transform=`translate(${off*sp}px,${enter*(200+k*60) + Math.sin(t*.9+k*2+pi)*5}px) rotate(${r+off*.001}deg)`;
+          pr.querySelector('img').style.transform=`translateX(${off*.04}px)`; });
+        sel(pn,'.pw').forEach((w,k)=>{ w.style.translate=`${off*(k%2?-.05:.06)}px 0`; });
+        sel(pn,'.tagw').forEach((g,k)=>{ g.style.translate=`${off*(k%2?-.12:.1)}px ${Math.sin(t*1.2+k)*6}px`; });
+        // brand card
+        const typed=pn.querySelector('.tx');
+        if(typed){ const bA=trA+4*P.hold+4*P.move-.2; const full='HellhoundAudio.com  :)';
+          const n=Math.floor(clamp((t-bA)/1.6)*full.length); typed.textContent=full.slice(0,n);
+          pn.querySelector('.cursor').style.opacity = (Math.floor(t*2.2)%2)?1:0;
+          pn.querySelector('.ring').setAttribute('transform',`rotate(${t*14} 240 240)`);
+          const lk=pn.querySelector('.lock'); const lp=OUT(prog(t,bA-.6,bA+.6)); lk.style.transform=`translateX(${off*.08}px)`; }
+      });
+    }
+  });
+
+  // ---- finale
+  { const s=$('fin'); if(s.style.visibility==='visible'){
+      rise(sel(s,'.rw'),t,T.finA+.6,0,1.4); rise(sel(s,'.rl'),t,T.finA+1.1,.14,1.2);
+      sel(s,'.ast').forEach(a=>a.style.transform=`rotate(${t*40}deg)`);
+      s.querySelector('.ring').setAttribute('transform',`rotate(${t*14} 240 240)`); } }
+
+  // ---- VHS intro / outro
+  const vIn = t<T.vhsEnd, vOut = t>=T.vhsOut;
+  const v=$('vhs');
+  if(vIn||vOut){
+    v.style.display='block';
+    // glitch amount: high at start of intro -> clean -> cut; outro ramps up
+    let g = vIn ? 1-prog(t,.4,2.6) : prog(t,T.vhsOut,T.END-.2);
+    const f=Math.floor(t*30);
+    sel(v,'.slice').forEach((s,i)=>{ const r=rand(f*13+i); const dx=(r-.5)*2*g*(r>.6?260:40);
+      s.firstElementChild.style.transform=`translateX(${dx}px)`; s.style.filter = r>.85&&g>.2 ? 'invert(1)' : 'none'; });
+    const by=((t*620)%(SH+200))-120;
+    $('band1').style.top=by+'px'; $('band1').style.backgroundImage=`url(assets/grain/g${f%8}.png)`; $('band1').style.opacity=.25+.7*g;
+    $('band2').style.top=((by*1.7+400)%(SH+100))+'px'; $('band2').style.backgroundImage=`url(assets/grain/g${(f+3)%8}.png)`; $('band2').style.opacity=.6*g;
+    const sec=Math.floor(t); $('ctr').textContent=`00:${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;
+    $('osd').style.opacity = vIn ? 1-prog(t,T.vhsEnd-.6,T.vhsEnd-.2) : 1;
+    $('osd').firstChild.textContent = vIn ? '▶ PLAY' : '◀◀ REW';
+    v.style.opacity = vIn ? 1-prog(t,T.vhsEnd-.35,T.vhsEnd) : prog(t,T.vhsOut,T.vhsOut+.25);
+  } else v.style.display='none';
+
+  // ---- global overlays
+  const f=Math.floor(t*30);
+  $('grain').style.backgroundImage=`url(assets/grain/g${f%8}.png)`;
+  $('grain').style.transform=`translate(${(rand(f)*40-20)|0}px,${(rand(f+9)*40-20)|0}px)`;
+  // subtle film flicker
+  $('content').style.opacity = 1 - rand(f*3.1)*.035;
+  $('marq').style.transform=`translateX(${-(t*70)%1580}px)`;
+  $('bast').style.transform=`rotate(${t*40}deg)`;
+
+  await Promise.all(pending);
+};
+
+window.ready=(async()=>{ await document.fonts.ready; await Promise.all([...document.images].filter(i=>i.src).map(i=>i.decode().catch(()=>{}))); return true; })();
+if(!navigator.webdriver){ const t0=performance.now(); const loop=async()=>{ await window.renderFrame(((performance.now()-t0)/1000)%DURATION); requestAnimationFrame(loop); }; window.ready.then(loop); }
+</script>
+</body>
+</html>

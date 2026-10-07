@@ -11,7 +11,7 @@ const fps = +opt('--fps', 30), workers = +opt('--workers', 4);
 const times = opt('--times', null);
 mkdirSync(outDir, { recursive: true });
 
-const url = pathToFileURL(path.join(path.dirname(new URL(import.meta.url).pathname), 'index.html')).href;
+const url = pathToFileURL(path.join(path.dirname(new URL(import.meta.url).pathname), opt('--html', 'index.html'))).href;
 const browser = await chromium.launch({ args: ['--allow-file-access-from-files', '--disable-web-security'] });
 
 async function openPage() {
