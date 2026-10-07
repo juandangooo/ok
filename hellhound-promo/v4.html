@@ -1,0 +1,405 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Hellhound Loop</title>
+<link rel="stylesheet" href="assets/fonts.css">
+<style>
+:root{
+  --ink:#0e0d0c; --red:#e8383b; --maroon:#7d1a1c; --cream:#ece3d3; --paper:#f3ecdf; --rust:#9b2f22;
+  --display:'Bricolage Grotesque',sans-serif; --body:'Poppins',sans-serif;
+  --serif:'Instrument Serif',serif; --mono:'DM Mono',monospace;
+  --SW:1872px; --SH:972px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden;background:var(--ink)}
+#tv{position:relative;width:1920px;height:1080px;overflow:hidden;background:var(--ink)}
+#screen{position:absolute;left:24px;top:22px;width:var(--SW);height:var(--SH);overflow:hidden;border-radius:22px;background:var(--ink)}
+#content{position:absolute;inset:0;filter:sepia(.2) saturate(.9) contrast(1.05) brightness(.97)}
+.page{position:absolute;left:0;top:0;width:var(--SW);will-change:transform}
+.sec{position:absolute;left:0;width:var(--SW);height:var(--SH);overflow:hidden}
+.fill{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.mask{display:block;overflow:hidden;padding-bottom:.14em;margin-bottom:-.14em}
+.mask>span{display:inline-block}
+.display{font-family:var(--display);font-weight:500;letter-spacing:-.035em;font-variation-settings:"opsz" 96}
+.bolt{display:inline-block;height:.86em;width:auto;vertical-align:-.02em;margin-left:.07em;transform-origin:50% 50%}
+.ast{display:inline-block}
+.mono{font-family:var(--mono)}
+
+/* opener */
+.op .word{position:absolute;left:46px;top:20px;color:var(--paper);font-size:300px;line-height:.8;white-space:nowrap}
+.op .line{position:absolute;left:0;right:0;top:470px;text-align:center;color:var(--paper);font-family:var(--serif);font-size:84px;line-height:.95}
+.op .idx{position:absolute;left:0;right:0;bottom:34px;text-align:center;color:var(--paper);font-family:var(--mono);font-size:22px;letter-spacing:.04em}
+.inset{position:absolute;right:56px;bottom:70px;width:420px;height:280px;border:6px solid var(--red);border-radius:8px;overflow:hidden;background:var(--ink)}
+
+/* prints */
+.print{position:absolute;border-radius:14px;overflow:hidden;box-shadow:0 34px 70px rgba(0,0,0,.5),0 10px 22px rgba(0,0,0,.32),0 0 0 1px rgba(255,255,255,.07)}
+.print .ph{position:absolute;inset:0;overflow:hidden}
+.print .ph img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover}
+.print .cap{position:absolute;left:16px;right:16px;bottom:9px;display:flex;justify-content:center;font-family:var(--mono);font-size:21px;letter-spacing:.12em;text-transform:uppercase;color:#3a2a22}
+.print .cap b{font-weight:400;color:var(--red)}
+
+.track{position:absolute;left:0;height:var(--SH);display:flex;will-change:transform}
+.panel{position:relative;width:var(--SW);height:var(--SH);flex:none;overflow:hidden}
+.ph1{position:absolute;font-size:190px;line-height:.84;white-space:nowrap}
+.tagw{position:absolute;font-family:var(--body);font-weight:500;font-size:24px;white-space:nowrap;letter-spacing:.02em}
+.pnum{position:absolute;left:52px;bottom:36px;font-family:var(--mono);font-size:21px;opacity:.8}
+
+/* brand card */
+.brand .lock{position:absolute;left:150px;top:200px;display:flex;flex-direction:column;align-items:flex-start;gap:44px}
+.brand .lock .row{display:flex;align-items:center;gap:48px}
+.brand .mark{height:330px}
+.brand .wordimg{height:150px}
+.brand .typed{font-family:var(--mono);font-size:54px;letter-spacing:.01em}
+.cursor{display:inline-block;width:.58em;height:1em;vertical-align:-.12em;margin-left:.1em}
+.qrwrap{position:absolute;right:170px;top:220px;width:480px;height:480px}
+.qrwrap img.qr{position:absolute;left:90px;top:90px;width:300px;height:300px;border-radius:10px}
+.qrwrap svg{position:absolute;inset:0;width:480px;height:480px}
+.qrwrap text{font-family:var(--display);font-weight:500;font-size:31px;letter-spacing:6px;text-transform:uppercase}
+
+/* statement */
+.stmt{position:absolute;left:140px;right:140px;top:200px;color:var(--paper);font-size:92px;line-height:.98}
+.stmt em{font-style:normal;color:var(--red)}
+
+/* finale */
+.fin .big{position:absolute;left:56px;top:40px;color:var(--rust);font-size:330px;line-height:.8;white-space:nowrap}
+.fin .end{position:absolute;left:66px;top:560px;color:var(--rust);font-family:var(--serif);font-size:88px;line-height:1}
+.fin .url{position:absolute;left:66px;bottom:60px;color:var(--rust);font-family:var(--mono);font-size:30px}
+
+/* vhs */
+.vhs{position:absolute;inset:0;background:var(--cream);overflow:hidden}
+.vhs .slice{position:absolute;left:0;right:0;overflow:hidden}
+.vhs .osd{position:absolute;left:70px;top:56px;font-family:var(--mono);font-size:54px;line-height:1.1;color:var(--paper);
+  text-shadow:3px 0 0 #111,-3px 0 0 #111,0 3px 0 #111,0 -3px 0 #111}
+.vhs .band{position:absolute;left:0;right:0;height:120px;background-size:640px 360px;mix-blend-mode:multiply;opacity:.85}
+
+/* overlays */
+#grain{position:absolute;inset:-40px;background-size:1280px 720px;mix-blend-mode:overlay;opacity:.26;pointer-events:none;image-rendering:pixelated}
+#warm{position:absolute;inset:0;background:#ff9a4a;mix-blend-mode:soft-light;opacity:.16;pointer-events:none}
+#vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,0) 60%,rgba(0,0,0,.38) 100%)}
+#flash{position:absolute;inset:0;background:var(--paper);opacity:0;pointer-events:none}
+
+/* bezel bar */
+#bar{position:absolute;left:24px;right:24px;top:1002px;height:72px;display:flex;align-items:center;gap:22px;color:var(--paper)}
+#bar .m{height:56px}
+#bar .w{height:36px}
+#bar .marq{flex:1;overflow:hidden;white-space:nowrap;font-family:var(--mono);font-size:22px;letter-spacing:.04em;color:#bdb3a3;mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+#bar .marq span{display:inline-block}
+#bar .site{font-family:var(--mono);font-size:26px;color:var(--paper)}
+
+#coin{position:absolute;right:46px;top:34px;width:150px;height:156px;perspective:700px;z-index:5}
+#coin .flip{position:absolute;inset:0;transform-style:preserve-3d}
+#coin .face{position:absolute;inset:0;backface-visibility:hidden;display:flex;align-items:center;justify-content:center;
+  filter:drop-shadow(0 8px 14px rgba(0,0,0,.35))}
+#coin .face img{display:block}
+#coin .back{transform:rotateY(180deg)}
+
+#bar .tabs{flex:1;display:flex;justify-content:center;gap:8px}
+#bar .tab{position:relative;font-family:var(--mono);font-size:22px;letter-spacing:.08em;text-transform:uppercase;color:#8d8478;padding:8px 20px;border-radius:31px}
+#bar .tab .pg{position:absolute;left:20px;right:20px;bottom:4px;height:2px;background:#fff;transform-origin:0 50%;transform:scaleX(0)}
+.outline{filter:drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff)}
+.inset{width:auto}
+</style>
+<script src="assets/dims.js"></script>
+</head>
+<body>
+<div id="tv">
+  <div id="screen">
+    <div id="content"></div>
+    <div id="warm"></div>
+    <div id="vig"></div>
+    <div id="grain"></div>
+    <div id="flash"></div>
+    <div id="coin"><div class="flip" id="flip"><div class="face"><img class="outline" src="assets/brand/mark.png" style="height:150px"></div><div class="face back"><img src="assets/brand/qr.png" style="width:146px;height:146px;border-radius:6px"></div></div></div>
+  </div>
+  <div id="bar">
+    <img class="m outline" src="assets/brand/mark.png">
+    <img class="w" src="assets/brand/word_white.png">
+    <div class="tabs" id="tabs"></div>
+    <div class="site">hellhoundaudio.com</div>
+    <img id="bast" src="assets/brand/bolt.svg" style="height:50px;margin:0 6px">
+  </div>
+</div>
+
+<script>
+// ================= DATA =================
+const SW=1872, SH=972; let CUR_SERVICE='';
+const IMG=n=>`assets/img/${String(n).padStart(2,'0')}.jpg`;
+const AR=n=>window.ASPECT[n]||1.333;
+// each service has two rounds: round 1 = first two panels, round 2 = last two panels
+const CH = [
+ { key:'audio', line:['every word heard,','every beat felt'],
+   heroes:[{clip:'band',speed:1},{img:17},{img:36},{img:14}],
+   panels:[
+    {L:'A', bg:'ink',    ph:['front of','house'],   imgs:[17,13]},
+    {L:'B', bg:'red',    ph:['crystal','clear'],    imgs:[3,4,14]},
+    {L:'C', bg:'maroon', ph:['mix','ready'],        imgs:[7,16,56]},
+    {L:'D', bg:'cream',  ph:['every room, every voice'], imgs:[35,38,43]},
+   ], brands:['cream','ink']},
+ { key:'visual', line:['screens that pull','the whole room in'],
+   heroes:[{img:46},{img:22},{img:32},{img:74}],
+   panels:[
+    {L:'B', bg:'ink',    ph:['big','screens'],      imgs:[5,6,10]},
+    {L:'A', bg:'red',    ph:['trusted on','game day'], imgs:[32,47]},
+    {L:'D', bg:'cream',  ph:['press, retail, stadium, stage'], imgs:[11,29,74]},
+    {L:'C', bg:'maroon', ph:['every','angle'],      imgs:[37,23,31]},
+   ], brands:['ink','red']},
+ { key:'lighting', line:['light that sets the mood,','cue by cue'],
+   heroes:[{img:75},{img:15},{img:9},{img:72}],
+   panels:[
+    {L:'C', bg:'ink',    ph:['set the','mood'],     imgs:[9,2,40]},
+    {L:'A', bg:'maroon', ph:['color','wash'],       imgs:[15,41]},
+    {L:'B', bg:'red',    ph:['cue by','cue'],       imgs:[12,58,72]},
+    {L:'D', bg:'cream',  ph:['galas, tents, rings and dance floors'], imgs:[70,34,24]},
+   ], brands:['red','cream']},
+ { key:'power', line:['clean power, quietly','keeping the show alive'],
+   heroes:[{img:48},{img:44},{img:39},{img:69}],
+   panels:[
+    {L:'A', bg:'ink',    ph:['always','on'],        imgs:[42,19]},
+    {L:'D', bg:'cream',  ph:['road-cased, labeled, load-in ready'], imgs:[18,20,30]},
+    {L:'B', bg:'red',    ph:['quiet','& safe'],     imgs:[45,69,48]},
+    {L:'C', bg:'maroon', ph:['show','ready'],       imgs:[27,26,28]},
+   ], brands:['cream','ink']},
+ { key:'truss', line:['built strong enough','to hold everything up'],
+   heroes:[{img:52},{img:53},{img:51},{img:65}],
+   panels:[
+    {L:'B', bg:'ink',    ph:['rigged','right'],     imgs:[51,53,57]},
+    {L:'C', bg:'red',    ph:['built','strong'],     imgs:[73,65,77]},
+    {L:'A', bg:'maroon', ph:['arches &','gates'],   imgs:[71,67]},
+    {L:'D', bg:'cream',  ph:['street fairs, rings, finish lines'], imgs:[52,61,25]},
+   ], brands:['ink','red']},
+ { key:'staging', line:['a stage for every moment','worth standing on'],
+   heroes:[{clip:'build',speed:1},{img:60},{img:59},{img:62}],
+   panels:[
+    {L:'A', bg:'red',    ph:['center','stage'],     imgs:[60,50]},
+    {L:'C', bg:'ink',    ph:['mobile','stages'],    imgs:[49,62,64]},
+    {L:'B', bg:'maroon', ph:['rain or','shine'],    imgs:[54,55,63]},
+    {L:'D', bg:'cream',  ph:['schools, festivals, galas, tents'], imgs:[8,66,76]},
+   ], brands:['red','cream']},
+];
+// segments: round 1 through all six services, then round 2
+const SEG=[]; [0,1,2,3].forEach(r=>CH.forEach((c,ci)=>SEG.push({c,ci,r,hero:c.heroes[r],panels:[c.panels[r]],brand: ci===CH.length-1 ? ['ink','cream','red','ink'][r] : null})));
+const BG={ink:'var(--ink)',red:'var(--red)',maroon:'var(--maroon)',cream:'var(--cream)'};
+const FG={ink:'var(--paper)',red:'var(--paper)',maroon:'var(--paper)',cream:'var(--ink)'};
+
+// ================= TIMELINE =================
+const P = {toNext:1.0, opHold:2.6, toTrack:1.0, hold:2.8, move:0.9, brandHold:3.4};
+const segLen = g => P.toNext+P.opHold+P.toTrack+P.hold + (g.brand ? P.move+P.brandHold : 0);
+const T = {vhsEnd:4.2, heroA:4.2, heroHold:7.4};
+T.heroSwap = T.heroA + 4.4;       // gala clip -> still photo crossfade (the clip is never reused later)
+T.stmtA = T.heroA + T.heroHold; T.stmtB = T.stmtA + 1.4;
+T.seg0  = T.stmtB + 4.6;
+const segStart=[]; { let a=T.seg0; SEG.forEach(g=>{ segStart.push(a); a+=segLen(g); }); }
+T.finA = segStart[SEG.length-1] + segLen(SEG[SEG.length-1]); T.finB = T.finA + P.toNext; T.vhsOut = T.finB + 9; T.END = T.vhsOut + 1.6;
+window.DURATION = T.END;
+
+// ================= BUILD DOM =================
+const content=document.getElementById('content');
+const page=document.createElement('div'); page.className='page'; content.appendChild(page);
+let Y=0; const secY={};
+function addSec(id, html, bg, h=SH){ const s=document.createElement('div'); s.className='sec'; s.id=id; s.style.top=Y+'px'; s.style.height=h+'px'; s.style.background=bg||'var(--ink)'; s.innerHTML=html; page.appendChild(s); secY[id]=Y; Y+=h; return s; }
+
+const BOLT_RED='<img class="bolt" src="assets/brand/bolt.svg">', BOLT_INK='<img class="bolt" src="assets/brand/bolt_ink.svg">';
+const wordHTML=(w,cls='',B=BOLT_RED)=>`<span class="mask"><span class="${cls}">${w}${B}</span></span>`;
+
+addSec('hero', `<img class="fill heroimg" id="heroA"><img class="fill heroimg" id="heroB" src="assets/img/33.jpg" style="opacity:0">
+  <div class="op"><div class="word display">${wordHTML('hellhound','rw')}</div>
+  <div class="line"><span class="mask"><span class="rl">from the first soundcheck</span></span><span class="mask"><span class="rl">to the last encore</span></span></div>
+  <div class="idx">[ audio · visual · lighting · power · truss · staging ]</div></div>`);
+addSec('stmt', `<div class="stmt display">
+  <span class="mask"><span class="rl">hellhound audio${BOLT_RED} brings <em>audio,</em></span></span>
+  <span class="mask"><span class="rl"><em>visual, lighting, power, truss</em></span></span>
+  <span class="mask"><span class="rl"><em>&amp; staging</em> to shows of every size,</span></span>
+  <span class="mask"><span class="rl">so every night runs smooth, safe</span></span>
+  <span class="mask"><span class="rl">and sounds unforgettable.</span></span></div>`, 'var(--ink)');
+
+// a print keeps the photo's own shape: it is fitted inside the (w,h) box, centred on it — nothing gets cropped
+function printHTML(n, w, h, x, y, rot){
+  const a=AR(n); let W=w, H=w/a; if(H>h){ H=h; W=h*a; }
+  const X=x+(w-W)/2, Yy=y+(h-H)/2;
+  return `<div class="print" style="left:${X}px;top:${Yy}px;width:${W}px;height:${H}px;transform:rotate(${rot}deg)" data-rot="${rot}">
+    <div class="ph"><img src="${IMG(n)}"></div></div>`;
+}
+function panelHTML(p, key){ CUR_SERVICE=key; const BOLT = p.bg==='red' ? BOLT_INK : BOLT_RED;
+  const fg=FG[p.bg]; let h='';
+  const big=(t,x,y,size=190,al='left')=>`<div class="ph1 display pw" style="left:${x}px;top:${y}px;color:${fg};font-size:${size}px;text-align:${al}">${t}</div>`;
+  if(p.L==='A'){
+    h+=big(`${p.ph[0]}<br>${p.ph[1]}${BOLT}`, 1090, 250, 170);
+    h+=printHTML(p.imgs[0], 900, 680, 90, 90, -2.5);
+    h+=printHTML(p.imgs[1], 460, 380, 740, 540, 4);
+  } else if(p.L==='B'){
+    h+=big(`${p.ph[0]} ${p.ph[1]}${BOLT}`, 0, 60, 170, 'center').replace('left:0px','left:0px;right:0px');
+    h+=printHTML(p.imgs[0], 540, 520, 240, 340, -6);
+    h+=printHTML(p.imgs[1], 540, 520, 666, 300, 1.5);
+    h+=printHTML(p.imgs[2], 540, 520, 1092, 360, 6.5);
+  } else if(p.L==='C'){
+    h+=`<div class="ph1 display pw" style="right:calc(50% + 270px);top:50%;transform:translateY(-50%);color:${fg};font-size:190px">${p.ph[0]}</div>`;
+    h+=`<div class="ph1 display pw" style="left:calc(50% + 270px);top:50%;transform:translateY(-50%);color:${fg};font-size:190px">${p.ph[1]}</div>`;
+    h+=printHTML(p.imgs[1], 420, 360, 70, 560, -5);
+    h+=printHTML(p.imgs[2], 420, 360, 1390, 50, 5);
+    h+=printHTML(p.imgs[0], 520, 660, SW/2-260, SH/2-330, p.bg==='ink'?-3:3);
+  } else {
+    h+=`<div class="ph1 display pw" style="left:90px;top:70px;color:${fg};font-size:96px;line-height:.9;max-width:1700px;white-space:normal">${p.ph[0]}<span style="color:var(--red)">.</span></div>`;
+    [0,1,2].forEach(k=> h+=printHTML(p.imgs[k], 560, 560, 70+k*590, 300+(k%2)*24, [-1.5,1,-.5][k]));
+  }
+  return h;
+}
+function brandHTML(bg){
+  const dark = bg!=='cream'; const fg=dark?'var(--paper)':'var(--ink)'; const ring = bg==='red'?'var(--ink)':'var(--red)';
+  return `<div class="brand">
+    <div class="lock"><div class="row"><img class="mark ${dark?'outline':''}" src="assets/brand/mark.png"><img class="wordimg" src="assets/brand/word_${dark?'white':'dark'}.png"></div>
+      <div class="typed" style="color:${fg}"><span class="tx"></span><span class="cursor" style="background:${fg}"></span></div>
+      <div class="mono" style="font-size:26px;color:${fg};opacity:.75">audio · visual · lighting · power · truss · staging</div></div>
+    <div class="qrwrap"><img class="qr" src="assets/brand/qr.png">
+      <svg viewBox="0 0 480 480"><defs><path id="circ${bg}" d="M240,240 m-205,0 a205,205 0 1,1 410,0 a205,205 0 1,1 -410,0"/></defs>
+        <g class="ring"><text fill="${ring}"><textPath href="#circ${bg}">scan to book ✶ visit hellhoundaudio.com ✶ scan to book ✶</textPath></text></g></svg></div></div>`;
+}
+SEG.forEach((g,si)=>{
+  const c=g.c, hero=g.hero;
+  const heroMedia = hero.clip ? `<img class="fill heroimg">` : `<img class="fill heroimg" src="${IMG(hero.img)}">`;
+  addSec('op'+si, `${heroMedia}<div class="op">
+    <div class="word display">${wordHTML(c.key,'rw')}</div>
+    <div class="line"><span class="mask"><span class="rl">${c.line[0]}</span></span><span class="mask"><span class="rl">${c.line[1]}</span></span></div>
+    <div class="idx">[ ${String(g.ci+1).padStart(2,'0')} / 06 — ${c.key} ]</div></div>`);
+  const s=addSec('tr'+si, `<div class="track"></div>`);
+  const tr=s.querySelector('.track');
+  g.panels.forEach(p=>{ const d=document.createElement('div'); d.className='panel'; d.style.background=BG[p.bg]; d.innerHTML=panelHTML(p,c.key); tr.appendChild(d); });
+  if(g.brand){ const b=document.createElement('div'); b.className='panel'; b.style.background=BG[g.brand]; b.innerHTML=brandHTML(g.brand); tr.appendChild(b); }
+});
+addSec('fin', `<div class="fin">
+  <div class="big display">${wordHTML('hellhound','rw')}</div>
+  <div class="end"><span class="mask"><span class="rl">from the first soundcheck</span></span><span class="mask"><span class="rl">to the last encore</span></span></div>
+  <div class="url">[ hellhoundaudio.com ]</div>
+  <div style="position:absolute;right:90px;top:330px;display:flex;flex-direction:column;align-items:center;gap:26px">
+    <img src="assets/brand/mark.png" style="height:250px"><img src="assets/brand/word_dark.png" style="height:96px"></div>
+  <div class="qrwrap" style="right:auto;left:945px;top:440px;transform:scale(.8);transform-origin:0 0"><img class="qr" src="assets/brand/qr.png">
+    <svg viewBox="0 0 480 480"><defs><path id="circfin" d="M240,240 m-205,0 a205,205 0 1,1 410,0 a205,205 0 1,1 -410,0"/></defs>
+    <g class="ring"><text fill="var(--red)"><textPath href="#circfin">scan to book ✶ visit hellhoundaudio.com ✶ scan to book ✶</textPath></text></g></svg></div>
+  </div>`, 'var(--cream)');
+
+const vhs=document.createElement('div'); vhs.className='vhs'; vhs.id='vhs';
+let sl=''; for(let i=0;i<12;i++){ sl+=`<div class="slice" style="top:${i*SH/12}px;height:${SH/12+1}px"><div class="sl-in" style="position:absolute;left:0;top:${-i*SH/12}px;width:${SW}px;height:${SH}px">
+  <div style="position:absolute;left:50%;top:120px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:40px">
+  <img src="assets/brand/mark.png" style="height:470px"><img src="assets/brand/word_dark.png" style="height:150px"></div></div></div>`; }
+vhs.innerHTML = sl + `<div class="band" id="band1"></div><div class="band" id="band2" style="height:60px"></div>
+  <div class="osd" id="osd">▶ PLAY<br><span id="ctr">00:00:00</span></div>`;
+content.appendChild(vhs);
+
+// chapter tabs in the bezel bar
+const tabs=document.getElementById('tabs');
+CH.forEach(c=>{ const d=document.createElement('div'); d.className='tab'; d.innerHTML=`${c.key}<span class="pg"></span>`; tabs.appendChild(d); });
+const tabEls=[...tabs.children];
+
+// ================= HELPERS =================
+function bez(x1,y1,x2,y2){return t=>{if(t<=0)return 0;if(t>=1)return 1;let u=t;for(let i=0;i<8;i++){const x=3*(1-u)*(1-u)*u*x1+3*(1-u)*u*u*x2+u*u*u-t;const dx=3*(1-u)*(1-u)*x1+6*(1-u)*u*(x2-x1)+3*u*u*(1-x2);if(Math.abs(dx)<1e-6)break;u-=x/dx;u=Math.min(1,Math.max(0,u));}return 3*(1-u)*(1-u)*u*y1+3*(1-u)*u*u*y2+u*u*u;};}
+const SCROLL=bez(.7,0,.12,1), OUT=bez(.16,1,.3,1), INOUT=bez(.65,0,.35,1);
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)), prog=(t,a,b)=>clamp((t-a)/(b-a)), lerp=(a,b,p)=>a+(b-a)*p;
+const $=id=>document.getElementById(id);
+function rand(n){ const x=Math.sin(n*127.1+311.7)*43758.5453; return x-Math.floor(x); }
+function rise(els,t,start,stagger=.1,dur=1.1){ els.forEach((e,i)=>{const p=OUT(prog(t,start+i*stagger,start+i*stagger+dur)); e.style.transform=`translateY(${(1-p)*110}%)`;}); }
+const CLIP={gala:182,band:449,build:214};
+// ping-pong playback: a clip never freezes on its last frame and never jump-cuts back to the start
+function clipSrc(name,t){ const n=CLIP[name], per=2*n-2; let f=Math.floor(Math.max(0,t)*30)%per; if(f>=n) f=per-f; return `assets/clips/${name}/${String(f+1).padStart(4,'0')}.jpg`; }
+const pending=[]; function setSrc(img,src){ if(img.getAttribute('src')!==src){ img.setAttribute('src',src); pending.push(img.decode().catch(()=>{})); } }
+
+const KEYS=[[0,0],[T.stmtA,0],[T.stmtB,secY.stmt]];
+SEG.forEach((g,si)=>{ const s=segStart[si];
+  KEYS.push([s, si===0?secY.stmt:secY['tr'+(si-1)]]);
+  KEYS.push([s+P.toNext, secY['op'+si]]);
+  KEYS.push([s+P.toNext+P.opHold, secY['op'+si]]);
+  KEYS.push([s+P.toNext+P.opHold+P.toTrack, secY['tr'+si]]);
+});
+KEYS.push([T.finA, secY['tr'+(SEG.length-1)]],[T.finB, secY.fin]);
+function scrollY(t){ for(let i=1;i<KEYS.length;i++){ if(t<=KEYS[i][0]){ const [t0,v0]=KEYS[i-1],[t1,v1]=KEYS[i]; return t1===t0?v1:lerp(v0,v1,SCROLL(prog(t,t0,t1))); } } return KEYS[KEYS.length-1][1]; }
+
+const secs=[...document.querySelectorAll('.sec')];
+const sel=(root,s)=>[...root.querySelectorAll(s)];
+
+// ================= RENDER =================
+window.renderFrame = async function(t){
+  pending.length=0;
+  const y=scrollY(t);
+  page.style.transform=`translateY(${-y}px)`;
+  secs.forEach(s=>{ const top=+s.style.top.replace('px','')-y; s.style.visibility=(top>-SH-2&&top<SH+2)?'visible':'hidden'; });
+
+  { const s=$('hero'); if(s.style.visibility==='visible'){
+      setSrc($('heroA'), clipSrc('gala',(t-T.heroA+.3)*.8));
+      $('heroB').style.opacity = INOUT(prog(t,T.heroSwap,T.heroSwap+1.2));
+      const z=`translateY(${y*.45}px) scale(${1.04+.05*prog(t,T.heroA,T.stmtB)})`;
+      $('heroA').style.transform=z; $('heroB').style.transform=z;
+      rise(sel(s,'.rw'),t,T.heroA+.3,0,1.4); rise(sel(s,'.rl'),t,T.heroA+.9,.13,1.2); } }
+  { const s=$('stmt'); if(s.style.visibility==='visible'){ rise(sel(s,'.rl'),t,T.stmtA+.5,.12,1.2); } }
+
+  let activeTab=-1, tabProg=0;
+  SEG.forEach((g,si)=>{
+    const s0=segStart[si], opA=s0+P.toNext, trA=opA+P.opHold+P.toTrack, segEnd=s0+segLen(g);
+    if(t>=s0 && t<segEnd){ activeTab=g.ci; tabProg=prog(t,s0,segEnd); }
+    const op=$('op'+si), tr=$('tr'+si);
+    if(op.style.visibility==='visible'){
+      const img=op.querySelector('.heroimg'); const rel=y-secY['op'+si];
+      if(g.hero.clip) setSrc(img, clipSrc(g.hero.clip,(t-s0+.2)*g.hero.speed));
+      img.style.transform=`translateY(${rel*.45}px) scale(${1.05+.06*prog(t,s0,trA)})`;
+      rise(sel(op,'.rw'),t,opA-.45,0,1.1); rise(sel(op,'.rl'),t,opA,.12,1.0);
+    }
+    if(tr.style.visibility==='visible'){
+      const track=tr.querySelector('.track'); let x=0;
+      if(g.brand){ const a=trA+P.hold; x+=SW*SCROLL(prog(t,a,a+P.move)); }
+      const drift=50*prog(t,trA-.6,segEnd);
+      track.style.transform=`translateX(${-(x+drift)}px)`;
+      [...track.children].forEach((pn,pi)=>{
+        const off=pi*SW-(x+drift); if(Math.abs(off)>SW+10) return;
+        const enter = pi===0 ? 1-OUT(prog(t,trA-P.toTrack+.4,trA+.6)) : 0;
+        sel(pn,'.print').forEach((pr,k)=>{ const r=+pr.dataset.rot; const sp=[-.14,.1,-.06][k%3];
+          pr.style.transform=`translate(${off*sp}px,${enter*(200+k*60) + Math.sin(t*.9+k*2+pi)*5}px) rotate(${r+off*.001}deg)`; });
+        sel(pn,'.pw').forEach((w,k)=>{ w.style.translate=`${off*(k%2?-.05:.06)}px 0`; });
+        const typed=pn.querySelector('.tx');
+        if(typed){ const bA=trA+P.hold+P.move-.3; const full='HellhoundAudio.com  :)';
+          const n=Math.floor(clamp((t-bA)/1.3)*full.length); typed.textContent=full.slice(0,n);
+          pn.querySelector('.cursor').style.opacity = (Math.floor(t*2.2)%2)?1:0;
+          pn.querySelector('.ring').setAttribute('transform',`rotate(${t*14} 240 240)`);
+          pn.querySelector('.lock').style.transform=`translateX(${off*.08}px)`; }
+      });
+    }
+  });
+  tabEls.forEach((el,i)=>{ const on=i===activeTab;
+    el.style.background = on?'var(--red)':'transparent'; el.style.color = on?'#fff':'#8d8478';
+    el.querySelector('.pg').style.transform=`scaleX(${on?tabProg:0})`; });
+
+  { const s=$('fin'); if(s.style.visibility==='visible'){
+      rise(sel(s,'.rw'),t,T.finA+.6,0,1.4); rise(sel(s,'.rl'),t,T.finA+1.1,.14,1.2);
+      s.querySelector('.ring').setAttribute('transform',`rotate(${t*14} 240 240)`); } }
+
+  const vIn = t<T.vhsEnd, vOut = t>=T.vhsOut, v=$('vhs');
+  if(vIn||vOut){
+    v.style.display='block';
+    let g = vIn ? 1-prog(t,.4,2.6) : prog(t,T.vhsOut,T.END-.2);
+    const f=Math.floor(t*30);
+    sel(v,'.slice').forEach((s,i)=>{ const r=rand(f*13+i); const dx=(r-.5)*2*g*(r>.6?260:40);
+      s.firstElementChild.style.transform=`translateX(${dx}px)`; s.style.filter = r>.85&&g>.2 ? 'invert(1)' : 'none'; });
+    const by=((t*620)%(SH+200))-120;
+    $('band1').style.top=by+'px'; $('band1').style.backgroundImage=`url(assets/grain/g${f%8}.png)`; $('band1').style.opacity=.25+.7*g;
+    $('band2').style.top=((by*1.7+400)%(SH+100))+'px'; $('band2').style.backgroundImage=`url(assets/grain/g${(f+3)%8}.png)`; $('band2').style.opacity=.6*g;
+    const sec=Math.floor(t); $('ctr').textContent=`00:${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;
+    $('osd').style.opacity = vIn ? 1-prog(t,T.vhsEnd-.6,T.vhsEnd-.2) : 1;
+    $('osd').firstChild.textContent = vIn ? '▶ PLAY' : '◀◀ REW';
+    v.style.opacity = vIn ? 1-prog(t,T.vhsEnd-.35,T.vhsEnd) : prog(t,T.vhsOut,T.vhsOut+.25);
+  } else v.style.display='none';
+
+  const f=Math.floor(t*30);
+  $('grain').style.backgroundImage=`url(assets/grain/g${f%8}.png)`;
+  $('grain').style.transform=`translate(${(rand(f)*40-20)|0}px,${(rand(f+9)*40-20)|0}px)`;
+  $('content').style.opacity = 1 - rand(f*3.1)*.035;
+  const zap = (t%3.2)<.18 ? (Math.floor(t*30)%2 ? .35 : 1) : 1;
+  document.querySelectorAll('.bolt,#bast').forEach(b=>b.style.opacity=zap);
+  // floating coin: logo holds, spins to the QR, QR holds still (scannable), spins back
+  const cyc=t%10, spin = INOUT(prog(cyc,3.6,5.0))*540 + INOUT(prog(cyc,8.6,10.0))*540;
+  $('flip').style.transform=`translateY(${Math.sin(t*1.5)*7}px) rotateY(${spin + Math.sin(t*1.1)*10}deg)`;
+
+  await Promise.all(pending);
+};
+
+window.ready=(async()=>{ await document.fonts.ready; await Promise.all([...document.images].filter(i=>i.src).map(i=>i.decode().catch(()=>{}))); return true; })();
+if(!navigator.webdriver){ const t0=performance.now(); const loop=async()=>{ await window.renderFrame(((performance.now()-t0)/1000)%DURATION); requestAnimationFrame(loop); }; window.ready.then(loop); }
+</script>
+</body>
+</html>
