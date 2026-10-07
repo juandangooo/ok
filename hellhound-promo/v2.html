@@ -22,7 +22,8 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:var(--ink)}
 .mask{display:block;overflow:hidden;padding-bottom:.14em;margin-bottom:-.14em}
 .mask>span{display:inline-block}
 .display{font-family:var(--display);font-weight:500;letter-spacing:-.035em;font-variation-settings:"opsz" 96}
-.ast{color:var(--red);display:inline-block;font-size:.6em;vertical-align:.62em;margin-left:.04em;transform-origin:50% 52%}
+.bolt{display:inline-block;height:.86em;width:auto;vertical-align:-.02em;margin-left:.07em;transform-origin:50% 50%}
+.ast{display:inline-block}
 .mono{font-family:var(--mono)}
 
 /* opener */
@@ -35,7 +36,7 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:var(--ink)}
 .print{position:absolute;background:var(--paper);padding:14px 14px 46px;border-radius:4px;box-shadow:0 18px 40px rgba(0,0,0,.35)}
 .print .ph{position:relative;width:100%;height:100%;overflow:hidden}
 .print .ph img{position:absolute;left:-6%;top:-6%;width:112%;height:112%;object-fit:cover}
-.print .cap{position:absolute;left:16px;right:16px;bottom:12px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:17px;color:#3a2a22}
+.print .cap{position:absolute;left:16px;right:16px;bottom:9px;display:flex;justify-content:center;font-family:var(--mono);font-size:21px;letter-spacing:.12em;text-transform:uppercase;color:#3a2a22}
 .print .cap b{font-weight:400;color:var(--red)}
 
 .track{position:absolute;left:0;height:var(--SH);display:flex;will-change:transform}
@@ -85,8 +86,13 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:var(--ink)}
 #bar .marq{flex:1;overflow:hidden;white-space:nowrap;font-family:var(--mono);font-size:22px;letter-spacing:.04em;color:#bdb3a3;mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
 #bar .marq span{display:inline-block}
 #bar .site{font-family:var(--mono);font-size:26px;color:var(--paper)}
-#bar .bast{font-family:var(--display);font-size:64px;line-height:1;color:var(--red);display:inline-block;transform-origin:50% 58%;margin-top:14px}
-#menu{position:absolute;right:56px;top:48px;background:var(--red);color:var(--paper);border-radius:31px;padding:9px 26px;font-family:var(--body);font-weight:500;font-size:17px;letter-spacing:.1em;z-index:5}
+
+#coin{position:absolute;right:40px;top:30px;width:176px;height:176px;perspective:900px;z-index:5}
+#coin .flip{position:absolute;inset:0;transform-style:preserve-3d}
+#coin .face{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;background:var(--paper);display:flex;align-items:center;justify-content:center;
+  border:5px solid var(--red);box-shadow:0 10px 26px rgba(0,0,0,.35)}
+#coin .face img{display:block}
+#coin .back{transform:rotateY(180deg)}
 </style>
 </head>
 <body>
@@ -97,20 +103,20 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:var(--ink)}
     <div id="vig"></div>
     <div id="grain"></div>
     <div id="flash"></div>
-    <div id="menu">MENU</div>
+    <div id="coin"><div class="flip" id="flip"><div class="face"><img src="assets/brand/mark.png" style="height:112px"></div><div class="face back"><img src="assets/brand/qr.png" style="width:108px;height:108px;border-radius:4px"></div></div></div>
   </div>
   <div id="bar">
     <img class="m" src="assets/brand/mark.png">
     <img class="w" src="assets/brand/word_light.png">
     <div class="marq"><span id="marq"></span></div>
     <div class="site">hellhoundaudio.com</div>
-    <div class="bast" id="bast">*</div>
+    <img id="bast" src="assets/brand/bolt.svg" style="height:50px;margin:0 6px">
   </div>
 </div>
 
 <script>
 // ================= DATA =================
-const SW=1872, SH=972;
+const SW=1872, SH=972; let CUR_SERVICE='';
 const IMG=n=>`assets/img/${String(n).padStart(2,'0')}.jpg`;
 const CH = [
  { key:'audio', line:['every word heard,','every beat felt'], hero:{clip:'band',speed:1}, inset:36,
@@ -178,7 +184,9 @@ const page=document.createElement('div'); page.className='page'; content.appendC
 let Y=0; const secY={};
 function addSec(id, html, bg, h=SH){ const s=document.createElement('div'); s.className='sec'; s.id=id; s.style.top=Y+'px'; s.style.height=h+'px'; s.style.background=bg||'var(--ink)'; s.innerHTML=html; page.appendChild(s); secY[id]=Y; Y+=h; return s; }
 
-const wordHTML=(w,cls='')=>`<span class="mask"><span class="${cls}">${w}<span class="ast">*</span></span></span>`;
+const BOLT='<img class="bolt" src="assets/brand/bolt.svg">';
+const BOLT_RED=BOLT, BOLT_INK='<img class="bolt" src="assets/brand/bolt_ink.svg">';
+const wordHTML=(w,cls='')=>`<span class="mask"><span class="${cls}">${w}${BOLT}</span></span>`;
 
 // hero
 addSec('hero', `<img class="fill heroimg" data-clip="gala">
@@ -187,27 +195,27 @@ addSec('hero', `<img class="fill heroimg" data-clip="gala">
   <div class="idx">[ audio · visual · lighting · power · truss · staging ]</div></div>`);
 // statement
 addSec('stmt', `<div class="stmt display">
-  <span class="mask"><span class="rl">hellhound audio<em>*</em> brings <em>audio,</em></span></span>
+  <span class="mask"><span class="rl">hellhound audio${BOLT} brings <em>audio,</em></span></span>
   <span class="mask"><span class="rl"><em>visual, lighting, power, truss</em></span></span>
   <span class="mask"><span class="rl"><em>&amp; staging</em> to shows of every size,</span></span>
   <span class="mask"><span class="rl">so every night runs smooth, safe</span></span>
   <span class="mask"><span class="rl">and sounds unforgettable.</span></span></div>
   <div class="mono" style="position:absolute;left:144px;bottom:60px;font-size:24px;color:#bdb3a3">[ six services · one crew · hellhoundaudio.com ]</div>`, 'var(--ink)');
 
-function printHTML(n, w, h, x, y, rot, cap, extra=''){
+function printHTML(n, w, h, x, y, rot, cap, extra=''){ cap = CUR_SERVICE;
   return `<div class="print" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;transform:rotate(${rot}deg)" data-rot="${rot}" ${extra}>
-    <div class="ph"><img src="${IMG(n)}"></div><div class="cap"><span>${cap}</span><b>hellhound*</b></div></div>`;
+    <div class="ph"><img src="${IMG(n)}"></div><div class="cap"><b>${cap}</b></div></div>`;
 }
-function panelHTML(p, ci, pi, tags){
+function panelHTML(p, ci, pi, tags){ CUR_SERVICE = CH[ci].key; const BOLT = p.bg==='red' ? BOLT_INK : BOLT_RED;
   const fg=FG[p.bg], tc=TAGC[p.bg]; let h='';
   const big=(t,x,y,size=190,al='left')=>`<div class="ph1 display pw" style="left:${x}px;top:${y}px;color:${fg};font-size:${size}px;text-align:${al}">${t}</div>`;
   const cap=k=>`HH-${String(ci+1).padStart(2,'0')}${String.fromCharCode(65+pi)}${k}`;
   if(p.L==='A'){ // big print left + small print, stacked phrase right
-    h+=big(`${p.ph[0]}<br>${p.ph[1]}<span style="color:${p.bg==='red'?'var(--ink)':'var(--red)'}">*</span>`, 1090, 250);
+    h+=big(`${p.ph[0]}<br>${p.ph[1]}${BOLT}`, 1090, 250);
     h+=printHTML(p.imgs[0], 880, 640, 110, 120, -2.5, cap(1));
     h+=printHTML(p.imgs[1], 440, 340, 760, 540, 4, cap(2));
   } else if(p.L==='B'){ // fan of three, phrase behind
-    h+=big(`${p.ph[0]} ${p.ph[1]}<span style="color:${p.bg==='red'?'var(--ink)':'var(--red)'}">*</span>`, 0, 60, 170, 'center').replace('left:0px','left:0px;right:0px');
+    h+=big(`${p.ph[0]} ${p.ph[1]}${BOLT}`, 0, 60, 170, 'center').replace('left:0px','left:0px;right:0px');
     h+=printHTML(p.imgs[0], 520, 400, 260, 380, -7, cap(1));
     h+=printHTML(p.imgs[1], 520, 400, 676, 330, 1.5, cap(2));
     h+=printHTML(p.imgs[2], 520, 400, 1090, 400, 7.5, cap(3));
@@ -221,9 +229,6 @@ function panelHTML(p, ci, pi, tags){
     h+=`<div class="ph1 display pw" style="left:90px;top:80px;color:${fg};font-size:96px;line-height:.9;max-width:1700px;white-space:normal">${p.ph[0]}<span style="color:var(--red)">.</span></div>`;
     [0,1,2].forEach(k=> h+=printHTML(p.imgs[k], 540, 420, 90+k*580, 380+(k%2)*30, [-1.5,1,-.5][k], cap(k+1)));
   }
-  [[90,60,-6],[1500,880,5],[1580,40,4]].forEach(([x,y,r],j)=>{ if(p.L==='D'&&j===0) return;
-    h+=`<div class="tagw" style="left:${x}px;top:${y}px;transform:rotate(${r}deg);color:${tc}">${tags[(pi*2+j)%tags.length]}</div>`; });
-  h+=`<div class="pnum" style="color:${fg}">${String(ci+1).padStart(2,'0')} ${CH[ci].key} — ${pi+1} / 4</div>`;
   return h;
 }
 function brandHTML(bg){
@@ -270,7 +275,7 @@ vhs.innerHTML = sl + `<div class="band" id="band1"></div><div class="band" id="b
   <div class="osd" id="osd">▶ PLAY<br><span id="ctr">00:00:00</span></div>`;
 content.appendChild(vhs);
 
-document.getElementById('marq').innerHTML = Array(8).fill('audio <b style="color:var(--red)">*</b> visual <b style="color:var(--red)">*</b> lighting <b style="color:var(--red)">*</b> power <b style="color:var(--red)">*</b> truss <b style="color:var(--red)">*</b> staging <b style="color:var(--red)">*</b> book your event at hellhoundaudio.com <b style="color:var(--red)">*</b> ').join('');
+document.getElementById('marq').innerHTML = Array(8).fill('audio <img src="assets/brand/bolt.svg" style="height:22px;vertical-align:-4px;margin:0 10px"> visual <img src="assets/brand/bolt.svg" style="height:22px;vertical-align:-4px;margin:0 10px"> lighting <img src="assets/brand/bolt.svg" style="height:22px;vertical-align:-4px;margin:0 10px"> power <img src="assets/brand/bolt.svg" style="height:22px;vertical-align:-4px;margin:0 10px"> truss <img src="assets/brand/bolt.svg" style="height:22px;vertical-align:-4px;margin:0 10px"> staging <img src="assets/brand/bolt.svg" style="height:22px;vertical-align:-4px;margin:0 10px"> book your event at hellhoundaudio.com <img src="assets/brand/bolt.svg" style="height:22px;vertical-align:-4px;margin:0 10px"> ').join('');
 
 // ================= HELPERS =================
 function bez(x1,y1,x2,y2){return t=>{if(t<=0)return 0;if(t>=1)return 1;let u=t;for(let i=0;i<8;i++){const x=3*(1-u)*(1-u)*u*x1+3*(1-u)*u*u*x2+u*u*u-t;const dx=3*(1-u)*(1-u)*x1+6*(1-u)*u*(x2-x1)+3*u*u*(1-x2);if(Math.abs(dx)<1e-6)break;u-=x/dx;u=Math.min(1,Math.max(0,u));}return 3*(1-u)*(1-u)*u*y1+3*(1-u)*u*u*y2+u*u*u;};}
@@ -309,7 +314,7 @@ window.renderFrame = async function(t){
     if(vis){ const img=s.querySelector('.heroimg'); setSrc(img, clipSrc('gala',(t-T.heroA+.3)*.85));
       img.style.transform=`translateY(${y*.45}px) scale(${1.04+.05*prog(t,T.heroA,T.stmtB)})`;
       rise(sel(s,'.rw'),t,T.heroA+.3,0,1.4); rise(sel(s,'.rl'),t,T.heroA+.9,.13,1.2);
-      sel(s,'.ast').forEach(a=>a.style.transform=`rotate(${t*40}deg)`); } }
+       } }
   // ---- statement
   { const s=$('stmt'); if(s.style.visibility==='visible'){ rise(sel(s,'.rl'),t,T.stmtA+.5,.12,1.2); } }
 
@@ -322,7 +327,7 @@ window.renderFrame = async function(t){
       if(c.hero.clip) setSrc(img, clipSrc(c.hero.clip,(t-s0)*c.hero.speed));
       img.style.transform=`translateY(${rel*.45}px) scale(${1.05+.06*prog(t,s0,trA)})`;
       rise(sel(op,'.rw'),t,opA-.5,0,1.3); rise(sel(op,'.rl'),t,opA+.1,.14,1.2);
-      sel(op,'.ast').forEach(a=>a.style.transform=`rotate(${t*40}deg)`);
+      
       const ins=op.querySelector('.inset'); const ip=OUT(prog(t,opA+.9,opA+2.0));
       ins.style.transform=`translateY(${(1-ip)*60}px)`; ins.style.opacity=ip;
       ins.querySelector('img').style.transform=`scale(${1.1-.08*prog(t,opA,trA)})`;
@@ -354,7 +359,7 @@ window.renderFrame = async function(t){
   // ---- finale
   { const s=$('fin'); if(s.style.visibility==='visible'){
       rise(sel(s,'.rw'),t,T.finA+.6,0,1.4); rise(sel(s,'.rl'),t,T.finA+1.1,.14,1.2);
-      sel(s,'.ast').forEach(a=>a.style.transform=`rotate(${t*40}deg)`);
+      
       s.querySelector('.ring').setAttribute('transform',`rotate(${t*14} 240 240)`); } }
 
   // ---- VHS intro / outro
@@ -383,7 +388,12 @@ window.renderFrame = async function(t){
   // subtle film flicker
   $('content').style.opacity = 1 - rand(f*3.1)*.035;
   $('marq').style.transform=`translateX(${-(t*70)%1580}px)`;
-  $('bast').style.transform=`rotate(${t*40}deg)`;
+  // bolt "zap": quick flicker every few seconds
+  const zap = (t%3.2)<.18 ? (Math.floor(t*30)%2 ? .35 : 1) : 1;
+  document.querySelectorAll('.bolt,#bast').forEach(b=>b.style.opacity=zap);
+  // floating coin: hold, flip (logo <-> qr), bob
+  const cyc=t%8, fp = INOUT(prog(cyc,3.3,4.1)) + INOUT(prog(cyc,7.3,8.1));
+  $('flip').style.transform=`translateY(${Math.sin(t*1.6)*6}px) rotateY(${fp*180}deg) rotateZ(${Math.sin(t*.9)*3}deg)`;
 
   await Promise.all(pending);
 };
