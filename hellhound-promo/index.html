@@ -1,0 +1,340 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Hellhound Promo</title>
+<link rel="stylesheet" href="assets/fonts.css">
+<style>
+:root{
+  --cream:#e5dccd; --copper:#ab5700; --citron:#e8e359; --glory:#7997ff;
+  --amber:#d99623; --forest:#214534; --moss:#103d26; --olive:#568037;
+  --slate:#3d549c; --coral:#e99686; --plum:#5a2b4f; --paper:#f1e9db;
+  --display:'Bricolage Grotesque',sans-serif; --body:'Poppins',sans-serif;
+  --serif:'Instrument Serif',serif; --mono:'DM Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#0c0c0c}
+#stage{position:relative;width:1920px;height:1080px;overflow:hidden;background:var(--cream)}
+.abs{position:absolute}
+.page{position:absolute;left:0;top:0;width:1920px;will-change:transform}
+.fill{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.mask{display:block;overflow:hidden;padding-bottom:.12em;margin-bottom:-.12em}
+.mask>span{display:inline-block;will-change:transform}
+.display{font-family:var(--display);font-weight:500;letter-spacing:-.035em;font-variation-settings:"opsz" 96}
+
+/* hero */
+.hero{position:absolute;left:0;width:1920px;height:1080px;overflow:hidden;background:#1a3a1a}
+.hero .logo{position:absolute;left:52px;top:30px;color:var(--citron);font-size:300px;line-height:.8;white-space:nowrap}
+.ast{display:inline-block;transform-origin:50% 52%;font-size:.62em;vertical-align:.62em;margin-left:.02em}
+.hero .tag{position:absolute;left:0;right:0;top:560px;text-align:center;color:var(--citron);
+  font-family:var(--serif);font-size:82px;line-height:.92;letter-spacing:-.01em}
+.scrollhint{position:absolute;left:0;right:0;bottom:46px;text-align:center;color:var(--citron);font-family:var(--mono);font-size:20px;letter-spacing:.04em}
+
+/* cream sections */
+.statement{position:absolute;left:0;right:0;text-align:center;color:var(--glory);font-size:118px;line-height:.9}
+.editorial{position:absolute;left:300px;width:1320px}
+.editorial .frame{position:relative;width:1040px;height:600px;overflow:hidden;border-radius:20px}
+.editorial .frame img{position:absolute;left:0;top:-12%;width:100%;height:124%;object-fit:cover}
+.editorial p{margin-top:44px;width:1180px;font-family:var(--body);font-size:34px;line-height:1.4;color:var(--copper)}
+.editorial p em{font-style:normal;color:var(--glory)}
+.pill{display:inline-flex;align-items:center;gap:14px;border:2px solid currentColor;border-radius:31px;
+  padding:10px 34px;font-family:var(--body);font-weight:500;font-size:20px;letter-spacing:.08em;text-transform:uppercase}
+.pill .dot{width:11px;height:11px;border-radius:50%;background:currentColor}
+.pill.filled{background:var(--citron);border-color:var(--citron);color:var(--moss)}
+
+/* horizontal panels */
+.track{position:absolute;left:0;height:1080px;display:flex;will-change:transform}
+.panel{position:relative;width:1920px;height:1080px;flex:none;overflow:hidden}
+.panel .w{position:absolute;top:50%;font-size:168px;line-height:.85;color:var(--paper);white-space:nowrap;transform:translateY(-50%)}
+.panel .wl{right:calc(50% + 222px)}
+.panel .wr{left:calc(50% + 222px)}
+.card{position:absolute;left:50%;top:50%;width:460px;height:580px;margin:-290px 0 0 -230px;border-radius:20px;overflow:hidden;
+  border:12px solid var(--paper);background:var(--paper)}
+.card img{position:absolute;left:-10%;top:0;width:120%;height:100%;object-fit:cover}
+.card .lbl{position:absolute;left:0;right:0;top:0;padding:14px 18px;display:flex;justify-content:space-between;
+  font-family:var(--body);font-weight:500;font-size:15px;letter-spacing:.06em;text-transform:uppercase;color:var(--paper)}
+.tagw{position:absolute;font-family:var(--body);font-weight:500;font-size:22px;letter-spacing:.02em;white-space:nowrap}
+.pnum{position:absolute;left:56px;bottom:44px;font-family:var(--mono);font-size:20px;color:var(--paper);opacity:.75}
+
+/* montage */
+.montage{position:absolute;inset:0;overflow:hidden;background:#111}
+.montage .shot{position:absolute;inset:0;overflow:hidden}
+.montage .big{position:absolute;z-index:20;left:52px;bottom:30px;color:var(--citron);font-size:250px;line-height:.82}
+
+/* chrome */
+.chrome{position:absolute;inset:0;pointer-events:none}
+.minilogo{position:absolute;left:52px;top:38px;font-size:40px;line-height:1;color:var(--citron)}
+.menu{position:absolute;right:52px;top:36px;background:var(--citron);color:var(--moss);border-radius:31px;padding:9px 26px;
+  font-family:var(--body);font-weight:500;font-size:17px;letter-spacing:.1em}
+.fadeout{position:absolute;inset:0;background:#0c0c0c;opacity:0}
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- PAGE 1 : hero → statement → editorial → panels -->
+  <div class="page" id="p1">
+    <section class="hero" id="hero1" style="top:0">
+      <img class="fill" id="h1a">
+      <img class="fill" id="h1b" style="opacity:0">
+      <div class="logo display"><span class="mask"><span id="logo1">hellhound<span class="ast" id="ast1">*</span></span></span></div>
+      <div class="tag">
+        <span class="mask"><span class="tl1">from load-in</span></span>
+        <span class="mask"><span class="tl1">to last call,</span></span>
+        <span class="mask"><span class="tl1">every room on cue</span></span>
+      </div>
+      <div class="scrollhint" id="hint">[scroll down]</div>
+    </section>
+
+    <div class="statement display" id="stmt" style="top:1385px">
+      <span class="mask"><span class="sl">audio, video, lighting</span></span>
+      <span class="mask"><span class="sl">&amp; staging for the</span></span>
+      <span class="mask"><span class="sl">nights people remember.</span></span>
+    </div>
+
+    <div class="editorial" id="edit" style="top:2240px">
+      <div class="frame" id="edframe"><img src="assets/img/72.jpg" id="edimg" style="object-position:50% 45%"></div>
+      <p id="edcopy">hellhound* is a full-service event production crew. we bring the <em>sound, screens, light and stage</em>
+        to galas, festivals, graduations and ringside nights — and keep every show running clean
+        from <em>load-in to last call.</em></p>
+      <div style="margin-top:34px;color:var(--copper)" id="edpill"><span class="pill"><span class="dot"></span>more on us</span></div>
+    </div>
+
+    <div class="track" id="track" style="top:3380px"></div>
+  </div>
+
+  <!-- PAGE 2 : montage → outro → end hero -->
+  <div class="page" id="p2" style="opacity:0">
+    <section class="montage" id="montage" style="top:0;height:1080px">
+      <div id="shots"></div>
+      <div class="big display" id="bigwrap"></div>
+    </section>
+
+    <div class="statement display" id="stmt2" style="top:1340px">
+      <span class="mask"><span class="sl2">let's build</span></span>
+      <span class="mask"><span class="sl2">your next show.</span></span>
+    </div>
+    <div class="abs" id="outro2" style="top:1640px;left:0;right:0;text-align:center">
+      <p style="font-family:var(--body);font-size:34px;line-height:1.4;color:var(--copper)">
+        event production services · <em style="font-style:normal;color:var(--glory)">audio · video · lighting · staging</em></p>
+      <div style="margin-top:40px;display:flex;gap:22px;justify-content:center">
+        <span class="pill filled" style="font-size:22px;padding:14px 40px">book your event</span>
+        <span class="pill" style="color:var(--copper);font-size:22px;padding:14px 40px"><span class="dot"></span>hellhoundaudio.com</span>
+      </div>
+    </div>
+
+    <section class="hero" id="hero2" style="top:2160px">
+      <img class="fill" id="h2a">
+      <div class="logo display"><span class="mask"><span id="logo2">hellhound<span class="ast" id="ast2">*</span></span></span></div>
+      <div class="tag" style="top:600px">
+        <span class="mask"><span class="tl2">we run the show.</span></span>
+        <span class="mask"><span class="tl2">you enjoy the moment.</span></span>
+      </div>
+      <div class="scrollhint" id="hint2">[ hellhoundaudio.com ]</div>
+    </section>
+  </div>
+
+  <div class="chrome">
+    <div class="minilogo display" id="minilogo">hellhound*</div>
+    <div class="menu">MENU</div>
+  </div>
+  <div class="fadeout" id="fade"></div>
+</div>
+
+<script>
+// ---------- data ----------
+const PANELS = [
+  {bg:'var(--moss)',  l:'live',   r:'sound',    img:'36', pos:'50% 60%', rot:-3.5, tagc:'var(--amber)',
+   tags:['front of house','monitors','wireless mics','playback'], lbl:['console','foh']},
+  {bg:'var(--slate)', l:'stage',  r:'lighting', img:'75', pos:'52% 50%', rot:3,   tagc:'var(--citron)',
+   tags:['wash & spot','uplighting','haze','cue-to-cue'], lbl:['lights','rgb']},
+  {bg:'var(--coral)', l:'video',  r:'walls',    img:'46', pos:'38% 50%', rot:-2.5, tagc:'var(--moss)',
+   tags:['led walls','imag','projection','live stream'], lbl:['screens','led']},
+  {bg:'var(--plum)',  l:'pro',    r:'stages',   img:'59', pos:'45% 50%', rot:3.5, tagc:'var(--amber)',
+   tags:['truss','risers','tents','street festivals'], lbl:['stages','outdoor']},
+  {bg:'var(--copper)',l:'show',   r:'crew',     img:'41', pos:'40% 50%', rot:-3,  tagc:'var(--citron)',
+   tags:['load-in','soundcheck','show call','strike'], lbl:['crew','on call']},
+];
+const TAGPOS = [[300,250,-8],[1390,215,6],[360,800,5],[1350,840,-6]];
+
+const MONTAGE = [
+  {word:'every room.',  shots:[['05','50% 50%'],['09','50% 50%']]},
+  {word:'every crowd.', shots:[['72','50% 50%'],['53','50% 40%']]},
+  {word:'every cue.',   shots:[['17','50% 50%'],['35','50% 50%']]},
+];
+
+// ---------- build DOM ----------
+const track = document.getElementById('track');
+PANELS.forEach((p,i)=>{
+  const el = document.createElement('div'); el.className='panel'; el.style.background=p.bg;
+  el.innerHTML = `
+    <div class="w wl display">${p.l}</div><div class="w wr display">${p.r}</div>
+    ${p.tags.map((t,j)=>`<div class="tagw" style="left:${TAGPOS[j][0]}px;top:${TAGPOS[j][1]}px;transform:rotate(${TAGPOS[j][2]}deg);color:${p.tagc}">${t}</div>`).join('')}
+    <div class="card"><img src="assets/img/${p.img}.jpg" style="object-position:${p.pos}"><div class="lbl"><span>${p.lbl[0]}</span><span>${p.lbl[1]}</span></div></div>
+    <div class="pnum">0${i+1} / 05</div>`;
+  track.appendChild(el);
+});
+track.style.width = (PANELS.length*1920)+'px';
+
+const shots = document.getElementById('shots'), bigwrap = document.getElementById('bigwrap');
+MONTAGE.forEach((m,i)=>{
+  m.shots.forEach(([id,pos],j)=>{
+    const s=document.createElement('div'); s.className='shot'; s.dataset.k=i*2+j;
+    s.innerHTML=`<img class="fill" src="assets/img/${id}.jpg" style="object-position:${pos}">`; shots.appendChild(s);
+  });
+  const w=document.createElement('span'); w.className='mask'; w.style.position='absolute'; w.style.left='0'; w.style.bottom='0';
+  w.innerHTML=`<span class="mw">${m.word}</span>`; bigwrap.appendChild(w);
+});
+bigwrap.style.height='240px'; bigwrap.style.width='1800px';
+
+// ---------- easing ----------
+function bez(x1,y1,x2,y2){
+  return t=>{ if(t<=0)return 0; if(t>=1)return 1;
+    let u=t; for(let i=0;i<8;i++){const x=3*(1-u)*(1-u)*u*x1+3*(1-u)*u*u*x2+u*u*u-t; const dx=3*(1-u)*(1-u)*x1+6*(1-u)*u*(x2-x1)+3*u*u*(1-x2); if(Math.abs(dx)<1e-6)break; u-=x/dx; u=Math.min(1,Math.max(0,u));}
+    return 3*(1-u)*(1-u)*u*y1+3*(1-u)*u*u*y2+u*u*u; };
+}
+const SCROLL = bez(.7,0,.12,1);      // smooth-scroll feel: soft start, long glide
+const OUT    = bez(.16,1,.3,1);      // expo-out for reveals
+const INOUT  = bez(.65,0,.35,1);
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const prog=(t,a,b)=>clamp((t-a)/(b-a));
+const lerp=(a,b,p)=>a+(b-a)*p;
+// keyframes: [[t,v],[t,v,ease],...]
+function kf(t,keys){
+  if(t<=keys[0][0])return keys[0][1];
+  for(let i=1;i<keys.length;i++){const [t1,v1,e]=keys[i],[t0,v0]=keys[i-1];
+    if(t<=t1) return lerp(v0,v1,(e||SCROLL)(prog(t,t0,t1)));}
+  return keys[keys.length-1][1];
+}
+const $=id=>document.getElementById(id), $$=s=>[...document.querySelectorAll(s)];
+function rise(els,t,start,stagger=.09,dur=1.1){
+  els.forEach((e,i)=>{const p=OUT(prog(t,start+i*stagger,start+i*stagger+dur)); e.style.transform=`translateY(${(1-p)*110}%)`;});
+}
+
+// ---------- timeline (seconds) ----------
+const T = {
+  heroIn:.25, heroSwap:5.3, s1a:7.4, s1b:8.9, s2a:10.9, s2b:12.5, s3a:15.4, s3b:16.9,
+  panelHold:2.15, panelMove:1.05, toMontage:0, outroA:0, endA:0, END:0
+};
+T.panelsEnd = T.s3b + PANELS.length*T.panelHold + (PANELS.length-1)*T.panelMove;
+T.toMontage = T.panelsEnd - .15;                 // dissolve panels → montage
+T.mStart = T.toMontage; T.mSeg = 2.3;
+T.outroA = T.mStart + MONTAGE.length*T.mSeg + .2; T.outroB = T.outroA + 1.5;
+T.endA = T.outroB + 2.6; T.endB = T.endA + 1.5;
+T.END = T.endB + 4.6;
+window.DURATION = T.END;
+
+// clip frame sources
+const CLIP = {gala:182, band:449, build:214};
+const clipSrc=(name,t)=>{const n=CLIP[name]; let f=Math.floor(t*30)%n+1; return `assets/clips/${name}/${String(f).padStart(4,'0')}.jpg`;};
+
+// ---------- render ----------
+const pending=[];
+function setSrc(img,src){ if(img.getAttribute('src')!==src){ img.setAttribute('src',src); pending.push(img.decode().catch(()=>{})); } }
+
+window.renderFrame = async function(t){
+  pending.length=0;
+  // ---- page 1 vertical scroll
+  const y1 = kf(t,[[T.s1a,0],[T.s1b,1000],[T.s2a,1000],[T.s2b,2140],[T.s3a,2140],[T.s3b,3380]]);
+  $('p1').style.transform=`translateY(${-y1}px)`;
+
+  // hero 1: gala footage then band footage, slow push-in + parallax while scrolling away
+  setSrc($('h1a'), clipSrc('gala', Math.min(t,6.0)));
+  setSrc($('h1b'), clipSrc('band', Math.max(0,t-T.heroSwap+1.2)));
+  $('h1b').style.opacity = INOUT(prog(t,T.heroSwap,T.heroSwap+.9));
+  const push = 1.04 + .06*prog(t,0,T.s1b);
+  [$('h1a'),$('h1b')].forEach(i=>i.style.transform=`translateY(${y1*.45}px) scale(${push})`);
+  rise([$('logo1')],t,T.heroIn,0,1.4);
+  rise($$('.tl1'),t,T.heroIn+.55,.12,1.2);
+  $('ast1').style.transform=`rotate(${t*38}deg)`;
+  $('hint').style.opacity = prog(t,1.6,2.4)*(1-prog(t,T.s1a,T.s1a+.4));
+
+  // statement: lines rise as it enters, colour firms up like the reference
+  rise($$('.sl'),t,T.s1a+.55,.1,1.2);
+  $('stmt').style.opacity = .35+.65*prog(t,T.s1a+.5,T.s1b+.3);
+
+  // editorial: image rises & fades in with internal parallax, copy follows
+  const eIn = prog(t,T.s2a+.35,T.s2b+.4);
+  $('edframe').style.opacity = .15+.85*OUT(eIn);
+  $('edimg').style.transform = `translateY(${lerp(60,-40,prog(t,T.s2a,T.s3b))}px) scale(${1.0+.05*prog(t,T.s2a,T.s3a)})`;
+  const cIn = OUT(prog(t,T.s2a+.8,T.s2b+.9));
+  $('edcopy').style.opacity=cIn; $('edcopy').style.transform=`translateY(${(1-cIn)*40}px)`;
+  const pIn = OUT(prog(t,T.s2a+1.1,T.s2b+1.2));
+  $('edpill').style.opacity=pIn; $('edpill').style.transform=`translateY(${(1-pIn)*30}px)`;
+
+  // ---- horizontal panels
+  let x=0; const panels=$$('.panel');
+  for(let i=1;i<PANELS.length;i++){
+    const a=T.s3b+i*T.panelHold+(i-1)*T.panelMove;
+    x += 1920*SCROLL(prog(t,a,a+T.panelMove));
+  }
+  const drift = 70*prog(t,T.s3b-.6,T.panelsEnd);   // slow continuous creep, never fully still
+  $('track').style.transform=`translateX(${-(x+drift)}px)`;
+  panels.forEach((el,i)=>{
+    const centre = i*1920 - (x+drift);              // panel offset from viewport
+    const card=el.querySelector('.card'), wl=el.querySelector('.wl'), wr=el.querySelector('.wr');
+    const rot=PANELS[i].rot;
+    // first panel: card & words rise in with the vertical scroll
+    let cy=0; if(i===0){ cy = 260*(1-OUT(prog(t,T.s3a+.4,T.s3b+.5))); }
+    card.style.transform=`translate(${centre*-.10}px,${cy}px) rotate(${rot + centre*.0012}deg)`;
+    card.querySelector('img').style.transform=`translateX(${centre*.05}px)`;
+    wl.style.transform=`translate(${centre*.06}px,-50%)`; wr.style.transform=`translate(${centre*-.04}px,-50%)`;
+    el.querySelectorAll('.tagw').forEach((g,j)=>{ g.style.translate=`${centre*(j%2?-.12:.1)}px ${Math.sin(t*1.3+j)*6}px`; });
+  });
+
+  // ---- montage (page 2)
+  const mFade = INOUT(prog(t,T.toMontage,T.toMontage+.7));
+  $('p2').style.opacity = mFade; $('p1').style.visibility = mFade>=1?'hidden':'visible';
+  const y2 = kf(t,[[T.outroA,0],[T.outroB,1080],[T.endA,1080],[T.endB,2160]]);
+  $('p2').style.transform=`translateY(${-y2}px)`;
+  const shotEls=$$('.shot'), words=$$('.mw');
+  shotEls.forEach((s,k)=>{
+    const seg=Math.floor(k/2), half=k%2, a=T.mStart+seg*T.mSeg + half*T.mSeg/2;
+    const op = k===0?1: INOUT(prog(t,a-.35,a+.35));
+    s.style.opacity = t<a-.35 && k>0 ? 0 : op;
+    s.style.zIndex=k;
+    const z = 1.02+.08*prog(t,a-.35,a+T.mSeg/2+.4);
+    s.querySelector('img').style.transform=`translateY(${y2*.45}px) scale(${z})`;
+  });
+  words.forEach((w,i)=>{
+    const a=T.mStart+i*T.mSeg+.25, out=T.mStart+(i+1)*T.mSeg+.1;
+    const pin=OUT(prog(t,a,a+1.0)), pout = i<words.length-1 ? INOUT(prog(t,out-.05,out+.45)) : 0;
+    w.style.transform=`translateY(${(1-pin)*110 - pout*110}%)`;
+  });
+
+  // outro statement + end hero
+  rise($$('.sl2'),t,T.outroA+.5,.1,1.2);
+  const oIn=OUT(prog(t,T.outroA+.9,T.outroB+1.0));
+  $('outro2').style.opacity=oIn; $('outro2').style.transform=`translateY(${(1-oIn)*40}px)`;
+  setSrc($('h2a'), clipSrc('gala', Math.min(6.0,Math.max(0,t-T.endA+0.2)*0.9)));
+  $('h2a').style.transform=`translateY(${(y2-2160)*.45}px) scale(${1.04+.05*prog(t,T.endA,T.END)})`;
+  rise([$('logo2')],t,T.endA+.5,0,1.4);
+  rise($$('.tl2'),t,T.endA+1.0,.12,1.2);
+  $('ast2').style.transform=`rotate(${t*38}deg)`;
+  $('hint2').style.opacity=prog(t,T.endB+.4,T.endB+1.2);
+
+  // chrome: mini logo shows whenever the big hero logo is off screen
+  const heroVisible = (t<T.s1a+.5) || (t>T.endA+.6);
+  const mini = heroVisible?0:1;
+  $('minilogo').style.opacity = mini;
+  $('minilogo').style.color = (y1>500 && y1<3000 && t<T.toMontage) ? 'var(--copper)' : 'var(--citron)';
+  $('fade').style.opacity = prog(t,T.END-.8,T.END);
+
+  await Promise.all(pending);
+};
+
+window.ready = (async()=>{
+  await document.fonts.ready;
+  await Promise.all([...document.images].filter(i=>i.src).map(i=>i.decode().catch(()=>{})));
+  return true;
+})();
+
+// live preview when opened in a browser normally
+if(!navigator.webdriver){
+  const t0=performance.now();
+  const loop=async()=>{ await window.renderFrame(((performance.now()-t0)/1000)%DURATION); requestAnimationFrame(loop); };
+  window.ready.then(loop);
+}
+</script>
+</body>
+</html>
