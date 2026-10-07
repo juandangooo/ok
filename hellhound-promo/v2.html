@@ -87,10 +87,10 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:var(--ink)}
 #bar .marq span{display:inline-block}
 #bar .site{font-family:var(--mono);font-size:26px;color:var(--paper)}
 
-#coin{position:absolute;right:40px;top:30px;width:176px;height:176px;perspective:900px;z-index:5}
+#coin{position:absolute;right:46px;top:34px;width:150px;height:156px;perspective:700px;z-index:5}
 #coin .flip{position:absolute;inset:0;transform-style:preserve-3d}
-#coin .face{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;background:var(--paper);display:flex;align-items:center;justify-content:center;
-  border:5px solid var(--red);box-shadow:0 10px 26px rgba(0,0,0,.35)}
+#coin .face{position:absolute;inset:0;backface-visibility:hidden;display:flex;align-items:center;justify-content:center;
+  filter:drop-shadow(0 8px 14px rgba(0,0,0,.35))}
 #coin .face img{display:block}
 #coin .back{transform:rotateY(180deg)}
 </style>
@@ -103,7 +103,7 @@ html,body{width:1920px;height:1080px;overflow:hidden;background:var(--ink)}
     <div id="vig"></div>
     <div id="grain"></div>
     <div id="flash"></div>
-    <div id="coin"><div class="flip" id="flip"><div class="face"><img src="assets/brand/mark.png" style="height:112px"></div><div class="face back"><img src="assets/brand/qr.png" style="width:108px;height:108px;border-radius:4px"></div></div></div>
+    <div id="coin"><div class="flip" id="flip"><div class="face"><img src="assets/brand/mark.png" style="height:156px"></div><div class="face back"><img src="assets/brand/qr.png" style="width:146px;height:146px;border-radius:6px"></div></div></div>
   </div>
   <div id="bar">
     <img class="m" src="assets/brand/mark.png">
@@ -392,8 +392,10 @@ window.renderFrame = async function(t){
   const zap = (t%3.2)<.18 ? (Math.floor(t*30)%2 ? .35 : 1) : 1;
   document.querySelectorAll('.bolt,#bast').forEach(b=>b.style.opacity=zap);
   // floating coin: hold, flip (logo <-> qr), bob
-  const cyc=t%8, fp = INOUT(prog(cyc,3.3,4.1)) + INOUT(prog(cyc,7.3,8.1));
-  $('flip').style.transform=`translateY(${Math.sin(t*1.6)*6}px) rotateY(${fp*180}deg) rotateZ(${Math.sin(t*.9)*3}deg)`;
+  // floating coin: logo holds, spins a full turn and a half to land on the QR, QR holds still (scannable), spins back
+  const cyc=t%10, spin = INOUT(prog(cyc,3.6,5.0))*540 + INOUT(prog(cyc,8.6,10.0))*540;
+  const sway = Math.sin(t*1.1)*10;   // gentle idle wobble so it never looks frozen
+  $('flip').style.transform=`translateY(${Math.sin(t*1.5)*7}px) rotateY(${spin + sway}deg)`;
 
   await Promise.all(pending);
 };
