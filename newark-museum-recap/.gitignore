@@ -2,3 +2,5 @@ __pycache__/
 cache/
 footage/
 output/still_*
+output/s*.jpg
+output/master.mp4
