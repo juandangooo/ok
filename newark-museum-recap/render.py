@@ -1,7 +1,7 @@
-"""Newark Museum of Art, 10.08.26 — Hellhound Audio event recap (1080x1920, 30fps, 1:29).
+"""Newark Museum of Art, 10.08.26 — Hellhound Audio event recap (1080x1920, 30fps, 1:10).
 
-v3: the day in clock order, from load-in at 10:34 am to the last disco ball at 8:44 pm, told with the clips and
-the photographer's stills (bursts play as stop-motion). A camcorder time stamp ticks forward in the corner.
+v4: the day in clock order, from load-in at 10:34 am to the dance floor at 8:38 pm, told with the clips and
+photo bursts played as stop-motion (never single stills). A camcorder time stamp ticks forward in the corner.
 People at work fill the screen; at each chapter break the picture collapses into the logo's hexagon (a wide
 shot of the room inside it), then blows back out. Opens on the logo, ends by collapsing into it and flipping
 to a scannable QR code. Cuts on a 120 BPM grid.
@@ -66,8 +66,20 @@ def V(src, start, speed, beats, fx=.5, mode=F):
     return dict(kind='v', src=src, start=start, speed=speed, beats=beats, fx=fx, mode=mode)
 
 
-def P(ids, beats, fx=.5, mode=F, step=4):
-    return dict(kind='p', ids=ids.split(), beats=beats, fx=fx, mode=mode, step=step)
+def P(ids, beats, fx=.5, mode=F, step=4, bounce=True):
+    """A photo burst played as stop-motion: a new frame every `step` video frames, bouncing back and forth
+    (or holding the last frame). Photos never appear on their own."""
+    ids = ids.split()
+    assert len(ids) >= 3, 'photos only as stop-motion'
+    return dict(kind='p', ids=ids, beats=beats, fx=fx, mode=mode, step=step, bounce=bounce)
+
+
+def burst_index(s, i):
+    k, n = i // s['step'], len(s['ids'])
+    if not s['bounce']:
+        return min(n - 1, k)
+    k %= 2 * n - 2
+    return k if k < n else 2 * n - 2 - k
 
 
 def XF(a, b, beats, mode=X):
@@ -83,76 +95,58 @@ CHAPTERS = [
     ]),
     ('LOAD IN', '01  ·  trucks, truss and cases', [
         V('v2', 2.0, 6, 2, .45),
-        P('5220', 2),
-        P('5233', 2),
-        P('5276', 2),
+        P('5224 5225 5226', 2),
+        P('5276 5277 5278 5279', 2),
         P('5280 5281 5282', 2, .45),
-        P('5300 5301 5302', 2),
-        P('5306 5307', 2, .5),
-        V('v1', 14.0, 4, 2, .5),
-        P('5337 5338 5339', 2),
-        P('5348', 2),
-        V('v3', 26.0, 1, 3),
+        P('5289 5290 5291', 2, .5),
+        P('5308 5309 5310 5311 5312', 2),
+        P('5318 5319 5320 5321 5322', 2, .5),
+        V('v1', 13.0, 3, 2, .5),
+        P('5333 5334 5335', 2, .45),
+        P('5340 5341 5342', 2),
+        V('v3', 108.0, 1, 2),
         V('v3', 120.5, 1, 2),
         V('v3', 142.0, 1, 3),
         V('v3', 150.0, 1, 2),
     ]),
     ('THE BUILD', '02  ·  audio, video and staging', [
         V('v4', 0.0, 6, 4, mode=X),
-        P('5372', 2),
+        P('5371 5372 5373 5374', 2),
         P('5375 5376 5377 5378 5379 5380', 2, .5),
-        P('5381 5382', 2),
         P('5388 5389 5390 5391', 2),
         P('5398 5399 5400 5401', 2),
-        P('5404', 2),
-        P('5412 5413 5414 5415', 2),
-        P('5416 5417 5418', 2, .5),
-        P('5419 5420 5421', 2),
-        P('5423 5424 5426 5427 5428', 4, step=6),       # 11:52, the disco ball goes up
+        P('5409 5410 5411 5412 5413 5414 5415', 3),
+        P('5423 5424 5426 5427 5428', 3),                # 11:52, the disco ball goes up
+        P('5429 5430 5431 5432 5433 5434 5435', 3, .5),
         V('v6', 28.0, 4, 2, .55),
-        V('v7', 0.0, 10, 4),
+        V('v7', 0.0, 10, 3),
         V('v8', 0.0, 10, 3, .55),
         V('v10', 0.0, 8, 3, .4),
     ]),
     ('LIGHTS UP', '03  ·  lighting and front of house', [
-        XF(P('5440', 5), P('5443', 5), 5),                     # 7:14 pm, the hall dark, then lit
-        P('5446', 2),
-        P('5447', 2),
+        P('5440 5441 5443 5444', 4, mode=X, step=9, bounce=False),   # 7:14 pm, the hall dark, then lit
         V('v11', 1.0, 1, 2, .35),
+        V('v11', 9.0, 1, 2, .5),
         V('v11', 16.6, 1, 2, .72),
-        V('v12', 0.0, 5, 3, .5),
-        P('5452', 2),
-        P('5453 5454', 2, .5),
-        P('5456', 2),
-        P('5458 5459', 2, .45),
+        V('v12', 0.0, 5, 4, .5),
         V('v13', 0.0, 5, 4),
-        P('5461 5462', 2, .5),
     ]),
     ('THE NIGHT', '04  ·  showtime', [
         V('v14', 0.0, 6, 4, mode=X),
-        P('5465', 2),
         V('v15', 0.0, 10, 3, .5),
-        P('5471', 2),
         V('v16', 0.0, 8, 3, .45),
-        P('5473 5474 5475', 3),
-        P('5485 5486', 2, .4),
-        P('5490 5491', 2, .55),
-        P('5489', 2),
-        P('5497', 2),
-        P('5498 5499 5500', 3),
+        P('5473 5474 5475 5478 5479', 3),
+        P('5487 5488 5489', 2),
         P('5505 5506 5507', 2),
-        P('5513 5514 5515 5516', 2),
-        P('5520', 2),
+        P('5513 5514 5515 5516 5517 5518', 3),
+        V('v17', 0.5, 1, 2, .6),
+        V('v17', 15.0, 1, 2, .5),
         V('v17', 33.0, 1, 2, .5),
         V('v17', 70.0, 1, 2, .5),
         V('v18', 12.0, 1, 2, .55),
         V('v18', 80.0, 1, 2, .5),
         V('v18', 135.5, 1, 2, .5),
         V('v19', 34.8, 1, 3, .05),                       # the Hellhound jacket on the floor
-        P('5541', 2),
-        P('5543 5544 5545', 2, .5),
-        P('5554', 2),
-        P('5556', 3),                                    # 8:44 pm, the little disco ball, last frame
     ]),
 ]
 OUTRO = ('HELLHOUND AUDIO', 'audio  ·  lighting  ·  video  ·  staging', 16)
@@ -203,7 +197,7 @@ def clock(s, i):
     if s['kind'] == 'x':
         return clock(s['a'] if i < s['n'] // 2 else s['b'], i)
     if s['kind'] == 'p':
-        return photo_time(s['ids'][min(len(s['ids']) - 1, i // s['step'])])
+        return photo_time(s['ids'][burst_index(s, i)])
     ratio = 1 if s['src'] in REALTIME else TIMELAPSE_RATIO
     return _secs(CLIP_START[s['src']]) + (s['start'] + i / FPS * s['speed']) * ratio
 
@@ -294,7 +288,7 @@ def shot_frames(s):
         return read_frames(cache_path(_jobs_for(s)[0]), s['n'], s['mode'])
     if s['kind'] == 'p':
         stills = [np.asarray(Image.open(cache_path(j)).convert('RGB')) for j in _jobs_for(s)]
-        return [stills[min(len(stills) - 1, i // s['step'])] for i in range(s['n'])]
+        return [stills[burst_index(s, i)] for i in range(s['n'])]
     a = shot_frames(dict(s['a'], n=s['n']))
     b = shot_frames(dict(s['b'], n=s['n']))
     out = []
