@@ -1,35 +1,32 @@
 # Newark Museum of Art: event recap
 
-`output/hellhound-newark-museum-recap.mp4`: 1080×1920 (vertical, for Reels/TikTok/Stories), 30fps, 1:30, silent.
+`output/hellhound-newark-museum-recap.mp4`: 1080×1920 (vertical, for Reels/TikTok/Stories), 30fps, 1:29, silent.
 
-Built from the 19 original clips in the `Newark Museum 10 8 26` Drive folder (4K/1080p, not re-cropped from an export).
+## v3 (current): the day, in order
+Built from the 19 clips plus the 342 photos from the `Newark Musem 10 8 26 - photos` Drive folder.
 
-## v2 (current)
-Movement taken from the "HexFlow" edit, with the v1 type and branding kept:
+- **Runs in clock order.** A camcorder-style time stamp (top right, red dot) ticks forward from 10:34 am at the
+  loading dock to 8:44 pm, using the photos' EXIF times and the clips' own start times (stamped in UTC, shifted to
+  Eastern; the tripod timelapses shoot one frame every 0.5s, so their clock runs 15× while they play).
+- **No repeats.** Every fixed-camera timelapse appears once; handheld clips come back only for a different moment.
+  Shots that were there to fill time are gone, so it runs 1:29 rather than padding to 1:30.
+- **Photos narrate**: single frames drift slowly; bursts play as stop-motion (the disco ball going up at 11:52,
+  truss into the freight elevator, the crew watching from the balcony). The hall goes from dark to lit at 7:14 pm
+  inside the hexagon, and it ends on a small disco-ball candle at 8:44 pm before the logo.
+- **One warm, faded look** over footage and photos alike (lifted blacks, warm highlights, soft bloom, grain).
+- Kept from v2: full screen for people at work, the hexagon collapsing in / blowing out at each chapter, the logo
+  opening and the logo → QR ending, chapter titles, progress bar, wordmark and corner coin.
 
-- **Full screen** for people at work: the vertical phone clips, the 4K front-of-house and DJ clips, close timelapses.
-  Every 9:16 crop is aimed at the crew or the guests (`focus x` per shot), and every shot's first, middle and
-  last frame was checked on `output/board.jpg` so none land on a bare wall or a body blocking the lens.
-- **The hexagon** (the logo's own outline, thin red edge) at each chapter break: the full-screen shot collapses into
-  it, a wide room timelapse plays inside over a blurred copy of itself, then the next shot blows back out to full
-  screen. Wide shots of the hall live here, where they read well; people are too small in them for full screen.
-- Opens on the logo inside the hexagon and dissolves into the disco-ball arch. Ends on the crew at front of house,
-  collapsing into the hexagon, which becomes the logo (over a blurred logo backdrop) and spins to the QR code.
-- Kept from v1: chapter titles in the brand font with the red bolt `I` (Newark Museum → Load In → The Build →
-  Lights Up → The Night), the subtitle line, the progress bar with red chapter ticks, the wordmark, and the
-  logo ⇄ QR coin in the corner. Gradients at the top and bottom keep them readable over footage.
-- Cuts land on a 120 BPM grid (one beat = 0.5s = 15 frames), so a track at 120 (or 60/240) sits on them.
-
-v1 (everything inside a fixed hexagon) is in git history: commit "Add Newark Museum of Art event recap video".
+v1 (everything in a fixed hexagon) and v2 (no photos) are in git history.
 
 ## Re-render
-Footage isn't committed (7.4 GB). Unzip it and rename `Newark Museum 10 8 26 - videos_N.MP4` → `vN.mp4`.
+Footage and photos aren't committed (7.4 GB + 1.9 GB). Unzip the clips and rename `Newark Museum 10 8 26 - videos_N.MP4` → `vN.mp4`; unzip the photos as-is (`IMG_5220.JPG` …).
 ```
-export FOOTAGE=/path/to/clips CACHE=/tmp/recap-cache
+export FOOTAGE=/path/to/clips PHOTOS=/path/to/photos CACHE=/tmp/recap-cache
 python3 render.py cache        # cut the shots out of the source (slow: 4K HEVC)
 python3 render.py board        # first / middle / last frame of every shot → output/board.jpg
 python3 render.py stills 4 82  # check frames
 python3 render.py video        # → output/master.mp4 (large); then a 2-pass 8 Mb/s encode for delivery
 ```
-Needs ffmpeg, Python 3 with numpy + Pillow. Shots, speeds, crop focus, full-screen/hexagon mode and chapter text
-all live in `CHAPTERS` at the top of `render.py`.
+Needs ffmpeg, Python 3 with numpy + Pillow. Shots (`V` clip, `P` photo or burst, `XF` dissolve), speeds, crop focus, full-screen/hexagon mode and chapter
+text all live in `CHAPTERS` at the top of `render.py`.

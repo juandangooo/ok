@@ -1,16 +1,18 @@
-"""Newark Museum of Art, 10.08.26 — Hellhound Audio event recap (1080x1920, 30fps, 90s).
+"""Newark Museum of Art, 10.08.26 — Hellhound Audio event recap (1080x1920, 30fps, 1:29).
 
-v2: full-screen footage of the crew at work, and at each chapter break the picture collapses into the
-logo's hexagon (a wide establishing shot plays inside it over a blurred copy of itself), then blows back
-out to full screen. Hard cuts on a 120 BPM grid. It opens on the logo inside the hexagon and ends by
-collapsing into the logo, which flips to a scannable QR code.
+v3: the day in clock order, from load-in at 10:34 am to the last disco ball at 8:44 pm, told with the clips and
+the photographer's stills (bursts play as stop-motion). A camcorder time stamp ticks forward in the corner.
+People at work fill the screen; at each chapter break the picture collapses into the logo's hexagon (a wide
+shot of the room inside it), then blows back out. Opens on the logo, ends by collapsing into it and flipping
+to a scannable QR code. Cuts on a 120 BPM grid.
 
 usage:
   python3 render.py cache            # cut every shot out of the source footage (slow, once)
   python3 render.py board            # storyboard: first / middle / last frame of every shot
   python3 render.py stills 3.2 47    # full frames at given seconds
   python3 render.py video            # final mp4
-Sources: FOOTAGE env var -> folder with v1.mp4 … v19.mp4 (renamed from "Newark Museum 10 8 26 - videos_N.MP4").
+Sources: FOOTAGE -> folder with v1.mp4 … v19.mp4 (renamed from "Newark Museum 10 8 26 - videos_N.MP4"),
+         PHOTOS -> folder with IMG_5220.JPG … (the photo zip, as-is).
 """
 import math
 import os
@@ -39,94 +41,128 @@ CX, CY = W / 2, 860
 HEX = [(.5, 0), (1, .249), (.993, .754), (.5, 1), (0, .748), (0, .249)]   # measured off the logo
 
 # cached shot sizes: a little bigger than what's shown, room for drift
-FMARGIN, HMARGIN = 1.06, 1.12
+FMARGIN, HMARGIN = 1.08, 1.12
 FCW, FCH = round(W * FMARGIN / 2) * 2, round(H * FMARGIN / 2) * 2
 HCW, HCH = round(WW * HMARGIN / 2) * 2, round(WH * HMARGIN / 2) * 2
 
 SWAP = 8                        # frames for the hexagon to collapse in / blow out
 
 # ── shot list ───────────────────────────────────────────────────────────────────────────────────
-# (source, start s, speed, beats, focus x 0..1, mode)   mode F = full screen, X = inside the hexagon.
-# Full screen is for people at work; the hexagon gets the wide room shots, where people are small.
-# Focus x picks where the 9:16 crop sits in a 16:9 source (vertical sources ignore it).
+# Rules for this cut: every fixed-camera timelapse appears once; a handheld clip comes back only for a
+# different moment; every chapter runs in clock order, so the time stamp in the corner only moves forward.
+# Full screen (F) is for people at work; the hexagon (X) gets the wide shots of the room.
+# Photo bursts play as stop-motion (a new frame every `step` video frames).
 F, X = 'F', 'X'
+TIMELAPSE_RATIO = 15            # the tripod timelapses shoot one frame every 0.5s, played at 30fps
+REALTIME = {'v3', 'v11', 'v17', 'v18'}
+# clip start times, Eastern (the cameras stamp UTC; these match the photo EXIF clock)
+CLIP_START = {'v1': '10:39:27', 'v2': '10:33:57', 'v3': '10:55:57', 'v4': '11:03:44', 'v5': '11:42:27',
+              'v6': '11:58:39', 'v7': '12:16:18', 'v8': '12:30:52', 'v9': '12:44:00', 'v10': '12:55:11',
+              'v11': '19:18:22', 'v12': '19:23:27', 'v13': '19:37:28', 'v14': '19:47:56', 'v15': '19:58:18',
+              'v16': '20:10:23', 'v17': '20:21:24', 'v18': '20:23:42', 'v19': '20:29:44'}
+
+
+def V(src, start, speed, beats, fx=.5, mode=F):
+    return dict(kind='v', src=src, start=start, speed=speed, beats=beats, fx=fx, mode=mode)
+
+
+def P(ids, beats, fx=.5, mode=F, step=4):
+    return dict(kind='p', ids=ids.split(), beats=beats, fx=fx, mode=mode, step=step)
+
+
+def XF(a, b, beats, mode=X):
+    """Dissolve from a to b over the middle of the shot."""
+    for s in (a, b):
+        s.update(beats=beats, mode=mode)
+    return dict(kind='x', a=a, b=b, beats=beats, mode=mode)
+
+
 CHAPTERS = [
     ('NEWARK MUSEUM', 'of art  ·  10.08.26', [
-        ('v18', 1.0, 1, 8, .5, X),                 # opens on the logo, then the disco-ball arch
+        V('v18', 1.0, 1, 8, mode=X),                     # opens on the logo, then the disco-ball arch
     ]),
     ('LOAD IN', '01  ·  trucks, truss and cases', [
-        ('v1', 2.0, 6, 3, .62, F),
-        ('v2', 2.0, 6, 2, .45, F),
-        ('v3', 120.5, 1, 2, .5, F),
-        ('v1', 14.0, 4, 2, .5, F),
-        ('v3', 108.0, 1, 2, .5, F),
-        ('v2', 9.0, 4, 2, .42, F),
-        ('v3', 117.0, 1, 2, .5, F),
-        ('v2', 15.0, 3, 2, .5, F),
-        ('v3', 134.0, 1, 2, .5, F),
-        ('v1', 28.0, 4, 2, .45, F),
-        ('v3', 142.0, 1, 3, .5, F),
+        V('v2', 2.0, 6, 2, .45),
+        P('5220', 2),
+        P('5233', 2),
+        P('5276', 2),
+        P('5280 5281 5282', 2, .45),
+        P('5300 5301 5302', 2),
+        P('5306 5307', 2, .5),
+        V('v1', 14.0, 4, 2, .5),
+        P('5337 5338 5339', 2),
+        P('5348', 2),
+        V('v3', 26.0, 1, 3),
+        V('v3', 120.5, 1, 2),
+        V('v3', 142.0, 1, 3),
+        V('v3', 150.0, 1, 2),
     ]),
     ('THE BUILD', '02  ·  audio, video and staging', [
-        ('v4', 0.0, 10, 4, .5, X),
-        ('v10', 0.0, 8, 3, .4, F),
-        ('v3', 150.0, 1, 2, .5, F),
-        ('v8', 0.0, 10, 3, .55, F),
-        ('v3', 58.0, 1, 2, .5, F),
-        ('v9', 5.0, 10, 2, .55, F),
-        ('v8', 10.0, 10, 2, .5, F),
-        ('v10', 12.0, 8, 2, .45, F),
-        ('v7', 0.0, 10, 4, .5, X),
-        ('v3', 154.0, 1, 2, .5, F),
-        ('v8', 20.0, 10, 2, .45, F),
-        ('v9', 15.0, 10, 2, .55, F),
-        ('v3', 26.0, 1, 3, .5, F),
-        ('v3', 62.0, 1, 3, .5, F),
-        ('v9', 23.0, 10, 3, .5, F),
-        ('v3', 158.0, 1, 2, .5, F),
-        ('v9', 32.0, 4, 3, .5, F),
-        ('v8', 29.5, 10, 2, .5, F),
-        ('v9', 0.0, 4, 2, .55, F),
+        V('v4', 0.0, 6, 4, mode=X),
+        P('5372', 2),
+        P('5375 5376 5377 5378 5379 5380', 2, .5),
+        P('5381 5382', 2),
+        P('5388 5389 5390 5391', 2),
+        P('5398 5399 5400 5401', 2),
+        P('5404', 2),
+        P('5412 5413 5414 5415', 2),
+        P('5416 5417 5418', 2, .5),
+        P('5419 5420 5421', 2),
+        P('5423 5424 5426 5427 5428', 4, step=6),       # 11:52, the disco ball goes up
+        V('v6', 28.0, 4, 2, .55),
+        V('v7', 0.0, 10, 4),
+        V('v8', 0.0, 10, 3, .55),
+        V('v10', 0.0, 8, 3, .4),
     ]),
     ('LIGHTS UP', '03  ·  lighting and front of house', [
-        ('xfade', ('v4', 9.5, 10), ('v12', 0.0, 10), 6, .5, X),   # same hall, daylight → purple
-        ('v13', 0.0, 8, 3, .5, F),
-        ('v11', 1.0, 1, 2, .35, F),
-        ('v17', 15.0, 1, 2, .5, F),
-        ('v11', 9.0, 1, 2, .5, F),
-        ('v17', 0.5, 1, 2, .6, F),
-        ('v13', 20.0, 8, 3, .5, F),
-        ('v11', 15.5, 1, 3, .72, F),
-        ('v17', 21.0, 1, 2, .45, F),
-        ('v11', 4.0, 1, 2, .45, F),
-        ('v13', 31.5, 8, 2, .5, F),
-        ('v17', 3.5, 1, 3, .55, F),
+        XF(P('5440', 5), P('5443', 5), 5),                     # 7:14 pm, the hall dark, then lit
+        P('5446', 2),
+        P('5447', 2),
+        V('v11', 1.0, 1, 2, .35),
+        V('v11', 16.6, 1, 2, .72),
+        V('v12', 0.0, 5, 3, .5),
+        P('5452', 2),
+        P('5453 5454', 2, .5),
+        P('5456', 2),
+        P('5458 5459', 2, .45),
+        V('v13', 0.0, 5, 4),
+        P('5461 5462', 2, .5),
     ]),
     ('THE NIGHT', '04  ·  showtime', [
-        ('v14', 0.0, 10, 5, .5, X),
-        ('v18', 12.0, 1, 2, .55, F),
-        ('v15', 0.0, 10, 3, .5, F),
-        ('v18', 26.0, 1, 2, .5, F),
-        ('v16', 0.0, 10, 4, .45, F),
-        ('v17', 33.0, 1, 2, .5, F),
-        ('v18', 40.0, 1, 2, .6, F),
-        ('v19', 0.0, 10, 3, .3, F),
-        ('v18', 80.0, 1, 2, .5, F),
-        ('v17', 55.0, 1, 2, .5, F),
-        ('v16', 20.0, 10, 3, .5, X),
-        ('v18', 124.0, 1, 2, .55, F),
-        ('v15', 20.0, 10, 3, .5, F),
-        ('v18', 135.5, 1, 2, .5, F),
-        ('v17', 70.0, 1, 2, .5, F),
-        ('v18', 108.0, 1, 2, .5, F),
-        ('v16', 29.5, 10, 2, .5, F),
-        ('v18', 88.0, 1, 2, .5, F),
-        ('v19', 34.8, 1, 5, .05, F),
-        ('v11', 16.6, 1, 2, .72, F),
+        V('v14', 0.0, 6, 4, mode=X),
+        P('5465', 2),
+        V('v15', 0.0, 10, 3, .5),
+        P('5471', 2),
+        V('v16', 0.0, 8, 3, .45),
+        P('5473 5474 5475', 3),
+        P('5485 5486', 2, .4),
+        P('5490 5491', 2, .55),
+        P('5489', 2),
+        P('5497', 2),
+        P('5498 5499 5500', 3),
+        P('5505 5506 5507', 2),
+        P('5513 5514 5515 5516', 2),
+        P('5520', 2),
+        V('v17', 33.0, 1, 2, .5),
+        V('v17', 70.0, 1, 2, .5),
+        V('v18', 12.0, 1, 2, .55),
+        V('v18', 80.0, 1, 2, .5),
+        V('v18', 135.5, 1, 2, .5),
+        V('v19', 34.8, 1, 3, .05),                       # the Hellhound jacket on the floor
+        P('5541', 2),
+        P('5543 5544 5545', 2, .5),
+        P('5554', 2),
+        P('5556', 3),                                    # 8:44 pm, the little disco ball, last frame
     ]),
 ]
 OUTRO = ('HELLHOUND AUDIO', 'audio  ·  lighting  ·  video  ·  staging', 16)
 LOGO_IN = 1.4                   # seconds the opening hexagon shows the logo before the footage
+
+
+def label(s):
+    if s['kind'] == 'x':
+        return f"{label(s['a'])}>{label(s['b'])}"
+    return s['src'] if s['kind'] == 'v' else 'P' + '+'.join(s['ids'])
 
 
 def timeline():
@@ -134,8 +170,8 @@ def timeline():
     for ci, (title, sub, lst) in enumerate(CHAPTERS):
         chapters.append((f, title, sub))
         for s in lst:
-            n = s[3] * BEAT
-            shots.append(dict(idx=len(shots), ch=ci, f0=f, n=n, spec=s, mode=s[5]))
+            n = s['beats'] * BEAT
+            shots.append(dict(s, idx=len(shots), ch=ci, f0=f, n=n, label=label(s)))
             f += n
     outro0 = f
     chapters.append((f, OUTRO[0], OUTRO[1]))
@@ -146,43 +182,98 @@ def timeline():
 SHOTS, CHAPS, OUTRO0, TOTAL = timeline()
 
 
+# ── the clock ───────────────────────────────────────────────────────────────────────────────────
+def _secs(hms):
+    h, m, s = (int(x) for x in hms.split(':'))
+    return h * 3600 + m * 60 + s
+
+
+_EXIF = {}
+
+
+def photo_time(pid):
+    if pid not in _EXIF:
+        ex = Image.open(photo_path(pid))._getexif() or {}
+        _EXIF[pid] = _secs(ex.get(36867, '2026:10:08 00:00:00')[11:19])
+    return _EXIF[pid]
+
+
+def clock(s, i):
+    """Seconds since midnight (Eastern) at frame i of shot s."""
+    if s['kind'] == 'x':
+        return clock(s['a'] if i < s['n'] // 2 else s['b'], i)
+    if s['kind'] == 'p':
+        return photo_time(s['ids'][min(len(s['ids']) - 1, i // s['step'])])
+    ratio = 1 if s['src'] in REALTIME else TIMELAPSE_RATIO
+    return _secs(CLIP_START[s['src']]) + (s['start'] + i / FPS * s['speed']) * ratio
+
+
+def clock_text(sec):
+    h, m = int(sec // 3600), int(sec % 3600 // 60)
+    return f"{(h - 1) % 12 + 1}:{m:02d} {'am' if h < 12 else 'pm'}"
+
+
 # ── shot cache ──────────────────────────────────────────────────────────────────────────────────
+PHOTOS = os.environ.get('PHOTOS', os.path.join(HERE, 'photos'))
+
+
+def photo_path(pid):
+    return os.path.join(PHOTOS, f'IMG_{pid}.JPG')
+
+
 def size_for(mode):
     return (FCW, FCH) if mode == F else (HCW, HCH)
 
 
-def cache_path(src, start, speed, n, fx, mode):
-    return os.path.join(CACHE, f'{mode}_{src}_{start:.2f}_{speed}_{n}_{fx:.2f}.mp4')
+GRADE = 'eq=contrast=1.06:saturation=1.12:gamma=0.97'
+
+
+def cache_path(job):
+    if job[0] == 'v':
+        _, src, start, speed, n, fx, mode = job
+        return os.path.join(CACHE, f'{mode}_{src}_{start:.2f}_{speed}_{n}_{fx:.2f}.mp4')
+    _, pid, fx, mode = job
+    return os.path.join(CACHE, f'{mode}_P{pid}_{fx:.2f}.png')
 
 
 def cut(job):
-    src, start, speed, n, fx, mode = job
-    out = cache_path(*job)
+    out = cache_path(job)
     if os.path.exists(out):
         return out
-    cw, ch = size_for(mode)
-    need = n / FPS * speed + 1
-    vf = (f'setpts=(PTS-STARTPTS)/{speed},fps={FPS},'
-          f'scale={cw}:{ch}:force_original_aspect_ratio=increase:flags=lanczos,'
-          f'crop={cw}:{ch}:(iw-{cw})*{fx}:(ih-{ch})/2,'
-          'eq=contrast=1.06:saturation=1.12:gamma=0.97')
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(start), '-t', str(need),
-                    '-i', os.path.join(FOOTAGE, src + '.mp4'), '-an', '-vf', vf, '-frames:v', str(n),
-                    '-c:v', 'libx264', '-crf', '12', '-preset', 'fast', '-pix_fmt', 'yuv420p', out + '.tmp.mp4'],
-                   check=True)
-    os.rename(out + '.tmp.mp4', out)
+    if job[0] == 'v':
+        _, src, start, speed, n, fx, mode = job
+        cw, ch = size_for(mode)
+        need = n / FPS * speed + 1
+        vf = (f'setpts=(PTS-STARTPTS)/{speed},fps={FPS},'
+              f'scale={cw}:{ch}:force_original_aspect_ratio=increase:flags=lanczos,'
+              f'crop={cw}:{ch}:(iw-{cw})*{fx}:(ih-{ch})/2,{GRADE}')
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(start), '-t', str(need),
+                        '-i', os.path.join(FOOTAGE, src + '.mp4'), '-an', '-vf', vf, '-frames:v', str(n),
+                        '-c:v', 'libx264', '-crf', '12', '-preset', 'fast', '-pix_fmt', 'yuv420p', out + '.tmp.mp4'],
+                       check=True)
+        os.rename(out + '.tmp.mp4', out)
+    else:
+        _, pid, fx, mode = job
+        cw, ch = size_for(mode)
+        # ffmpeg applies the EXIF rotation and the same grade as the footage
+        vf = (f'scale={cw}:{ch}:force_original_aspect_ratio=increase:flags=lanczos,'
+              f'crop={cw}:{ch}:(iw-{cw})*{fx}:(ih-{ch})/2,{GRADE}')
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', photo_path(pid), '-vf', vf, '-frames:v', '1',
+                        out + '.tmp.png'], check=True)
+        os.rename(out + '.tmp.png', out)
     return out
+
+
+def _jobs_for(s):
+    if s['kind'] == 'x':
+        return _jobs_for(dict(s['a'], n=s['n'])) + _jobs_for(dict(s['b'], n=s['n']))
+    if s['kind'] == 'v':
+        return [('v', s['src'], s['start'], s['speed'], s['n'], s['fx'], s['mode'])]
+    return [('p', pid, s['fx'], s['mode']) for pid in s['ids']]
 
 
 def jobs():
-    out = []
-    for s in SHOTS:
-        sp = s['spec']
-        if sp[0] == 'xfade':
-            out += [(a[0], a[1], a[2], s['n'], sp[4], sp[5]) for a in (sp[1], sp[2])]
-        else:
-            out.append((sp[0], sp[1], sp[2], s['n'], sp[4], sp[5]))
-    return out
+    return [j for s in SHOTS for j in _jobs_for(s)]
 
 
 def read_frames(path, n, mode):
@@ -198,14 +289,20 @@ def read_frames(path, n, mode):
 
 
 def shot_frames(s):
-    sp, m = s['spec'], s['mode']
-    if sp[0] != 'xfade':
-        return read_frames(cache_path(sp[0], sp[1], sp[2], s['n'], sp[4], m), s['n'], m)
-    a = read_frames(cache_path(*sp[1], s['n'], sp[4], m), s['n'], m).astype(np.float32)
-    b = read_frames(cache_path(*sp[2], s['n'], sp[4], m), s['n'], m).astype(np.float32)
-    k = np.clip((np.arange(s['n']) - 1.0 * BEAT) / (3.0 * BEAT), 0, 1)
-    k = (k * k * (3 - 2 * k))[:, None, None, None]
-    return (a * (1 - k) + b * k).astype(np.uint8)
+    """A list of n frames (photos share one array per still, so this stays light)."""
+    if s['kind'] == 'v':
+        return read_frames(cache_path(_jobs_for(s)[0]), s['n'], s['mode'])
+    if s['kind'] == 'p':
+        stills = [np.asarray(Image.open(cache_path(j)).convert('RGB')) for j in _jobs_for(s)]
+        return [stills[min(len(stills) - 1, i // s['step'])] for i in range(s['n'])]
+    a = shot_frames(dict(s['a'], n=s['n']))
+    b = shot_frames(dict(s['b'], n=s['n']))
+    out = []
+    for i in range(s['n']):
+        k = min(1, max(0, (i - 1.0 * BEAT) / (2.0 * BEAT)))
+        k = k * k * (3 - 2 * k)
+        out.append((np.asarray(a[i], np.float32) * (1 - k) + np.asarray(b[i], np.float32) * k).astype(np.uint8))
+    return out
 
 
 # ── drift ───────────────────────────────────────────────────────────────────────────────────────
@@ -218,7 +315,8 @@ def drift(img, s, i):
     ow, oh = (W, H) if s['mode'] == F else (WW, WH)
     margin = FMARGIN if s['mode'] == F else HMARGIN
     mv = MOVES[s['idx'] % len(MOVES)]
-    span = min(margin - 1, (0.035 if s['mode'] == F else 0.07) * s['n'] / FPS + 0.01)
+    rate = 0.055 if s['kind'] == 'p' else (0.035 if s['mode'] == F else 0.07)   # stills drift a touch more
+    span = min(margin - 1, rate * s['n'] / FPS + 0.01)
     u = i / s['n']
     z, dx, dy = margin, 0.0, 0.0
     if mv == 'in':
@@ -310,7 +408,7 @@ def text_layer(title, sub):
 def scrims():
     """Dark gradients top and bottom so the type reads over full-screen footage."""
     y = np.arange(H, dtype=np.float32)[:, None, None]
-    top = np.clip(1 - y / 330, 0, 1) ** 1.6 * 0.62
+    top = np.clip(1 - y / 380, 0, 1) ** 1.4 * 0.72
     bot = np.clip((y - 1180) / (H - 1180), 0, 1) ** 1.3 * 0.82
     return 1 - np.maximum(top, bot)
 
@@ -339,13 +437,19 @@ class Look:
     def chapter_at(self, f):
         return max(i for i, (f0, *_r) in enumerate(CHAPS) if f >= f0)
 
-    def ui(self, f):
+    def ui(self, f, clk=None):
         t = f / FPS
         im = Image.new('RGBA', (W, H))
         im.alpha_composite(self.word, (72, 120))
         d = ImageDraw.Draw(im)
         fs = ImageFont.truetype(FONT, 24)
-        d.text((W - 72, 128), 'event recap', font=fs, fill=(190, 186, 180), anchor='ra')
+        if clk is not None:     # camcorder-style time stamp: the day, ticking forward
+            ft = ImageFont.truetype(FONT, 28)
+            txt = clock_text(clk)
+            tw = ft.getlength(txt)
+            d.text((W - 70, 126), txt, font=ft, fill=(0, 0, 0, 150), anchor='ra')
+            d.text((W - 72, 124), txt, font=ft, fill=(240, 236, 230), anchor='ra')
+            d.ellipse((W - 72 - tw - 30, 130, W - 72 - tw - 16, 144), fill=RED + (255,))
 
         k = self.chapter_at(f)
         dt = (f - CHAPS[k][0]) / FPS
@@ -504,14 +608,30 @@ def outro(f, fr):
     return out * (1 - al) + a[..., :3] * al
 
 
+def grade(x):
+    """One warm, slightly faded look over footage and photos alike: lifted blacks, warm highlights, soft bloom."""
+    small = Image.fromarray(np.clip(x, 0, 255).astype(np.uint8)).resize((W // 12, H // 12), Image.BILINEAR)
+    s = np.clip(np.asarray(small, np.float32) - 150, 0, None)
+    bloom = np.asarray(Image.fromarray(s.astype(np.uint8)).resize((W, H), Image.BICUBIC), np.float32)
+    x = 12 + x * 0.93 + bloom * 0.35
+    return x * np.array([1.03, 1.0, 0.95], np.float32)
+
+
+def clock_at(f):
+    if f < CHAPS[1][0] or f >= OUTRO0:
+        return None
+    s = shot_at(f)
+    return clock(s, f - s['f0'])
+
+
 def frame(f, fr):
     global LOOK
     if LOOK is None:
         LOOK = Look()
-    out = picture(f, fr)
+    out = grade(picture(f, fr))
     out = out * LOOK.scrim
     out = out + np.repeat(np.repeat(LOOK.grain[f % 8], 2, 0), 2, 1)
-    ui = np.asarray(LOOK.ui(f), np.float32)
+    ui = np.asarray(LOOK.ui(f, clock_at(f)), np.float32)
     a = ui[..., 3:] / 255
     out = out * (1 - a) + ui[..., :3] * a
     return np.clip(out, 0, 255).astype(np.uint8)
@@ -557,7 +677,7 @@ def main():
             row = Image.new('RGB', (tw * 3 + 6, th + 18), (0, 0, 0))
             for j, im in enumerate(ims):
                 row.paste(im, (j * (tw + 3), 18))
-            ImageDraw.Draw(row).text((2, 2), f"{s['idx']} {s['spec'][0]} {s['mode']}", fill='yellow')
+            ImageDraw.Draw(row).text((2, 2), f"{s['idx']} {s['label']} {s['mode']} {clock_text(clock(s, 0))}", fill='yellow')
             rows.append(row)
         cols = 8
         rw, rh = rows[0].size
