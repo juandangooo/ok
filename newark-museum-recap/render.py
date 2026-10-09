@@ -1,7 +1,7 @@
-"""Newark Museum of Art, 10.08.26 — Hellhound Audio event recap (1080x1920, 30fps, 1:10).
+"""Newark Museum of Art, 10.08.26 — Hellhound Audio event recap (1080x1920, 30fps, 1:03).
 
-v4: the day in clock order, from load-in at 10:34 am to the dance floor at 8:38 pm, told with the clips and
-photo bursts played as stop-motion (never single stills). A camcorder time stamp ticks forward in the corner.
+v5: the day in clock order, from load-in at 10:34 am to the dance floor at 8:38 pm, told with the clips and
+photo runs that land as torn newspaper scraps, one after another. A camcorder time stamp ticks forward in the corner.
 People at work fill the screen; at each chapter break the picture collapses into the logo's hexagon (a wide
 shot of the room inside it), then blows back out. Opens on the logo, ends by collapsing into it and flipping
 to a scannable QR code. Cuts on a 120 BPM grid.
@@ -21,7 +21,7 @@ import sys
 from concurrent.futures import ProcessPoolExecutor
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 import coin
 
@@ -66,20 +66,18 @@ def V(src, start, speed, beats, fx=.5, mode=F):
     return dict(kind='v', src=src, start=start, speed=speed, beats=beats, fx=fx, mode=mode)
 
 
-def P(ids, beats, fx=.5, mode=F, step=4, bounce=True):
-    """A photo burst played as stop-motion: a new frame every `step` video frames, bouncing back and forth
-    (or holding the last frame). Photos never appear on their own."""
+def P(ids, beats, fx=.5, mode=F):
+    """A run of photos shot seconds apart, played forward once like film: one photo, then the next.
+    Full screen they land as torn newspaper scraps piling into a collage; in the hexagon they simply cut.
+    No photo is shown twice and no photo appears on its own."""
     ids = ids.split()
-    assert len(ids) >= 3, 'photos only as stop-motion'
-    return dict(kind='p', ids=ids, beats=beats, fx=fx, mode=mode, step=step, bounce=bounce)
+    assert len(ids) >= 3, 'photos only as a run of frames'
+    return dict(kind='p', ids=ids, beats=beats, fx=fx, mode=mode)
 
 
 def burst_index(s, i):
-    k, n = i // s['step'], len(s['ids'])
-    if not s['bounce']:
-        return min(n - 1, k)
-    k %= 2 * n - 2
-    return k if k < n else 2 * n - 2 - k
+    """Which photo is newest at frame i: evenly spaced over the shot, forward only."""
+    return min(len(s['ids']) - 1, i * len(s['ids']) // s['n'])
 
 
 def XF(a, b, beats, mode=X):
@@ -95,36 +93,27 @@ CHAPTERS = [
     ]),
     ('LOAD IN', '01  ·  trucks, truss and cases', [
         V('v2', 2.0, 6, 2, .45),
-        P('5224 5225 5226', 2),
-        P('5276 5277 5278 5279', 2),
-        P('5280 5281 5282', 2, .45),
-        P('5289 5290 5291', 2, .5),
-        P('5308 5309 5310 5311 5312', 2),
-        P('5318 5319 5320 5321 5322', 2, .5),
-        V('v1', 13.0, 3, 2, .5),
-        P('5333 5334 5335', 2, .45),
-        P('5340 5341 5342', 2),
+        P('5224 5225 5226 5276 5277 5278 5279 5280 5281 5282 5308 5309 5310 5311 5312', 5),
+        V('v1', 8.0, 3, 2, .5),
+        P('5318 5319 5320 5321 5322 5333 5334 5335 5340 5341 5342', 4),
         V('v3', 108.0, 1, 2),
+        V('v3', 117.0, 1, 2),
         V('v3', 120.5, 1, 2),
         V('v3', 142.0, 1, 3),
         V('v3', 150.0, 1, 2),
     ]),
     ('THE BUILD', '02  ·  audio, video and staging', [
         V('v4', 0.0, 6, 4, mode=X),
-        P('5371 5372 5373 5374', 2),
-        P('5375 5376 5377 5378 5379 5380', 2, .5),
-        P('5388 5389 5390 5391', 2),
-        P('5398 5399 5400 5401', 2),
-        P('5409 5410 5411 5412 5413 5414 5415', 3),
-        P('5423 5424 5426 5427 5428', 3),                # 11:52, the disco ball goes up
-        P('5429 5430 5431 5432 5433 5434 5435', 3, .5),
+        P('5371 5373 5374 5375 5376 5377 5378 5379 5380 5388 5389 5390 5391 5409 5411 5413 5415', 5),
+        V('v5', 0.0, 6, 2, .45),
+        P('5423 5424 5426 5427 5428 5429 5430 5431 5432 5433 5434 5435', 4),   # 11:52, the disco ball goes up
         V('v6', 28.0, 4, 2, .55),
         V('v7', 0.0, 10, 3),
         V('v8', 0.0, 10, 3, .55),
         V('v10', 0.0, 8, 3, .4),
     ]),
     ('LIGHTS UP', '03  ·  lighting and front of house', [
-        P('5440 5441 5443 5444', 4, mode=X, step=9, bounce=False),   # 7:14 pm, the hall dark, then lit
+        P('5440 5441 5443 5444', 4, mode=X),             # 7:14 pm, the hall dark, then lit
         V('v11', 1.0, 1, 2, .35),
         V('v11', 9.0, 1, 2, .5),
         V('v11', 16.6, 1, 2, .72),
@@ -135,13 +124,11 @@ CHAPTERS = [
         V('v14', 0.0, 6, 4, mode=X),
         V('v15', 0.0, 10, 3, .5),
         V('v16', 0.0, 8, 3, .45),
-        P('5473 5474 5475 5478 5479', 3),
-        P('5487 5488 5489', 2),
-        P('5505 5506 5507', 2),
-        P('5513 5514 5515 5516 5517 5518', 3),
+        P('5473 5474 5475 5478 5479 5487 5488 5489 5505 5506 5507 5513 5514 5515 5516 5517 5518', 5),
         V('v17', 0.5, 1, 2, .6),
         V('v17', 15.0, 1, 2, .5),
         V('v17', 33.0, 1, 2, .5),
+        V('v17', 60.0, 1, 2, .55),
         V('v17', 70.0, 1, 2, .5),
         V('v18', 12.0, 1, 2, .55),
         V('v18', 80.0, 1, 2, .5),
@@ -223,6 +210,8 @@ GRADE = 'eq=contrast=1.06:saturation=1.12:gamma=0.97'
 
 
 def cache_path(job):
+    if job[0] == 't':
+        return os.path.join(CACHE, f'torn_{job[1]}.png')
     if job[0] == 'v':
         _, src, start, speed, n, fx, mode = job
         return os.path.join(CACHE, f'{mode}_{src}_{start:.2f}_{speed}_{n}_{fx:.2f}.mp4')
@@ -233,6 +222,10 @@ def cache_path(job):
 def cut(job):
     out = cache_path(job)
     if os.path.exists(out):
+        return out
+    if job[0] == 't':
+        torn_piece(job[1]).save(out + '.tmp.png')
+        os.rename(out + '.tmp.png', out)
         return out
     if job[0] == 'v':
         _, src, start, speed, n, fx, mode = job
@@ -263,6 +256,8 @@ def _jobs_for(s):
         return _jobs_for(dict(s['a'], n=s['n'])) + _jobs_for(dict(s['b'], n=s['n']))
     if s['kind'] == 'v':
         return [('v', s['src'], s['start'], s['speed'], s['n'], s['fx'], s['mode'])]
+    if s['mode'] == F:
+        return [('t', pid) for pid in s['ids']]      # torn scraps
     return [('p', pid, s['fx'], s['mode']) for pid in s['ids']]
 
 
@@ -286,6 +281,8 @@ def shot_frames(s):
     """A list of n frames (photos share one array per still, so this stays light)."""
     if s['kind'] == 'v':
         return read_frames(cache_path(_jobs_for(s)[0]), s['n'], s['mode'])
+    if s['kind'] == 'p' and s['mode'] == F:
+        return collage_frames(s)
     if s['kind'] == 'p':
         stills = [np.asarray(Image.open(cache_path(j)).convert('RGB')) for j in _jobs_for(s)]
         return [stills[burst_index(s, i)] for i in range(s['n'])]
@@ -296,6 +293,115 @@ def shot_frames(s):
         k = min(1, max(0, (i - 1.0 * BEAT) / (2.0 * BEAT)))
         k = k * k * (3 - 2 * k)
         out.append((np.asarray(a[i], np.float32) * (1 - k) + np.asarray(b[i], np.float32) * k).astype(np.uint8))
+    return out
+
+
+# ── torn-paper collage ──────────────────────────────────────────────────────────────────────────
+PAPER = (238, 232, 219)
+
+
+def _torn_edge(rng, a, b, amp, step=5):
+    """Points from a to b with a ragged, fibrous wobble (a smoothed random walk across the edge)."""
+    (x1, y1), (x2, y2) = a, b
+    n = max(2, int(math.hypot(x2 - x1, y2 - y1) / step))
+    nx, ny = -(y2 - y1), x2 - x1
+    ln = math.hypot(nx, ny)
+    nx, ny = nx / ln, ny / ln
+    walk, v, pts = 0.0, 0.0, []
+    for k in range(n):
+        v = 0.6 * v + rng.normal(0, amp * 0.5)
+        walk = 0.85 * walk + v + (rng.normal(0, amp * 0.35) if rng.random() < .25 else 0)
+        t = k / n
+        pts.append((x1 + (x2 - x1) * t + nx * walk, y1 + (y2 - y1) * t + ny * walk))
+    return pts
+
+
+def _torn_poly(rng, x0, y0, x1, y1, amp):
+    c = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
+    pts = []
+    for a, b in zip(c, c[1:] + c[:1]):
+        pts += _torn_edge(rng, a, b, amp)
+    return pts
+
+
+def torn_piece(pid):
+    """The photo as a scrap torn out of a newspaper: newsprint-toned, ragged white fringe, soft shadow, a tilt."""
+    rng = np.random.default_rng(int(pid))
+    im = Image.open(photo_path(pid))
+    im.draft('RGB', (1600, 1600))
+    im = ImageOps.exif_transpose(im).convert('RGB')
+    long = 1240 if im.height > im.width else 960
+    s = long / max(im.size)
+    im = im.resize((round(im.width * s), round(im.height * s)), Image.LANCZOS)
+    # newsprint: a little desaturated, warm paper in the highlights, fine print grain
+    a = np.asarray(im, np.float32)
+    g = a.mean(axis=2, keepdims=True)
+    a = g + (a - g) * 0.72
+    a = a * 0.94 + np.array(PAPER, np.float32) * 0.06
+    a += rng.normal(0, 5, a.shape[:2])[..., None]
+    im = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
+
+    w, h, pad = im.width, im.height, 60
+    cw, ch = w + pad * 2, h + pad * 2
+    outer = Image.new('L', (cw, ch))
+    ImageDraw.Draw(outer).polygon(_torn_poly(rng, pad - 4, pad - 4, pad + w + 4, pad + h + 4, 2.4), fill=255)
+    inner = Image.new('L', (cw, ch))
+    i0 = [pad + rng.uniform(4, 13) for _ in range(2)]
+    i1 = [pad + w - rng.uniform(4, 13), pad + h - rng.uniform(4, 13)]
+    ImageDraw.Draw(inner).polygon(_torn_poly(rng, i0[0], i0[1], i1[0], i1[1], 3.2), fill=255)
+    inner = Image.fromarray(np.minimum(np.asarray(inner), np.asarray(outer)))
+
+    paper = np.full((ch, cw, 3), PAPER, np.float32) + rng.normal(0, 6, (ch, cw, 1))
+    piece = Image.fromarray(np.clip(paper, 0, 255).astype(np.uint8)).convert('RGBA')
+    photo = Image.new('RGB', (cw, ch))
+    photo.paste(im, (pad, pad))
+    piece.paste(photo, (0, 0), inner)
+    piece.putalpha(outer)
+
+    shadow = Image.new('RGBA', (cw + 40, ch + 40))
+    sm = Image.new('L', (cw + 40, ch + 40))
+    sm.paste(outer, (28, 34))
+    sm = sm.filter(ImageFilter.GaussianBlur(14)).point(lambda v: v * 0.55)
+    shadow.putalpha(sm)
+    shadow.alpha_composite(piece, (20, 20))
+    return shadow.rotate(rng.uniform(-5.5, 5.5), Image.BICUBIC, expand=True)
+
+
+def collage_frames(s):
+    """Scraps land one after another, each on top of the last, until the moment is a pile of paper."""
+    cw, ch = size_for(F)
+    first = Image.open(photo_path(s['ids'][0]))
+    first.draft('RGB', (400, 400))
+    first = ImageOps.exif_transpose(first).convert('RGB')
+    k = max(cw / first.width, ch / first.height)
+    first = first.resize((math.ceil(first.width * k), math.ceil(first.height * k)))
+    first = first.crop(((first.width - cw) // 2, (first.height - ch) // 2, (first.width - cw) // 2 + cw,
+                        (first.height - ch) // 2 + ch)).filter(ImageFilter.GaussianBlur(40))
+    base = Image.fromarray((np.asarray(first, np.float32) * 0.32).astype(np.uint8)).convert('RGBA')
+
+    pieces = [Image.open(cache_path(('t', pid))) for pid in s['ids']]
+    out, held = [], None
+    for i in range(s['n']):
+        k = burst_index(s, i)
+        j = i - next(f for f in range(s['n']) if burst_index(s, f) == k)   # frames since this scrap landed
+        rng = np.random.default_rng(int(s['ids'][k]) + 1)
+        pc = pieces[k]
+        cx = cw / 2 + rng.uniform(-60, 60)
+        cy = ch * 0.45 + rng.uniform(-80, 80)
+        if j == 0 and k > 0:
+            base = held            # the previous scrap is now part of the pile
+        if j < 4:                  # slap: lands a touch big and settles
+            u = 1 - (1 - (j + 1) / 4) ** 2
+            sc = 1.07 - 0.07 * u
+            p2 = pc.resize((round(pc.width * sc), round(pc.height * sc)), Image.BILINEAR)
+            fr = base.copy()
+            fr.alpha_composite(p2, (round(cx - p2.width / 2), round(cy - p2.height / 2)))
+            out.append(np.asarray(fr.convert('RGB')))
+            if j == 3 or burst_index(s, i + 1) != k:
+                held = base.copy()
+                held.alpha_composite(pc, (round(cx - pc.width / 2), round(cy - pc.height / 2)))
+        else:
+            out.append(out[-1])    # resting: same array, no copy
     return out
 
 
