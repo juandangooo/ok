@@ -9,8 +9,6 @@ import io, math, os, sys
 import cairosvg
 from PIL import Image, ImageDraw, ImageFont
 
-OUT = sys.argv[1]
-os.makedirs(OUT, exist_ok=True)
 S = 1000
 LW = 44
 
@@ -70,23 +68,39 @@ def beaded():
     return dot_square(70, 70, S - 140, 11, 30) + plaque(185, 185, S - 370, n=3, gap=1.1)
 
 
-def disc():
-    """Round ear-disc: a ring of dots, then rings tightening to an open centre of light."""
+def disc(dots=24, dot_r=28, dot_R=440, rings=3, r=360, g=52, beaded_band=False):
+    """Round ear-disc: a ring of repoussé dots, then rings tightening to an open centre of light."""
     out = []
     c = S / 2
-    for i in range(24):
-        a = i / 24 * 2 * math.pi
-        out.append(f'<circle cx="{c + 440 * math.cos(a):.1f}" cy="{c + 440 * math.sin(a):.1f}" r="28"/>')
-    r, g = 360, 52
-    rings = []
-    for _ in range(3):
-        rings.append(f'M{c - r} {c}a{r} {r} 0 1 0 {2*r} 0a{r} {r} 0 1 0 {-2*r} 0z '
-                     f'M{c - r + LW} {c}a{r-LW} {r-LW} 0 1 0 {2*(r-LW)} 0a{r-LW} {r-LW} 0 1 0 {-2*(r-LW)} 0z')
+    circle = lambda x, y, rr: f'M{x-rr:.1f} {y:.1f}a{rr} {rr} 0 1 0 {2*rr} 0a{rr} {rr} 0 1 0 {-2*rr} 0z'
+    dot_xy = [(c + dot_R * math.cos(i / dots * 2 * math.pi - math.pi / 2),
+               c + dot_R * math.sin(i / dots * 2 * math.pi - math.pi / 2)) for i in range(dots)]
+    if beaded_band:
+        # dots punched through a solid outer band, like beading worked into the gold sheet
+        bw = 2 * dot_r + 36
+        holes = ' '.join(circle(x, y, dot_r) for x, y in dot_xy)
+        out.append(f'<path fill-rule="evenodd" d="{circle(c, c, dot_R + bw / 2)} {circle(c, c, dot_R - bw / 2)} {holes}"/>')
+    else:
+        out += [f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{dot_r}"/>' for x, y in dot_xy]
+    ring_paths = []
+    for _ in range(rings):
+        ring_paths.append(f'M{c - r} {c}a{r} {r} 0 1 0 {2*r} 0a{r} {r} 0 1 0 {-2*r} 0z '
+                          f'M{c - r + LW} {c}a{r-LW} {r-LW} 0 1 0 {2*(r-LW)} 0a{r-LW} {r-LW} 0 1 0 {-2*(r-LW)} 0z')
         r -= LW + g; g *= 0.62
-    return ''.join(out) + f'<path fill-rule="evenodd" d="{" ".join(rings)}"/>'
+    return ''.join(out) + f'<path fill-rule="evenodd" d="{" ".join(ring_paths)}"/>'
 
 
-VARIANTS = {'pectoral': pectoral, 'beaded': beaded, 'disc': disc}
+def disc_fine():
+    """More, smaller dots and a fourth ring: reads as worked gold rather than a target."""
+    return disc(dots=36, dot_r=20, dot_R=450, rings=4, r=380, g=48)
+
+
+def disc_band():
+    """Dots punched through a solid outer band."""
+    return disc(dots=28, dot_r=22, dot_R=420, rings=3, r=330, g=50, beaded_band=True)
+
+
+VARIANTS = {'disc': disc, 'disc_fine': disc_fine, 'disc_band': disc_band}
 
 
 def svg(body, fg='#000', bg=None):
@@ -99,17 +113,20 @@ def png(s, w):
     return Image.open(io.BytesIO(cairosvg.svg2png(bytestring=s.encode(), output_width=w))).convert('RGB')
 
 
-font = ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Regular.otf', 24)
-sheet = Image.new('RGB', (len(VARIANTS) * 460, 640), 'white')
-d = ImageDraw.Draw(sheet)
-for i, (name, fn) in enumerate(VARIANTS.items()):
-    open(f'{OUT}/calima-{name}.svg', 'w').write(svg(fn()))
-    png(svg(fn(), bg='#fff'), 800).save(f'{OUT}/calima-{name}.png')
-    x = i * 460 + 30
-    sheet.paste(png(svg(fn(), bg='#fff'), 400), (x, 20))
-    sheet.paste(png(svg(fn(), bg='#fff'), 24), (x, 470))
-    sheet.paste(png(svg(fn(), bg='#fff'), 48), (x + 50, 458))
-    sheet.paste(png(svg(fn(), '#fff', '#000'), 110), (x + 130, 430))
-    d.text((x, 590), name, fill='black', font=font)
-sheet.save(f'{OUT}/calima-variants.png')
-print('ok')
+if __name__ == '__main__':
+    OUT = sys.argv[1]
+    os.makedirs(OUT, exist_ok=True)
+    font = ImageFont.truetype('/usr/share/fonts/opentype/inter/Inter-Regular.otf', 24)
+    sheet = Image.new('RGB', (len(VARIANTS) * 460, 640), 'white')
+    d = ImageDraw.Draw(sheet)
+    for i, (name, fn) in enumerate(VARIANTS.items()):
+        open(f'{OUT}/calima-{name}.svg', 'w').write(svg(fn()))
+        png(svg(fn(), bg='#fff'), 800).save(f'{OUT}/calima-{name}.png')
+        x = i * 460 + 30
+        sheet.paste(png(svg(fn(), bg='#fff'), 400), (x, 20))
+        sheet.paste(png(svg(fn(), bg='#fff'), 24), (x, 470))
+        sheet.paste(png(svg(fn(), bg='#fff'), 48), (x + 50, 458))
+        sheet.paste(png(svg(fn(), '#fff', '#000'), 110), (x + 130, 430))
+        d.text((x, 590), name, fill='black', font=font)
+    sheet.save(f'{OUT}/calima-variants.png')
+    print('ok')
