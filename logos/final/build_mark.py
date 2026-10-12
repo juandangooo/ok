@@ -7,7 +7,8 @@ from fontTools.pens.transformPen import TransformPen
 
 OUT = sys.argv[1]
 os.makedirs(OUT, exist_ok=True)
-FONT = '/usr/share/fonts/opentype/inter/Inter-Medium.otf'
+FONT = os.environ.get('LOGO_FONT', '/usr/share/fonts/opentype/inter/Inter-Medium.otf')
+WEIGHT = os.environ.get('LOGO_WEIGHT')  # for variable fonts, e.g. 500
 
 CELL, GAP = 100, 16
 P = CELL + GAP
@@ -52,6 +53,9 @@ def mark(variant='joined'):
 
 def wordmark(text, size):
     f = TTFont(FONT)
+    if WEIGHT and 'fvar' in f:
+        from fontTools.varLib.instancer import instantiateVariableFont
+        f = instantiateVariableFont(f, {'wght': float(WEIGHT)})
     gs, cmap, hmtx = f.getGlyphSet(), f.getBestCmap(), f['hmtx']
     scale = size / f['head'].unitsPerEm
     track = 0.01 * f['head'].unitsPerEm
