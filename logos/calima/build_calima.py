@@ -10,7 +10,7 @@ import cairosvg
 from PIL import Image, ImageDraw, ImageFont
 
 S = 1000
-LW = 44
+LW = 57          # matches the stem of Jost Extra Bold in the lockups
 
 
 def frame(x, y, w, lw=LW):
@@ -68,7 +68,7 @@ def beaded():
     return dot_square(70, 70, S - 140, 11, 30) + plaque(185, 185, S - 370, n=3, gap=1.1)
 
 
-def disc(dots=24, dot_r=28, dot_R=440, rings=3, r=360, g=52, beaded_band=False):
+def disc(dots=24, dot_r=29, dot_R=440, rings=3, r=360, g=52, beaded_band=False):
     """Round ear-disc: a ring of repoussé dots, then rings tightening to an open centre of light."""
     out = []
     c = S / 2
