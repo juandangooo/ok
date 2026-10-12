@@ -12,7 +12,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 sys.argv, OUT, VARIANT = sys.argv[:2], sys.argv[1], (sys.argv[2] if len(sys.argv) > 2 else 'disc')
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import build_calima as bc  # noqa: E402  (also rebuilds its own variant sheet into OUT)
+import build_calima as bc  # noqa: E402
+os.makedirs(OUT, exist_ok=True)
 
 FONT = os.environ.get('LOGO_FONT', '/usr/share/fonts/opentype/inter/Inter-Medium.otf')
 WEIGHT = os.environ.get('LOGO_WEIGHT')
@@ -59,7 +60,7 @@ def save(name, s, w):
 
 
 mono = 'mono' in FONT.lower()
-size = 230
+size = int(os.environ.get('LOGO_SIZE', 230))
 wm, ww, xh = wordmark('colector de luz', size, word_space=0.6 if mono else 1.0)
 mark = mark_body()
 small = mark_body(small=True)
