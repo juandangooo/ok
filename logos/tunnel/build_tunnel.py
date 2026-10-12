@@ -63,7 +63,64 @@ def accelerate():
     return f'<path fill-rule="evenodd" d="{" ".join(out)}"/>'
 
 
-VARIANTS = {'spiral': spiral, 'perspective': perspective, 'accelerate': accelerate}
+def stepped(x, y, w, k, st):
+    """Square with every corner cut into k stair-steps of size st, as a clockwise polygon."""
+    pts = []
+
+    def walk(px, py, moves):
+        pts.append((px, py))
+        for _ in range(k):
+            for dx, dy in moves:
+                px, py = px + dx * st, py + dy * st
+                pts.append((px, py))
+
+    walk(x, y + k * st, [(0, -1), (1, 0)])           # top-left: up, right
+    walk(x + w - k * st, y, [(1, 0), (0, 1)])        # top-right: right, down
+    walk(x + w, y + w - k * st, [(0, 1), (-1, 0)])   # bottom-right: down, left
+    walk(x + k * st, y + w, [(-1, 0), (0, -1)])      # bottom-left: left, up
+    return 'M' + ' L'.join(f'{a:.1f} {b:.1f}' for a, b in pts) + 'z'
+
+
+def pyramid():
+    """Accelerate, as a stepped pyramid seen from above: terraces with stair-step corners
+    tightening toward an open summit square of light."""
+    out, x, w, gap = [], 60, S - 120, 70
+    for i in range(4):
+        k, st = 2, w * 0.085            # steps scale with the tier
+        out.append(f'<path fill-rule="evenodd" d="{stepped(x, x, w, k, st)} '
+                   f'{stepped(x + LW, x + LW, w - 2 * LW, k, st)}"/>')
+        x += LW + gap; w -= 2 * (LW + gap); gap *= 0.62
+    return ''.join(out)
+
+
+def fret():
+    """Stepped fret (xicalcoliuhqui): a staircase climbs in from the bottom-left and turns
+    into a square spiral that winds around a square of light."""
+    step = LW * 2
+    h = LW / 2
+    # spiral occupies the upper-right; the stair climbs into it from the lower-left
+    L, T, R, B = 300 + h, 60 + h, S - 60 - h, 700 - h
+    pts = [(60 + h, S - 60 - h)]
+    # three stair steps up and to the right, ending at the spiral's bottom-left corner
+    sx, sy = 60 + h, S - 60 - h
+    dx, dy = (L - sx) / 3, (sy - B) / 3
+    for _ in range(3):
+        sy -= dy; pts.append((sx, sy)); sx += dx; pts.append((sx, sy))
+    # then the square spiral, clockwise inward
+    for _ in range(2):
+        pts.append((L, T)); L += step
+        pts.append((R, T)); T += step
+        pts.append((R, B)); R -= step
+        pts.append((L, B)); B -= step
+    pts.append((L, T))
+    d = 'M' + ' L'.join(f'{x:.1f} {y:.1f}' for x, y in pts)
+    cx, cy = L + LW / 2 + LW, T + LW / 2 + LW
+    cw = min((R - LW / 2 - LW) - cx, (B - LW / 2 - LW) - cy + step)
+    return (f'<path d="{d}" fill="none" stroke="#000" stroke-width="{LW}" stroke-linejoin="miter" stroke-linecap="butt"/>'
+            f'<rect x="{cx:.1f}" y="{cy:.1f}" width="{cw:.1f}" height="{cw:.1f}"/>')
+
+
+VARIANTS = {'accelerate': accelerate, 'pyramid': pyramid, 'fret': fret}
 
 
 def svg(body, fg='#000', bg=None):
