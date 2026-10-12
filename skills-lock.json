@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "skills": {
+    "logo-archive": {
+      "source": "logos.micr.dev",
+      "sourceUrl": "https://logos.micr.dev",
+      "sourceType": "well-known",
+      "computedHash": "d48ac8e64e0e563dfe787258cad42df664a563e6f6d0a8fa8feb8c4d307aae1d",
+      "wellKnownDigest": "sha256:609b88e23d64de587e4b47f4f2c5f289991f336bba81371a8c5c00950042fc54"
+    }
+  }
+}
