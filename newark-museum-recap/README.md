@@ -1,6 +1,11 @@
 # Newark Museum of Art: event recap
 
 `output/hellhound-newark-museum-recap.mp4`: 1080×1920 (vertical, for Reels/TikTok/Stories), 30fps, 1:03, silent.
+`output/hellhound-newark-museum-recap-16x9.mp4`: 1920×1080 (widescreen, for laptops and TVs), same cut.
+
+The widescreen cut shows the wide footage uncropped; the three clips shot on an upright phone (v3, v7, v13) sit
+centred over a blurred copy of themselves; the collages spread across the width; the hexagon, titles, clock,
+progress bar and coin are laid out for 16:9.
 
 ## v5 (current): video, with torn-newspaper collages
 Built from the 19 clips plus runs of photos from the `Newark Musem 10 8 26 - photos` Drive folder.
@@ -34,5 +39,7 @@ python3 render.py board        # first / middle / last frame of every shot → o
 python3 render.py stills 4 82  # check frames
 python3 render.py video        # → output/master.mp4 (large); then a 2-pass 8 Mb/s encode for delivery
 ```
+For the widescreen cut set `ASPECT=16x9` (and a separate `CACHE`, since cached shots are sized to the frame);
+`video` then writes `output/master-16x9.mp4`.
 Needs ffmpeg, Python 3 with numpy + Pillow. Shots (`V` clip, `P` photo run, `XF` dissolve), speeds, crop focus, full-screen/hexagon mode and chapter
 text all live in `CHAPTERS` at the top of `render.py`.

@@ -30,14 +30,16 @@ FOOTAGE = os.environ.get('FOOTAGE', os.path.join(HERE, 'footage'))
 CACHE = os.environ.get('CACHE', os.path.join(HERE, 'cache'))
 OUT = os.path.join(HERE, 'output')
 
-W, H, FPS = 1080, 1920, 30
+# ASPECT=16x9 renders the widescreen cut (laptops, TVs); the default is the 9:16 vertical cut (phones)
+WIDE = os.environ.get('ASPECT', '9x16') == '16x9'
+W, H, FPS = (1920, 1080, 30) if WIDE else (1080, 1920, 30)
 BEAT = 15                       # frames per beat: 120 BPM, so a track at 120 (or 60/240) lands on the cuts
 RED = (238, 56, 58)
 
 # the hexagon window, at rest: the logo's own outline, centred a little above the middle
-WW = 760
+WW = 600 if WIDE else 760
 WH = round(WW * 535 / 514 / 2) * 2
-CX, CY = W / 2, 860
+CX, CY = W / 2, (430 if WIDE else 860)
 HEX = [(.5, 0), (1, .249), (.993, .754), (.5, 1), (0, .748), (0, .249)]   # measured off the logo
 
 # cached shot sizes: a little bigger than what's shown, room for drift
@@ -55,6 +57,7 @@ SWAP = 8                        # frames for the hexagon to collapse in / blow o
 F, X = 'F', 'X'
 TIMELAPSE_RATIO = 15            # the tripod timelapses shoot one frame every 0.5s, played at 30fps
 REALTIME = {'v3', 'v11', 'v17', 'v18'}
+PORTRAIT = {'v3', 'v7', 'v13'}    # shot on a phone held upright
 # clip start times, Eastern (the cameras stamp UTC; these match the photo EXIF clock)
 CLIP_START = {'v1': '10:39:27', 'v2': '10:33:57', 'v3': '10:55:57', 'v4': '11:03:44', 'v5': '11:42:27',
               'v6': '11:58:39', 'v7': '12:16:18', 'v8': '12:30:52', 'v9': '12:44:00', 'v10': '12:55:11',
@@ -234,6 +237,12 @@ def cut(job):
         vf = (f'setpts=(PTS-STARTPTS)/{speed},fps={FPS},'
               f'scale={cw}:{ch}:force_original_aspect_ratio=increase:flags=lanczos,'
               f'crop={cw}:{ch}:(iw-{cw})*{fx}:(ih-{ch})/2,{GRADE}')
+        if WIDE and mode == F and src in PORTRAIT:
+            # a phone clip in a wide frame: the whole picture, centred over a blurred, darkened copy of itself
+            vf = (f'setpts=(PTS-STARTPTS)/{speed},fps={FPS},split[a][b];'
+                  f'[a]scale={cw}:{ch}:force_original_aspect_ratio=increase,crop={cw}:{ch},'
+                  f'boxblur=40:2,eq=brightness=-0.18:saturation=0.9[bg];'
+                  f'[b]scale=-2:{ch}:flags=lanczos[fg];[bg][fg]overlay=(W-w)/2:0,{GRADE}')
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-ss', str(start), '-t', str(need),
                         '-i', os.path.join(FOOTAGE, src + '.mp4'), '-an', '-vf', vf, '-frames:v', str(n),
                         '-c:v', 'libx264', '-crf', '12', '-preset', 'fast', '-pix_fmt', 'yuv420p', out + '.tmp.mp4'],
@@ -330,7 +339,10 @@ def torn_piece(pid):
     im = Image.open(photo_path(pid))
     im.draft('RGB', (1600, 1600))
     im = ImageOps.exif_transpose(im).convert('RGB')
-    long = 1240 if im.height > im.width else 960
+    if WIDE:   # scraps sized to the wide frame: tall ones most of its height, wide ones about half its width
+        long = 880 if im.height > im.width else 1060
+    else:
+        long = 1240 if im.height > im.width else 960
     s = long / max(im.size)
     im = im.resize((round(im.width * s), round(im.height * s)), Image.LANCZOS)
     # newsprint: a little desaturated, warm paper in the highlights, fine print grain
@@ -386,8 +398,12 @@ def collage_frames(s):
         j = i - next(f for f in range(s['n']) if burst_index(s, f) == k)   # frames since this scrap landed
         rng = np.random.default_rng(int(s['ids'][k]) + 1)
         pc = pieces[k]
-        cx = cw / 2 + rng.uniform(-60, 60)
-        cy = ch * 0.45 + rng.uniform(-80, 80)
+        if WIDE:   # the pile spreads across the width
+            cx = cw / 2 + rng.uniform(-330, 330)
+            cy = ch * 0.47 + rng.uniform(-40, 40)
+        else:
+            cx = cw / 2 + rng.uniform(-60, 60)
+            cy = ch * 0.45 + rng.uniform(-80, 80)
         if j == 0 and k > 0:
             base = held            # the previous scrap is now part of the pile
         if j < 4:                  # slap: lands a touch big and settles
@@ -483,8 +499,9 @@ def zoom_about_centre(im, k):
 
 # ── static layers ───────────────────────────────────────────────────────────────────────────────
 FONT = os.path.join(HERE, 'brand', 'HellhoundAudio.ttf')
-TITLE_Y = 1440
-BAR_Y = 1700
+TITLE_Y = H - 300 if WIDE else 1440
+BAR_Y = H - 92 if WIDE else 1700
+TOP_Y = 64 if WIDE else 120       # wordmark and clock
 COIN = 156
 
 
@@ -508,8 +525,9 @@ def text_layer(title, sub):
 def scrims():
     """Dark gradients top and bottom so the type reads over full-screen footage."""
     y = np.arange(H, dtype=np.float32)[:, None, None]
-    top = np.clip(1 - y / 380, 0, 1) ** 1.4 * 0.72
-    bot = np.clip((y - 1180) / (H - 1180), 0, 1) ** 1.3 * 0.82
+    t0, b0 = (230, 560) if WIDE else (380, 1180)
+    top = np.clip(1 - y / t0, 0, 1) ** 1.4 * 0.72
+    bot = np.clip((y - b0) / (H - b0), 0, 1) ** 1.3 * 0.82
     return 1 - np.maximum(top, bot)
 
 
@@ -525,7 +543,8 @@ class Look:
         self.qr = coin.faces(round(WW * 0.8))[1]
         # outro backdrop: the logo blown up and blurred into red/black bands
         big = Image.new('RGB', (W, H), (10, 10, 12))
-        m = mark.resize((W * 3, round(W * 3 * mark.height / mark.width)), Image.LANCZOS)
+        bw = min(W, H) * 3
+        m = mark.resize((bw, round(bw * mark.height / mark.width)), Image.LANCZOS)
         big.paste(m, ((W - m.width) // 2, (H - m.height) // 2), m)
         self.logo_bg = np.asarray(big.filter(ImageFilter.GaussianBlur(28)), np.float32) * 0.42
         sd = hex_sdf(1.0)
@@ -540,16 +559,16 @@ class Look:
     def ui(self, f, clk=None):
         t = f / FPS
         im = Image.new('RGBA', (W, H))
-        im.alpha_composite(self.word, (72, 120))
+        im.alpha_composite(self.word, (72, TOP_Y))
         d = ImageDraw.Draw(im)
         fs = ImageFont.truetype(FONT, 24)
         if clk is not None:     # camcorder-style time stamp: the day, ticking forward
             ft = ImageFont.truetype(FONT, 28)
             txt = clock_text(clk)
             tw = ft.getlength(txt)
-            d.text((W - 70, 126), txt, font=ft, fill=(0, 0, 0, 150), anchor='ra')
-            d.text((W - 72, 124), txt, font=ft, fill=(240, 236, 230), anchor='ra')
-            d.ellipse((W - 72 - tw - 30, 130, W - 72 - tw - 16, 144), fill=RED + (255,))
+            d.text((W - 70, TOP_Y + 6), txt, font=ft, fill=(0, 0, 0, 150), anchor='ra')
+            d.text((W - 72, TOP_Y + 4), txt, font=ft, fill=(240, 236, 230), anchor='ra')
+            d.ellipse((W - 72 - tw - 30, TOP_Y + 10, W - 72 - tw - 16, TOP_Y + 24), fill=RED + (255,))
 
         k = self.chapter_at(f)
         dt = (f - CHAPS[k][0]) / FPS
@@ -762,7 +781,7 @@ def main():
             for i, p in enumerate(ex.map(cut, js)):
                 print(f'{i + 1}/{len(js)} {os.path.basename(p)}', flush=True)
     elif cmd == 'board':
-        tw, th = 108, 192
+        tw, th = (192, 108) if WIDE else (108, 192)
         rows = []
         for s in SHOTS:
             fr = shot_frames(s)
@@ -797,7 +816,7 @@ def main():
         lst = os.path.join(CACHE, 'parts.txt')
         with open(lst, 'w') as fh:
             fh.writelines(f"file '{p}'\n" for p in paths)
-        final = os.path.join(OUT, 'master.mp4')
+        final = os.path.join(OUT, 'master-16x9.mp4' if WIDE else 'master.mp4')
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', lst, '-c', 'copy',
                         '-movflags', '+faststart', final], check=True)
         print(final, TOTAL / FPS, 's')
