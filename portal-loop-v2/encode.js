@@ -1,4 +1,4 @@
-// node encode.js out.mp4 [fps]            -> seamless loop, frames piped into ffmpeg
+// node encode.js out.mp4 [fps] [from] [to]  -> seamless loop (or frames from..to-1), piped into ffmpeg
 // node encode.js --stills dir t1,t2,...   -> PNG stills for review
 const path = require('path');
 const { spawn } = require('child_process');
@@ -19,11 +19,12 @@ const LOOP = 32;
     return browser.close();
   }
   const out = args[0], fps = +(args[1] || 30);
+  const from = +(args[2] || 0), to = +(args[3] || fps * LOOP);
   // grain is added here: temporal film grain also keeps the dark gradients from banding
   const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-',
     '-vf', 'noise=c0s=9:c0f=t+u:c1s=2:c2s=2', '-c:v', 'libx264', '-preset', 'slow', '-crf', '21',
     '-tune', 'grain', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
-  for (let i = 0; i < fps * LOOP; i++) {
+  for (let i = from; i < to; i++) {
     await page.evaluate(t => window.draw(t), i / fps);
     const buf = await page.screenshot({ type: 'png' });
     if (!ff.stdin.write(buf)) await new Promise(r => ff.stdin.once('drain', r));

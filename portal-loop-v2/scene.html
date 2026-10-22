@@ -187,18 +187,28 @@ function neon(t) {
   return clamp(v * hum) * Math.min(1, p * 1.15);
 }
 
+// glow is static relative to the emblem, so it is baked once at load
+const NEON_PAD = 260;
+let neonGlow = null;
+function bakeNeon() {
+  const c = off(Math.ceil(HOUND_W + NEON_PAD * 2), Math.ceil(HOUND_H + NEON_PAD * 2)), x = c.getContext('2d');
+  x.globalCompositeOperation = 'lighter';
+  const layer = (img, blur, a) => {
+    x.filter = blur ? `blur(${blur}px)` : 'none'; x.globalAlpha = a;
+    x.drawImage(img, NEON_PAD, NEON_PAD, HOUND_W, HOUND_H);
+  };
+  // wide bloom, mid glow, then the tube itself kept dim: it lives under the haze
+  layer(neonRed, 120, 0.9); layer(neonRed, 46, 0.9); layer(neonRed, 14, 0.7); layer(neonRed, 0, 0.45);
+  layer(neonWhite, 90, 0.35); layer(neonWhite, 40, 0.55); layer(neonWhite, 10, 0.55); layer(neonWhite, 0, 0.5);
+  neonGlow = c;
+}
+
 function drawNeon(x0, y0, n) {
   if (n <= 0.002) return;
   sx.save();
   sx.globalCompositeOperation = 'lighter';
-  const layer = (img, blur, a) => {
-    sx.filter = blur ? `blur(${blur}px)` : 'none';
-    sx.globalAlpha = a;
-    sx.drawImage(img, x0, y0, HOUND_W, HOUND_H);
-  };
-  // wide bloom, mid glow, then the tube itself kept dim: it lives under the haze
-  layer(neonRed, 120, 0.9 * n); layer(neonRed, 46, 0.9 * n); layer(neonRed, 14, 0.7 * n); layer(neonRed, 0, 0.45 * n);
-  layer(neonWhite, 90, 0.35 * n); layer(neonWhite, 40, 0.55 * n); layer(neonWhite, 10, 0.55 * n); layer(neonWhite, 0, 0.5 * n);
+  sx.globalAlpha = clamp(n);
+  sx.drawImage(neonGlow, x0 - NEON_PAD, y0 - NEON_PAD);
   sx.restore();
 }
 
@@ -316,7 +326,7 @@ window.ready = Promise.all([load('hound-graphite.png'), load('hound-edge.png'), 
   .then(([a, b, c, d]) => { houndImg = a; houndEdge = b; fogA = c; fogB = d; })
   .then(() => Promise.all([load('neon-red.png'), load('neon-white.png')]))
   .then(([r, w]) => {
-    neonRed = r; neonWhite = w;
+    neonRed = r; neonWhite = w; bakeNeon();
     const tint = (img, color) => { const c = off(img.width, img.height), x = c.getContext('2d');
       x.drawImage(img, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = color; x.fillRect(0, 0, c.width, c.height); return c; };
     fogDark = tint(fogB, '#030304');
