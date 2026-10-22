@@ -1,0 +1,232 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Portal Loop</title>
+<style>html,body{margin:0;background:#060708}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="c" width="3840" height="1080"></canvas>
+<script>
+const W = 3840, H = 1080, CX = 1920, CY = 540;
+const LOOP = 10; // seconds; t wraps so the clip loops seamlessly
+const RED = '239,59,61';
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+
+// ---------- timeline ----------
+// bat: out 0.8-2.0, hold, back 3.8-4.9 | hound: out 5.4-6.6, hold, back 8.4-9.5
+const BAT = { out: [0.8, 2.0], back: [3.8, 4.9] };
+const HOUND = { out: [5.4, 6.6], back: [8.4, 9.5] };
+// lightning strikes: [start, seed, strength]
+const STRIKES = [[0.35, 3, 0.7], [1.92, 11, 0.45], [5.05, 7, 1.0], [5.22, 19, 0.6], [7.6, 23, 0.5], [9.62, 31, 0.8]];
+
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const easeOutExpo = x => x >= 1 ? 1 : 1 - Math.pow(2, -10 * x);
+const easeInCubic = x => x * x * x;
+const easeInOut = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+
+// 0 = fully inside the portal, 1 = at rest
+function emergence(t, tl) {
+  if (t < tl.out[0] || t >= tl.back[1]) return 0;
+  if (t < tl.out[1]) return easeOutExpo((t - tl.out[0]) / (tl.out[1] - tl.out[0]));
+  if (t < tl.back[0]) return 1;
+  // sneak back: a small lean out, then slip in
+  const x = (t - tl.back[0]) / (tl.back[1] - tl.back[0]);
+  const lean = Math.sin(clamp(x / 0.25) * Math.PI) * 0.035;
+  return clamp(1 + lean - easeInCubic(clamp((x - 0.1) / 0.9)));
+}
+
+function rng(seed) {
+  let s = seed * 9301 + 49297;
+  return () => (s = (s * 9301 + 49297) % 233280) / 233280;
+}
+
+// ---------- static background ----------
+const bg = document.createElement('canvas'); bg.width = W; bg.height = H;
+(() => {
+  const b = bg.getContext('2d');
+  b.save(); b.translate(CX, CY * 0.92); b.scale(1, 0.32);
+  let g = b.createRadialGradient(0, 0, 0, 0, 0, 2400);
+  g.addColorStop(0, '#16181c'); g.addColorStop(0.45, '#0d0e11'); g.addColorStop(1, '#050506');
+  b.fillStyle = g; b.fillRect(-CX, -CY * 4, W, H * 8); b.restore();
+  b.fillStyle = 'rgba(255,255,255,0.035)';
+  for (let x = 60; x < W; x += 60) for (let y = 60; y < H; y += 60) { b.beginPath(); b.arc(x, y, 1.1, 0, 7); b.fill(); }
+  b.font = '15px "JetBrains Mono", monospace'; b.fillStyle = 'rgba(139,147,156,0.34)';
+  b.letterSpacing = '6px';
+  b.fillText('GCPD // SIGNAL', 300, 1000);
+  b.textAlign = 'right'; b.fillText('HELLHOUND // AUDIO', 3540, 1000);
+})();
+const vig = document.createElement('canvas'); vig.width = W; vig.height = H;
+(() => {
+  const v = vig.getContext('2d');
+  v.save(); v.translate(CX, CY); v.scale(1, 0.28125);
+  const g = v.createRadialGradient(0, 0, 0, 0, 0, CX);
+  g.addColorStop(0.55, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.6)');
+  v.fillStyle = g; v.fillRect(-CX, -CY * 4, W, H * 8); v.restore();
+})();
+
+// ---------- bat emblem (same geometry as the static wallpaper) ----------
+const half = [
+  ['M', 0, -36], ['L', 22, -36], ['L', 40, -122], ['L', 66, -44],
+  ['Q', 100, -34, 156, -58], ['C', 270, -104, 400, -138, 530, -160],
+  ['C', 494, -104, 466, -48, 456, 20], ['Q', 406, -16, 340, 38],
+  ['Q', 288, 8, 226, 76], ['C', 160, 50, 66, 80, 0, 206],
+];
+function batPath(S) {
+  const pt = (x, y) => `${(x * S).toFixed(2)},${(y * S).toFixed(2)} `;
+  let d = '';
+  for (const [c, ...p] of half) { d += c; for (let i = 0; i < p.length; i += 2) d += pt(p[i], p[i + 1]); }
+  for (let i = half.length - 1; i > 0; i--) {
+    const [c, ...p] = half[i]; const prev = half[i - 1].slice(-2);
+    const m = (x, y) => pt(-x, y);
+    if (c === 'L') d += 'L' + m(...prev);
+    if (c === 'Q') d += 'Q' + m(p[0], p[1]) + m(...prev);
+    if (c === 'C') d += 'C' + m(p[2], p[3]) + m(p[0], p[1]) + m(...prev);
+  }
+  return new Path2D(d + 'Z');
+}
+const BAT_S = 0.98, BAT_W = 1060 * BAT_S, BAT_REST = CX - 780;
+const bat = batPath(BAT_S);
+
+const hound = new Image(); hound.src = 'hellhound-dark.png';
+const HOUND_H = 760, HOUND_W = HOUND_H * 1400 / 1630, HOUND_REST = CX + 600;
+
+function halo(x, y, rx, ry, a) {
+  if (a <= 0) return;
+  ctx.save(); ctx.translate(x, y); ctx.scale(1, ry / rx);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+  g.addColorStop(0, `rgba(196,202,209,${0.15 * a})`);
+  g.addColorStop(0.4, `rgba(196,202,209,${0.06 * a})`);
+  g.addColorStop(1, 'rgba(196,202,209,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, rx, 0, 7); ctx.fill(); ctx.restore();
+}
+
+function drawBat(t) {
+  const e = emergence(t, BAT);
+  if (e <= 0) return 0;
+  const hidden = CX + BAT_W / 2 + 20;
+  const x = hidden + (BAT_REST - hidden) * e;
+  const y = CY - 20 + Math.sin(t * 1.6) * 4 * e;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, 0, CX, H); ctx.clip();
+  halo(x, y, 900, 420, e);
+  ctx.translate(x, y);
+  ctx.shadowColor = 'rgba(0,0,0,0.65)'; ctx.shadowBlur = 36; ctx.shadowOffsetY = 14;
+  ctx.fillStyle = '#0a0a0a'; ctx.fill(bat);
+  ctx.shadowColor = 'transparent';
+  const g = ctx.createLinearGradient(0, -170, 0, 210);
+  g.addColorStop(0, 'rgba(255,255,255,0.32)'); g.addColorStop(0.5, 'rgba(255,255,255,0.06)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.strokeStyle = g; ctx.lineWidth = 2; ctx.stroke(bat);
+  ctx.restore();
+  // how much of the emblem is crossing the portal plane right now
+  return clamp(1 - Math.abs(x + BAT_W / 2 - CX) / (BAT_W * 0.5)) * (e < 1 ? 1 : 0);
+}
+
+function drawHound(t) {
+  const e = emergence(t, HOUND);
+  if (e <= 0 || !hound.complete) return 0;
+  const hidden = CX - HOUND_W / 2 - 20;
+  const x = hidden + (HOUND_REST - hidden) * e;
+  const y = CY + Math.sin(t * 1.6 + 1) * 4 * e;
+  ctx.save();
+  ctx.beginPath(); ctx.rect(CX, 0, W - CX, H); ctx.clip();
+  halo(x, y - 90, 760, 480, e);
+  ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 16;
+  ctx.drawImage(hound, x - HOUND_W / 2, y - HOUND_H / 2, HOUND_W, HOUND_H);
+  ctx.restore();
+  return clamp(1 - Math.abs(x - HOUND_W / 2 - CX) / (HOUND_W * 0.5)) * (e < 1 ? 1 : 0);
+}
+
+// ---------- lightning ----------
+function boltPoints(seed, top, bot, amp) {
+  const r = rng(seed); const pts = [[CX, top]];
+  const n = 26;
+  for (let i = 1; i < n; i++) {
+    const y = top + (bot - top) * i / n;
+    pts.push([CX + (r() - 0.5) * 2 * amp * Math.sin(Math.PI * i / n), y]);
+  }
+  pts.push([CX, bot]);
+  return { pts, r };
+}
+function strokePts(pts, upto) {
+  ctx.beginPath(); ctx.moveTo(...pts[0]);
+  for (let i = 1; i <= upto && i < pts.length; i++) ctx.lineTo(...pts[i]);
+  ctx.stroke();
+}
+// returns flash intensity 0..1
+function drawLightning(t) {
+  let flash = 0;
+  for (const [t0, seed, k] of STRIKES) {
+    const dt = t - t0;
+    if (dt < 0 || dt > 0.42) continue;
+    const reveal = clamp(dt / 0.07); // rushes top to bottom
+    const flicker = dt < 0.07 ? 1 : (0.55 + 0.45 * Math.sin(dt * 90 + seed)) * Math.pow(1 - (dt - 0.07) / 0.35, 1.5);
+    const a = flicker * k;
+    flash = Math.max(flash, a);
+    const top = CY - 400, bot = CY + 400;
+    const { pts, r } = boltPoints(seed + Math.floor(dt * 24), top, bot, 34 + 20 * k);
+    const upto = Math.ceil(reveal * (pts.length - 1));
+    ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.shadowColor = `rgba(${RED},${a})`; ctx.shadowBlur = 60;
+    ctx.strokeStyle = `rgba(${RED},${0.55 * a})`; ctx.lineWidth = 10; strokePts(pts, upto);
+    ctx.shadowBlur = 18;
+    ctx.strokeStyle = `rgba(255,236,232,${0.95 * a})`; ctx.lineWidth = 2.6; strokePts(pts, upto);
+    // a few short forks
+    ctx.lineWidth = 1.4; ctx.shadowBlur = 12;
+    for (let f = 0; f < 4; f++) {
+      const i = 3 + Math.floor(r() * (pts.length - 6));
+      if (i > upto) continue;
+      const [x, y] = pts[i]; const dir = r() < 0.5 ? -1 : 1;
+      ctx.strokeStyle = `rgba(${RED},${0.8 * a})`;
+      ctx.beginPath(); ctx.moveTo(x, y);
+      let fx = x, fy = y;
+      for (let s = 0; s < 4; s++) { fx += dir * (14 + r() * 26); fy += 6 + r() * 24; ctx.lineTo(fx, fy); }
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+  return flash;
+}
+
+// ---------- portal ----------
+function drawPortal(t, energy) {
+  const top = CY - 400, bot = CY + 400, h = bot - top;
+  const breathe = 0.85 + 0.15 * Math.sin(t * 2 * Math.PI / LOOP * 3);
+  const glow = breathe + energy * 1.4;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  // wide soft bloom
+  ctx.save(); ctx.translate(CX, CY); ctx.scale(1, 9);
+  let g = ctx.createRadialGradient(0, 0, 0, 0, 0, 110 + energy * 60);
+  g.addColorStop(0, `rgba(143,163,184,${0.10 * glow})`); g.addColorStop(1, 'rgba(143,163,184,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 170, 0, 7); ctx.fill(); ctx.restore();
+  // tapered vertical mask for the lines
+  const v = a => { const lg = ctx.createLinearGradient(0, top, 0, bot);
+    lg.addColorStop(0, `rgba(0,0,0,0)`); lg.addColorStop(0.12, a); lg.addColorStop(0.88, a); lg.addColorStop(1, 'rgba(0,0,0,0)'); return lg; };
+  const w = 1 + energy * 2.5;
+  ctx.fillStyle = v(`rgba(201,142,86,${0.42 * glow})`); ctx.fillRect(CX - 5 * w - 1.5, top, 3, h);   // muted amber fringe
+  ctx.fillStyle = v(`rgba(86,148,201,${0.42 * glow})`); ctx.fillRect(CX + 5 * w - 1.5, top, 3, h);   // muted steel-blue fringe
+  ctx.fillStyle = v(`rgba(214,222,230,${0.75 * Math.min(1.4, glow)})`); ctx.fillRect(CX - 1.5 * w, top, 3 * w, h); // core
+  ctx.restore();
+}
+
+function draw(t) {
+  t = ((t % LOOP) + LOOP) % LOOP;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.drawImage(bg, 0, 0);
+  const pass = Math.max(drawBat(t), drawHound(t));
+  // pre-compute flash so the portal flares with the strike
+  ctx.save(); const flash = drawLightning(t); ctx.restore();
+  drawPortal(t, Math.max(pass * 0.8, flash));
+  // redraw bolt on top of the portal core
+  drawLightning(t);
+  if (flash > 0) { ctx.fillStyle = `rgba(${RED},${0.035 * flash})`; ctx.fillRect(0, 0, W, H); }
+  ctx.drawImage(vig, 0, 0);
+}
+window.draw = draw;
+window.ready = new Promise(res => { if (hound.complete) res(); else hound.onload = res; }).then(() => document.fonts.ready);
+</script>
+</body>
+</html>
