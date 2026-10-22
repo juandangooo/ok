@@ -21,7 +21,7 @@ const LOOP = 32;
   const out = args[0], fps = +(args[1] || 30);
   // grain is added here: temporal film grain also keeps the dark gradients from banding
   const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-',
-    '-vf', 'noise=c0s=9:c0f=t+u:c1s=2:c2s=2', '-c:v', 'libx264', '-preset', 'slow', '-crf', '15',
+    '-vf', 'noise=c0s=9:c0f=t+u:c1s=2:c2s=2', '-c:v', 'libx264', '-preset', 'slow', '-crf', '21',
     '-tune', 'grain', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', out], { stdio: ['pipe', 'inherit', 'inherit'] });
   for (let i = 0; i < fps * LOOP; i++) {
     await page.evaluate(t => window.draw(t), i / fps);

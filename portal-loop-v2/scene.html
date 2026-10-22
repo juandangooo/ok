@@ -55,7 +55,7 @@ function swellY(t) {
 
 // ---------- assets ----------
 const load = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; });
-let houndImg, houndEdge, fogA, fogB;
+let houndImg, houndEdge, fogA, fogB, neonRed, neonWhite, fogDark, fogRed;
 
 // ---------- static layers ----------
 const off = (w = W, h = H) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
@@ -167,7 +167,74 @@ function drawHound(t, light) {
   sx.drawImage(houndImg, x0, y0, HOUND_W, HOUND_H);
   sx.restore();
   sx.save(); sx.globalAlpha = 0.16; sx.drawImage(houndEdge, x0, y0, HOUND_W, HOUND_H); sx.restore();
+  const n = neon(t);
+  drawNeon(x0, y0, n);
   finishEmblem(-1, p, light);
+  neonWeather(t, x, y - 60, n, p);
+}
+
+// ---------- neon ----------
+const NEON_ON = 21.6;
+function neon(t) {
+  const p = presence(t, HOUND);
+  if (p <= 0) return 0;
+  const d = t - NEON_ON;
+  if (d < 0) return 0;
+  // two soft stutters, then a slow warm-up; nothing snaps
+  const bump = (t0, len) => { const x = d - t0; return x > 0 && x < len ? Math.sin(Math.PI * x / len) : 0; };
+  const v = Math.max(0.35 * bump(0, 0.35), 0.55 * bump(0.55, 0.4), smooth((d - 1.1) / 0.9));
+  const hum = 0.93 + 0.04 * Math.sin(t * 7.3) + 0.03 * Math.sin(t * 17.1 + 1.2);
+  return clamp(v * hum) * Math.min(1, p * 1.15);
+}
+
+function drawNeon(x0, y0, n) {
+  if (n <= 0.002) return;
+  sx.save();
+  sx.globalCompositeOperation = 'lighter';
+  const layer = (img, blur, a) => {
+    sx.filter = blur ? `blur(${blur}px)` : 'none';
+    sx.globalAlpha = a;
+    sx.drawImage(img, x0, y0, HOUND_W, HOUND_H);
+  };
+  // wide bloom, mid glow, then the tube itself kept dim: it lives under the haze
+  layer(neonRed, 120, 0.9 * n); layer(neonRed, 46, 0.9 * n); layer(neonRed, 14, 0.7 * n); layer(neonRed, 0, 0.45 * n);
+  layer(neonWhite, 90, 0.35 * n); layer(neonWhite, 40, 0.55 * n); layer(neonWhite, 10, 0.55 * n); layer(neonWhite, 0, 0.5 * n);
+  sx.restore();
+}
+
+// drifting dark fog and red-lit fog around the emblem: neon seen through weather
+function neonWeather(t, x, y, n, p) {
+  if (p <= 0) return;
+  const mask = (c, rx, ry, a) => {
+    c.globalCompositeOperation = 'destination-in';
+    c.save(); c.translate(x, y); c.scale(1, ry / rx);
+    const g = c.createRadialGradient(0, 0, 0, 0, 0, rx);
+    g.addColorStop(0, `rgba(0,0,0,${a})`); g.addColorStop(0.6, `rgba(0,0,0,${a * 0.6})`); g.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = g; c.fillRect(-rx * 2, -rx * 2, rx * 4, rx * 4); c.restore();
+    c.globalCompositeOperation = 'source-over';
+  };
+  // red spill lighting the haze
+  if (n > 0.002) {
+    hx.clearRect(0, 0, W, H);
+    hx.drawImage(fogRed, -500 + osc(t, 1, 0.4) * 300, -80 + osc(t, 1, 1.7) * 50, 5200, 1250);
+    mask(hx, 900, 560, 1);
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = 0.28 * n;
+    ctx.drawImage(hazeC, 0, 0); ctx.restore();
+    // soft red ambient behind everything nearby
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    ctx.translate(x, y); ctx.scale(1, 0.75);
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 760);
+    g.addColorStop(0, `rgba(200,40,36,${0.07 * n})`); g.addColorStop(1, 'rgba(200,40,36,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 760, 0, 7); ctx.fill(); ctx.restore();
+  }
+  // shadow: dark wisps passing in front of the tubes
+  hx.clearRect(0, 0, W, H);
+  hx.drawImage(fogDark, -800 + osc(t, 2, 1.1) * 380, -60 + osc(t, 1, 0.3) * 70, 5400, 1200);
+  hx.globalAlpha = 0.8;
+  hx.drawImage(fogDark, -300 + osc(t, 1, 2.6) * 300, -120 + osc(t, 2, 0.9) * 50, 4600, 1300);
+  hx.globalAlpha = 1;
+  mask(hx, 760, 520, 1);
+  ctx.save(); ctx.globalAlpha = 0.85 * p; ctx.drawImage(hazeC, 0, 0); ctx.restore();
 }
 
 // ---------- haze ----------
@@ -246,7 +313,15 @@ function draw(t) {
 }
 window.draw = draw;
 window.ready = Promise.all([load('hound-graphite.png'), load('hound-edge.png'), load('fog-a.png'), load('fog-b.png')])
-  .then(([a, b, c, d]) => { houndImg = a; houndEdge = b; fogA = c; fogB = d; });
+  .then(([a, b, c, d]) => { houndImg = a; houndEdge = b; fogA = c; fogB = d; })
+  .then(() => Promise.all([load('neon-red.png'), load('neon-white.png')]))
+  .then(([r, w]) => {
+    neonRed = r; neonWhite = w;
+    const tint = (img, color) => { const c = off(img.width, img.height), x = c.getContext('2d');
+      x.drawImage(img, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = color; x.fillRect(0, 0, c.width, c.height); return c; };
+    fogDark = tint(fogB, '#030304');
+    fogRed = tint(fogA, 'rgb(210,52,46)');
+  });
 </script>
 </body>
 </html>
