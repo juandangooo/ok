@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>Curtains Wallpaper</title>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #07070a; cursor: none; }
+    #canvas { position: fixed; inset: 0; }
+    .grid {
+      position: fixed; inset: 0;
+      display: flex; gap: 2.2vw;
+      padding: 9vh 6vw;
+      box-sizing: border-box;
+    }
+    .plane { flex: 1; }
+  </style>
+</head>
+<body>
+  <div id="canvas"></div>
+  <div class="grid">
+    <div class="plane"></div>
+    <div class="plane"></div>
+    <div class="plane"></div>
+    <div class="plane"></div>
+  </div>
+  <script src="../dist/renderer.js"></script>
+</body>
+</html>
