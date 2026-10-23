@@ -6,66 +6,44 @@ export const vertexShader = /* glsl */ `
 
   uniform mat4 uMVMatrix;
   uniform mat4 uPMatrix;
-
-  uniform float uTime;
-  uniform float uHover;
-  uniform vec2 uMouse;
+  uniform mat4 uTextureMatrix;
 
   varying vec2 vUv;
-  varying vec2 vPos;
-  varying float vLift;
+  varying vec2 vTextureCoord;
 
   void main() {
-    vec3 pos = aVertexPosition;
-
-    // slow ambient cloth sway so the wallpaper is alive even when idle
-    float idle = sin(pos.x * 2.5 + uTime * 0.6) * 0.018
-               + sin(pos.y * 3.0 + uTime * 0.45) * 0.018;
-
-    // ripple + bulge radiating from the cursor, faded in by hover
-    float d = distance(pos.xy, uMouse);
-    float falloff = exp(-d * 2.8);
-    float ripple = sin(d * 14.0 - uTime * 4.0) * falloff;
-    float bulge = exp(-d * d * 6.0);
-
-    pos.z += idle + (ripple * 0.08 + bulge * 0.12) * uHover;
-
     vUv = aTextureCoord;
-    vPos = aVertexPosition.xy;
-    vLift = ripple * uHover;
-
-    gl_Position = uPMatrix * uMVMatrix * vec4(pos, 1.0);
+    vTextureCoord = (uTextureMatrix * vec4(aTextureCoord, 0.0, 1.0)).xy;
+    gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
   }
 `;
 
+// The wallpaper is drawn untouched; the ripple only refracts it near the
+// cursor, scaled by uHover (which rises while the mouse moves, then settles).
 export const fragmentShader = /* glsl */ `
   precision mediump float;
 
+  uniform sampler2D uTexture;
   uniform float uTime;
   uniform float uHover;
+  uniform float uAspect;
   uniform vec2 uMouse;
-  uniform vec3 uColorA;
-  uniform vec3 uColorB;
 
   varying vec2 vUv;
-  varying vec2 vPos;
-  varying float vLift;
+  varying vec2 vTextureCoord;
 
   void main() {
-    float flow = vUv.y + 0.12 * sin(vUv.x * 4.0 + uTime * 0.3);
-    vec3 color = mix(uColorA, uColorB, clamp(flow, 0.0, 1.0));
+    vec2 diff = vUv - (uMouse * 0.5 + 0.5);
+    diff.x *= uAspect;
+    float d = length(diff);
 
-    // folds catch light along the ripple crests
-    color += vLift * 0.18;
+    float wave = sin(d * 55.0 - uTime * 6.0) * exp(-d * 8.0) * uHover;
+    vec2 dir = d > 0.0 ? diff / d : vec2(0.0);
+    dir.x /= uAspect;
 
-    // soft spotlight under the cursor
-    float glow = exp(-distance(vPos, uMouse) * 3.2) * uHover;
-    color += glow * 0.28;
+    vec4 color = texture2D(uTexture, vTextureCoord + dir * wave * 0.012);
+    color.rgb += wave * 0.05;
 
-    // gentle vignette toward the plane edges
-    vec2 e = smoothstep(0.0, 0.08, vUv) * smoothstep(0.0, 0.08, 1.0 - vUv);
-    color *= 0.75 + 0.25 * e.x * e.y;
-
-    gl_FragColor = vec4(color, 1.0);
+    gl_FragColor = color;
   }
 `;
