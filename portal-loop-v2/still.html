@@ -68,7 +68,7 @@ Promise.all(['hound-graphite.png', 'neon-red.png', 'neon-white.png', 'fog-a.png'
   fogIn(fogA, -520, -50, 5200, 1200, 0.22, CX, CY, 1700, 520, 'lighter');
 
   // ---- batman: big, low, sliding back behind the box ----
-  const S = 2.05, bx = CX - 120, by = CY + 20;
+  const S = 2.05, bx = CX, by = CY + 20;
   glow(bx, by - 20, 1500, 520, WARM, 0.16);
   glow(bx, by - 20, 700, 300, WARM, 0.09);
   ctx.save(); ctx.translate(bx, by);
