@@ -31,16 +31,14 @@ const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a
 const project = (x, y, z) => [CX + F * x / z, CY + F * y / z];
 
 // ---------- flight plan ----------
-const MOUTH = [-1500, 850, 1700];                   // just below frame, left of centre
-const MAIN = norm([0.84, -0.5, -0.18]);            // up, toward camera, toward the right
+const MOUTH = [-2090, 1220, 2400];                 // deep, below frame, bottom-left
+const MAIN = norm([0.69, -0.40, -0.58]);           // up, to the right, and straight at the lens
 const SIDE = norm(cross(MAIN, [0, 0, -1]));        // ~screen horizontal spread
 const UPV = norm(cross(SIDE, MAIN));               // ~toward/away from camera
 const laneDir = (yaw, pitch) => norm([
   MAIN[0] + Math.tan(yaw) * SIDE[0] + Math.tan(pitch) * UPV[0],
   MAIN[1] + Math.tan(yaw) * SIDE[1] + Math.tan(pitch) * UPV[1],
   MAIN[2] + Math.tan(yaw) * SIDE[2] + Math.tan(pitch) * UPV[2]]);
-// loose streams: dense pockets with gaps between them
-const STREAMS = [[-0.42, 0.05], [-0.2, -0.28], [0.0, 0.16], [0.2, -0.12], [0.4, 0.08]];
 
 // emergence rate (bats/s) for the main body
 function rate(t) {
@@ -49,8 +47,8 @@ function rate(t) {
   if (t < 4.4) return 180 + (t - 3.6) / 0.8 * 420;       // surge
   if (t < 5.8) return 600 + 60 * Math.sin(t * 9);        // crowded centre
   if (t < 6.8) return 600 - (t - 5.8) * 400;             // still feeding from behind
-  if (t < 9.8) return 200 - (t - 6.8) / 3 * 160;
-  if (t < 12.0) return 40 * (1 - (t - 9.8) / 2.2);
+  if (t < 9.0) return 200 - (t - 6.8) / 2.2 * 160;
+  if (t < 10.4) return 40 * (1 - (t - 9.0) / 1.4);
   return 0;
 }
 
@@ -58,19 +56,14 @@ const bats = [];
 function addBat(t0, kind) {
   const b = { t0, kind, i: bats.length };
   b.speed = kind === 'scout' ? 900 + gauss() * 50 : 860 + gauss() * 90;
-  b.size = 18 * (0.85 + R() * 0.3);                  // half-span in world units
+  b.size = 23 * (0.85 + R() * 0.3);                  // half-span in world units
   b.freq = 5.6 + R() * 2.4;                          // wingbeats/s
   b.phase = R() * Math.PI * 2;
   b.agility = 2.4 + R() * 1.6;
   b.wobble = R() * 10;
-  if (R() < 0.22 || kind === 'scout' || kind === 'trail') {
-    b.lane = [gauss() * 0.4, gauss() * 0.28];
-  } else {
-    const s = STREAMS[Math.floor(R() * STREAMS.length)];
-    b.lane = [s[0] + gauss() * 0.05, s[1] + gauss() * 0.06];
-    b.stream = STREAMS.indexOf(s);
-  }
-  if (kind === 'trail') b.lane[0] += (R() < 0.5 ? -1 : 1) * 0.25;
+  // one body: a dense core with thinner edges
+  b.lane = kind === 'scout' ? [gauss() * 0.05, gauss() * 0.03] : [gauss() * 0.15, gauss() * 0.075];
+  if (kind === 'trail') b.lane[0] += (R() < 0.5 ? -1 : 1) * 0.08;
   // a few visible individuals make one sharp correction mid-flight
   if (R() < 0.03) b.jink = { t: t0 + 0.8 + R() * 0.9, dyaw: (R() < 0.5 ? -1 : 1) * (0.45 + R() * 0.3) };
   const r = Math.sqrt(R()) * 55, a = R() * Math.PI * 2;
@@ -78,7 +71,6 @@ function addBat(t0, kind) {
          MOUTH[1] + (SIDE[1] * Math.cos(a) + UPV[1] * Math.sin(a)) * r,
          MOUTH[2] + (SIDE[2] * Math.cos(a) + UPV[2] * Math.sin(a)) * r];
   b.v = MAIN.map(c => c * b.speed * 0.9);
-  if (kind === 'scout') b.p[2] -= 450;
   b.travel = 0;
   bats.push(b);
   return b;
@@ -86,23 +78,9 @@ function addBat(t0, kind) {
 // scouts: isolated bats at slightly different moments
 for (const t of [0.45, 0.95, 1.4, 1.75, 2.05, 2.3, 2.5, 2.68, 2.82, 2.93]) addBat(t, 'scout');
 // main body
-for (let t = 0; t < DUR; t += 0.001) if (R() < rate(t) * 0.001) addBat(t, 'main');
+for (let t = 0; t < DUR; t += 0.001) if (R() < rate(t) * 0.00075) addBat(t, 'main');
 // trailing few on slightly different paths
-for (const t of [11.6, 11.95, 12.3, 12.6]) addBat(t, 'trail');
-// close passes: start near the camera below frame and sweep up past the lens
-for (let k = 0; k < 13; k++) {
-  const t0 = 10.0 + k * 0.2 + R() * 0.15;
-  const b = addBat(t0, 'near');
-  const z0 = 700 + R() * 300, sx0 = 500 + R() * 2600, sy0 = 1250 + R() * 120;
-  b.p = [(sx0 - CX) * z0 / F, (sy0 - CY) * z0 / F, z0];
-  const zEnd = 130 + R() * 140, syEnd = -350, sxEnd = sx0 + 1200 + R() * 1400;
-  const pEnd = [(sxEnd - CX) * zEnd / F, (syEnd - CY) * zEnd / F, zEnd];
-  b.fixed = norm([pEnd[0] - b.p[0], pEnd[1] - b.p[1], pEnd[2] - b.p[2]]);
-  b.speed = 700 + R() * 180;
-  b.v = b.fixed.map(c => c * b.speed);
-  b.freq = 4.6 + R() * 1.2;
-  b.size = 19 * (0.9 + R() * 0.25);
-}
+for (const t of [10.3, 10.6, 10.85, 11.1]) addBat(t, 'trail');
 const N = bats.length;
 
 // ---------- simulate ----------
@@ -130,15 +108,15 @@ const POS = new Float32Array(NF * N * 3).fill(NaN);
         // narrow gap: aligned at the mouth, spreading into lanes beyond it
         const spread = smooth((b.travel - 160) / 800);
         let [yaw, pitch] = b.lane;
-        if (b.stream !== undefined) { yaw += 0.08 * Math.sin(t * 0.7 + b.stream * 1.7); pitch += 0.06 * Math.sin(t * 0.5 + b.stream); }
         if (b.jink && t > b.jink.t) yaw += b.jink.dyaw * smooth((t - b.jink.t) / 0.35);
         const L = laneDir(yaw * spread, pitch * spread);
-        // meandering current so streams drift and gaps open and close
+        // meandering current so pockets and gaps form and close inside the body
         const nx = Math.sin(0.0013 * p[1] + 0.7 * t) + Math.sin(0.0009 * p[2] - 0.5 * t + 1.3);
         const ny = Math.sin(0.0011 * p[2] + 0.6 * t + 2.1) + Math.sin(0.0015 * p[0] + 0.4 * t);
         const nz = Math.sin(0.0012 * p[0] - 0.8 * t + 0.4) + Math.sin(0.001 * p[1] + 0.3 * t + 3);
-        const n = 0.11 * spread;
-        dir = [L[0] + nx * n, L[1] + ny * n, L[2] + nz * n];
+        const n = 0.07 * spread;
+        const climb = -0.18 * smooth(b.travel / 3000);   // broad, gradual climb
+        dir = [L[0] + nx * n, L[1] + ny * n + climb, L[2] + nz * n];
         // local spacing
         let sx = 0, sy = 0, sz = 0;
         for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++) for (let oz = -1; oz <= 1; oz++) {
@@ -325,7 +303,8 @@ function draw(t) {
     const haze = clamp((o.z - 500) / 5500);
     const c0 = [4, 4, 5], c1 = [24, 25, 29];
     const col = `rgb(${c0.map((v, k) => Math.round(v + (c1[k] - v) * haze)).join(',')})`;
-    const alpha = 0.95 - 0.4 * haze;
+    // the last few metres before the lens: out of focus, slipping past
+    const alpha = (0.95 - 0.4 * haze) * smooth((o.z - 170) / 330);
     ctx.globalAlpha = alpha;
     // fast close bats: a few sub-frame samples for motion blur
     // 180-degree shutter: smear fast bats along their path, samples scaled to the distance moved
