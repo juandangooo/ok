@@ -1,0 +1,116 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Still</title>
+<style>html,body{margin:0;background:#050506}canvas{display:block}</style></head>
+<body><canvas id="c" width="3840" height="1080"></canvas>
+<script>
+const W = 3840, H = 1080, CX = 1920, CY = 540;
+const WARM = '226,196,160';
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const off = (w = W, h = H) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+const load = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; });
+const tint = (img, color) => { const c = off(img.width, img.height), x = c.getContext('2d');
+  x.drawImage(img, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = color; x.fillRect(0, 0, c.width, c.height); return c; };
+
+const half = [
+  ['M', 0, -36], ['L', 22, -36], ['L', 40, -122], ['L', 66, -44],
+  ['Q', 100, -34, 156, -58], ['C', 270, -104, 400, -138, 530, -160],
+  ['C', 494, -104, 466, -48, 456, 20], ['Q', 406, -16, 340, 38],
+  ['Q', 288, 8, 226, 76], ['C', 160, 50, 66, 80, 0, 206],
+];
+function batPath(S) {
+  const pt = (x, y) => `${(x * S).toFixed(2)},${(y * S).toFixed(2)} `;
+  let d = '';
+  for (const [c, ...p] of half) { d += c; for (let i = 0; i < p.length; i += 2) d += pt(p[i], p[i + 1]); }
+  for (let i = half.length - 1; i > 0; i--) {
+    const [c, ...p] = half[i]; const prev = half[i - 1].slice(-2);
+    const m = (x, y) => pt(-x, y);
+    if (c === 'L') d += 'L' + m(...prev);
+    if (c === 'Q') d += 'Q' + m(p[0], p[1]) + m(...prev);
+    if (c === 'C') d += 'C' + m(p[2], p[3]) + m(p[0], p[1]) + m(...prev);
+  }
+  return new Path2D(d + 'Z');
+}
+
+function glow(x, y, rx, ry, rgb, a) {
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.translate(x, y); ctx.scale(1, ry / rx);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+  g.addColorStop(0, `rgba(${rgb},${a})`); g.addColorStop(0.5, `rgba(${rgb},${a * 0.35})`); g.addColorStop(1, `rgba(${rgb},0)`);
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, rx, 0, 7); ctx.fill(); ctx.restore();
+}
+function fog(img, x, y, w, h, a, comp = 'source-over') {
+  ctx.save(); ctx.globalCompositeOperation = comp; ctx.globalAlpha = a; ctx.drawImage(img, x, y, w, h); ctx.restore();
+}
+// fog limited to an elliptical region around (x,y)
+function fogIn(img, x, y, w, h, a, cx, cy, rx, ry, comp) {
+  const c = off(), k = c.getContext('2d');
+  k.drawImage(img, x, y, w, h);
+  k.globalCompositeOperation = 'destination-in'; k.save(); k.translate(cx, cy); k.scale(1, ry / rx);
+  const g = k.createRadialGradient(0, 0, 0, 0, 0, rx);
+  g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(0.55, 'rgba(0,0,0,0.5)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  k.fillStyle = g; k.fillRect(-rx * 2, -rx * 2, rx * 4, rx * 4); k.restore();
+  fog(c, 0, 0, W, H, a, comp);
+}
+
+Promise.all(['hound-graphite.png', 'neon-red.png', 'neon-white.png', 'fog-a.png', 'fog-b.png'].map(load)).then(([hound, nRed, nWhite, fogA, fogB]) => {
+  const fogDark = tint(fogB, '#030304'), fogRed = tint(fogA, 'rgb(210,52,46)');
+
+  // ---- backdrop ----
+  ctx.fillStyle = '#060709'; ctx.fillRect(0, 0, W, H);
+  ctx.save(); ctx.translate(CX, CY); ctx.scale(1, 0.34);
+  let g = ctx.createRadialGradient(0, 0, 0, 0, 0, 2300);
+  g.addColorStop(0, '#17181c'); g.addColorStop(0.4, '#0d0e11'); g.addColorStop(1, 'rgba(6,7,9,0)');
+  ctx.fillStyle = g; ctx.fillRect(-CX, -CY * 4, W, H * 8); ctx.restore();
+  g = ctx.createLinearGradient(0, H * 0.55, 0, H);
+  g.addColorStop(0, 'rgba(40,30,24,0)'); g.addColorStop(1, 'rgba(40,30,24,0.2)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+  // ---- back haze ----
+  fogIn(fogA, -520, -50, 5200, 1200, 0.22, CX, CY, 1700, 520, 'lighter');
+
+  // ---- batman: big, low, sliding back behind the box ----
+  const S = 2.05, bx = CX - 120, by = CY + 20;
+  glow(bx, by - 20, 1500, 520, WARM, 0.16);
+  glow(bx, by - 20, 700, 300, WARM, 0.09);
+  ctx.save(); ctx.translate(bx, by);
+  ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 70; ctx.shadowOffsetY = 20;
+  const bat = batPath(S);
+  ctx.fillStyle = '#070708'; ctx.fill(bat); ctx.shadowColor = 'transparent';
+  const eg = ctx.createLinearGradient(0, -240, 0, 320);
+  eg.addColorStop(0, 'rgba(255,240,222,0.40)'); eg.addColorStop(0.5, 'rgba(255,240,222,0.10)'); eg.addColorStop(1, 'rgba(255,240,222,0)');
+  ctx.strokeStyle = eg; ctx.lineWidth = 2.2; ctx.stroke(bat);
+  ctx.restore();
+  // fade the bat into darkness toward the left edge and where it tucks behind the box
+  ctx.save(); ctx.globalCompositeOperation = 'source-over';
+  g = ctx.createLinearGradient(0, 0, CX - 500, 0);
+  g.addColorStop(0, 'rgba(6,7,9,0.55)'); g.addColorStop(1, 'rgba(6,7,9,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, CX - 500, H); ctx.restore();
+  // fog drifting across the bat
+  fogIn(fogDark, -900, -40, 5400, 1200, 0.5, bx, by + 60, 1100, 380, 'source-over');
+  fogIn(fogB, -300, 20, 5000, 1150, 0.16, bx - 100, by - 40, 800, 380, 'lighter');
+
+  // ---- hellhound box, center ----
+  const HH = 700, HW = HH * 1400 / 1630, hx = CX - HW / 2, hy = CY - HH / 2 - 10;
+  glow(CX, CY - 60, 900, 470, '200,40,36', 0.08);                 // red ambient
+  glow(CX, CY - 40, 1000, 520, WARM, 0.05);                        // faint warm
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.85)'; ctx.shadowBlur = 80; ctx.shadowOffsetY = 22;
+  ctx.drawImage(hound, hx, hy, HW, HH); ctx.restore();
+  // neon, layered blooms then the tube kept dim
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  const layer = (img, blur, a) => { ctx.filter = blur ? `blur(${blur}px)` : 'none'; ctx.globalAlpha = a; ctx.drawImage(img, hx, hy, HW, HH); };
+  layer(nRed, 130, 0.95); layer(nRed, 48, 0.9); layer(nRed, 14, 0.7); layer(nRed, 0, 0.5);
+  layer(nWhite, 90, 0.35); layer(nWhite, 40, 0.55); layer(nWhite, 10, 0.55); layer(nWhite, 0, 0.5);
+  ctx.restore();
+
+  // ---- red-lit fog + shadow wisps in front of the tubes ----
+  fogIn(fogRed, -420, -70, 5200, 1250, 0.24, CX, CY - 40, 900, 560, 'lighter');
+  fogIn(fogDark, -200, -90, 4800, 1250, 0.8, CX + 40, CY - 30, 780, 520, 'source-over');
+  fogIn(fogDark, -1300, -10, 5400, 1150, 0.55, CX - 60, CY + 120, 700, 360, 'source-over');
+
+  // ---- vignette ----
+  ctx.save(); ctx.translate(CX, CY); ctx.scale(1, 0.3);
+  g = ctx.createRadialGradient(0, 0, 0, 0, 0, CX * 1.02);
+  g.addColorStop(0.4, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.78)');
+  ctx.fillStyle = g; ctx.fillRect(-CX, -CY * 4, W, H * 8); ctx.restore();
+  window.done = true;
+});
+</script></body></html>
