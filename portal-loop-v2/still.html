@@ -67,8 +67,17 @@ Promise.all(['hound-graphite.png', 'neon-red.png', 'neon-white.png', 'fog-a.png'
   // ---- back haze ----
   fogIn(fogA, -520, -50, 5200, 1200, 0.22, CX, CY, 1700, 520, 'lighter');
 
+  // ---- hellhound geometry; the logo is split so the wordmark can sit behind the bat ----
+  const HH = 700, HW = HH * 1400 / 1630, hx = CX - HW / 2, hy = CY - HH / 2 - 10;
+  const K = HH / 1630, SPLIT = 1190;   // source rows: cube above SPLIT, wordmark below
+  // wordmark, lifted slightly so the letters read on either side of the bat
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.6)'; ctx.shadowBlur = 40;
+  ctx.filter = 'brightness(1.7)';
+  ctx.drawImage(hound, 0, SPLIT, 1400, 1630 - SPLIT, hx, hy + SPLIT * K, HW, (1630 - SPLIT) * K);
+  ctx.restore();
+
   // ---- batman: big, low, sliding back behind the box ----
-  const S = 2.05, bx = CX, by = CY + 20;
+  const S = 1.85, bx = CX, by = CY - 25;
   glow(bx, by - 20, 1500, 520, WARM, 0.16);
   glow(bx, by - 20, 700, 300, WARM, 0.09);
   ctx.save(); ctx.translate(bx, by);
@@ -85,15 +94,14 @@ Promise.all(['hound-graphite.png', 'neon-red.png', 'neon-white.png', 'fog-a.png'
   g.addColorStop(0, 'rgba(6,7,9,0.55)'); g.addColorStop(1, 'rgba(6,7,9,0)');
   ctx.fillStyle = g; ctx.fillRect(0, 0, CX - 500, H); ctx.restore();
   // fog drifting across the bat
-  fogIn(fogDark, -900, -40, 5400, 1200, 0.5, bx, by + 60, 1100, 380, 'source-over');
+  fogIn(fogDark, -900, -40, 5400, 1200, 0.5, bx, by - 20, 1100, 330, 'source-over');
   fogIn(fogB, -300, 20, 5000, 1150, 0.16, bx - 100, by - 40, 800, 380, 'lighter');
 
   // ---- hellhound box, center ----
-  const HH = 700, HW = HH * 1400 / 1630, hx = CX - HW / 2, hy = CY - HH / 2 - 10;
   glow(CX, CY - 60, 900, 470, '200,40,36', 0.08);                 // red ambient
   glow(CX, CY - 40, 1000, 520, WARM, 0.05);                        // faint warm
   ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.85)'; ctx.shadowBlur = 80; ctx.shadowOffsetY = 22;
-  ctx.drawImage(hound, hx, hy, HW, HH); ctx.restore();
+  ctx.drawImage(hound, 0, 0, 1400, SPLIT, hx, hy, HW, SPLIT * K); ctx.restore();
   // neon, layered blooms then the tube kept dim
   ctx.save(); ctx.globalCompositeOperation = 'lighter';
   const layer = (img, blur, a) => { ctx.filter = blur ? `blur(${blur}px)` : 'none'; ctx.globalAlpha = a; ctx.drawImage(img, hx, hy, HW, HH); };
