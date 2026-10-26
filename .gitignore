@@ -1,3 +1,7 @@
 node_modules/
 portal-loop-v2/portal-loop-v2-3840x1080.mp4
 portal-loop-v2/part*.mp4
+bat-swarm/part*.mp4
+bat-swarm/parts.txt
+bat-swarm/render.log
+bat-swarm/bat-swarm-3840x1080.mp4

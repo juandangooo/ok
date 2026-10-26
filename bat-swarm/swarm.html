@@ -1,0 +1,367 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Bat Swarm</title>
+<style>html,body{margin:0;background:#050506}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="c" width="3840" height="1080"></canvas>
+<script>
+// 15s shot: a bat swarm erupts from a cave mouth below frame and sweeps up and away
+// past the neon Hellhound emblem. Deterministic: the whole flight is simulated at load.
+const W = 3840, H = 1080, CX = 1920, CY = 540;
+const F = 1400;          // focal length in px
+const FPS = 60, DUR = 15, NF = DUR * FPS + 3;
+const LOGO_Z = 1500;     // emblem's depth: bats farther than this pass behind it
+const WARM = '226,196,160';
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const smooth = x => { x = clamp(x); return x * x * (3 - 2 * x); };
+function mulberry32(a) {
+  return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+const R = mulberry32(20261026);
+const gauss = () => { let u = 0, v = 0; while (!u) u = R(); while (!v) v = R(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+const norm = v => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const project = (x, y, z) => [CX + F * x / z, CY + F * y / z];
+
+// ---------- flight plan ----------
+const MOUTH = [-1500, 850, 1700];                   // just below frame, left of centre
+const MAIN = norm([0.84, -0.5, -0.18]);            // up, toward camera, toward the right
+const SIDE = norm(cross(MAIN, [0, 0, -1]));        // ~screen horizontal spread
+const UPV = norm(cross(SIDE, MAIN));               // ~toward/away from camera
+const laneDir = (yaw, pitch) => norm([
+  MAIN[0] + Math.tan(yaw) * SIDE[0] + Math.tan(pitch) * UPV[0],
+  MAIN[1] + Math.tan(yaw) * SIDE[1] + Math.tan(pitch) * UPV[1],
+  MAIN[2] + Math.tan(yaw) * SIDE[2] + Math.tan(pitch) * UPV[2]]);
+// loose streams: dense pockets with gaps between them
+const STREAMS = [[-0.42, 0.05], [-0.2, -0.28], [0.0, 0.16], [0.2, -0.12], [0.4, 0.08]];
+
+// emergence rate (bats/s) for the main body
+function rate(t) {
+  if (t < 2.9) return 0;
+  if (t < 3.6) return 20 + (t - 2.9) / 0.7 * 160;        // leading edge
+  if (t < 4.4) return 180 + (t - 3.6) / 0.8 * 420;       // surge
+  if (t < 5.8) return 600 + 60 * Math.sin(t * 9);        // crowded centre
+  if (t < 6.8) return 600 - (t - 5.8) * 400;             // still feeding from behind
+  if (t < 9.8) return 200 - (t - 6.8) / 3 * 160;
+  if (t < 12.0) return 40 * (1 - (t - 9.8) / 2.2);
+  return 0;
+}
+
+const bats = [];
+function addBat(t0, kind) {
+  const b = { t0, kind, i: bats.length };
+  b.speed = kind === 'scout' ? 900 + gauss() * 50 : 860 + gauss() * 90;
+  b.size = 18 * (0.85 + R() * 0.3);                  // half-span in world units
+  b.freq = 5.6 + R() * 2.4;                          // wingbeats/s
+  b.phase = R() * Math.PI * 2;
+  b.agility = 2.4 + R() * 1.6;
+  b.wobble = R() * 10;
+  if (R() < 0.22 || kind === 'scout' || kind === 'trail') {
+    b.lane = [gauss() * 0.4, gauss() * 0.28];
+  } else {
+    const s = STREAMS[Math.floor(R() * STREAMS.length)];
+    b.lane = [s[0] + gauss() * 0.05, s[1] + gauss() * 0.06];
+    b.stream = STREAMS.indexOf(s);
+  }
+  if (kind === 'trail') b.lane[0] += (R() < 0.5 ? -1 : 1) * 0.25;
+  // a few visible individuals make one sharp correction mid-flight
+  if (R() < 0.03) b.jink = { t: t0 + 0.8 + R() * 0.9, dyaw: (R() < 0.5 ? -1 : 1) * (0.45 + R() * 0.3) };
+  const r = Math.sqrt(R()) * 55, a = R() * Math.PI * 2;
+  b.p = [MOUTH[0] + (SIDE[0] * Math.cos(a) + UPV[0] * Math.sin(a)) * r,
+         MOUTH[1] + (SIDE[1] * Math.cos(a) + UPV[1] * Math.sin(a)) * r,
+         MOUTH[2] + (SIDE[2] * Math.cos(a) + UPV[2] * Math.sin(a)) * r];
+  b.v = MAIN.map(c => c * b.speed * 0.9);
+  if (kind === 'scout') b.p[2] -= 450;
+  b.travel = 0;
+  bats.push(b);
+  return b;
+}
+// scouts: isolated bats at slightly different moments
+for (const t of [0.45, 0.95, 1.4, 1.75, 2.05, 2.3, 2.5, 2.68, 2.82, 2.93]) addBat(t, 'scout');
+// main body
+for (let t = 0; t < DUR; t += 0.001) if (R() < rate(t) * 0.001) addBat(t, 'main');
+// trailing few on slightly different paths
+for (const t of [11.6, 11.95, 12.3, 12.6]) addBat(t, 'trail');
+// close passes: start near the camera below frame and sweep up past the lens
+for (let k = 0; k < 13; k++) {
+  const t0 = 10.0 + k * 0.2 + R() * 0.15;
+  const b = addBat(t0, 'near');
+  const z0 = 700 + R() * 300, sx0 = 500 + R() * 2600, sy0 = 1250 + R() * 120;
+  b.p = [(sx0 - CX) * z0 / F, (sy0 - CY) * z0 / F, z0];
+  const zEnd = 130 + R() * 140, syEnd = -350, sxEnd = sx0 + 1200 + R() * 1400;
+  const pEnd = [(sxEnd - CX) * zEnd / F, (syEnd - CY) * zEnd / F, zEnd];
+  b.fixed = norm([pEnd[0] - b.p[0], pEnd[1] - b.p[1], pEnd[2] - b.p[2]]);
+  b.speed = 700 + R() * 180;
+  b.v = b.fixed.map(c => c * b.speed);
+  b.freq = 4.6 + R() * 1.2;
+  b.size = 19 * (0.9 + R() * 0.25);
+}
+const N = bats.length;
+
+// ---------- simulate ----------
+const POS = new Float32Array(NF * N * 3).fill(NaN);
+(() => {
+  const dt = 1 / FPS, HB = 4096, head = new Int32Array(HB), next = new Int32Array(N);
+  const cell = 60;
+  const hkey = (x, y, z) => ((Math.floor(x / cell) * 73856093) ^ (Math.floor(y / cell) * 19349663) ^ (Math.floor(z / cell) * 83492791)) & (HB - 1);
+  const alive = new Uint8Array(N), dead = new Uint8Array(N);
+  for (let f = 0; f < NF; f++) {
+    const t = f * dt;
+    head.fill(-1);
+    for (let i = 0; i < N; i++) {
+      const b = bats[i];
+      if (!alive[i] && !dead[i] && t >= b.t0) alive[i] = 1;
+      if (!alive[i]) continue;
+      const k = hkey(b.p[0], b.p[1], b.p[2]); next[i] = head[k]; head[k] = i;
+    }
+    for (let i = 0; i < N; i++) {
+      if (!alive[i]) continue;
+      const b = bats[i], p = b.p;
+      let dir;
+      if (b.fixed) dir = b.fixed;
+      else {
+        // narrow gap: aligned at the mouth, spreading into lanes beyond it
+        const spread = smooth((b.travel - 160) / 800);
+        let [yaw, pitch] = b.lane;
+        if (b.stream !== undefined) { yaw += 0.08 * Math.sin(t * 0.7 + b.stream * 1.7); pitch += 0.06 * Math.sin(t * 0.5 + b.stream); }
+        if (b.jink && t > b.jink.t) yaw += b.jink.dyaw * smooth((t - b.jink.t) / 0.35);
+        const L = laneDir(yaw * spread, pitch * spread);
+        // meandering current so streams drift and gaps open and close
+        const nx = Math.sin(0.0013 * p[1] + 0.7 * t) + Math.sin(0.0009 * p[2] - 0.5 * t + 1.3);
+        const ny = Math.sin(0.0011 * p[2] + 0.6 * t + 2.1) + Math.sin(0.0015 * p[0] + 0.4 * t);
+        const nz = Math.sin(0.0012 * p[0] - 0.8 * t + 0.4) + Math.sin(0.001 * p[1] + 0.3 * t + 3);
+        const n = 0.11 * spread;
+        dir = [L[0] + nx * n, L[1] + ny * n, L[2] + nz * n];
+        // local spacing
+        let sx = 0, sy = 0, sz = 0;
+        for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++) for (let oz = -1; oz <= 1; oz++) {
+          let j = head[hkey(p[0] + ox * cell, p[1] + oy * cell, p[2] + oz * cell)];
+          while (j >= 0) {
+            if (j !== i) {
+              const q = bats[j].p, dx = p[0] - q[0], dy = p[1] - q[1], dz = p[2] - q[2];
+              const d2 = dx * dx + dy * dy + dz * dz;
+              if (d2 < 2025 && d2 > 1e-3) { const w = (45 - Math.sqrt(d2)) / 45 / Math.sqrt(d2); sx += dx * w; sy += dy * w; sz += dz * w; }
+            }
+            j = next[j];
+          }
+        }
+        dir = norm([dir[0] + sx * 0.6, dir[1] + sy * 0.6, dir[2] + sz * 0.6]);
+      }
+      const sp = b.speed * (1 + 0.06 * Math.sin(t * 1.3 + b.wobble));
+      let ax = (dir[0] * sp - b.v[0]) * b.agility, ay = (dir[1] * sp - b.v[1]) * b.agility, az = (dir[2] * sp - b.v[2]) * b.agility;
+      const am = Math.hypot(ax, ay, az), AMAX = 2600;
+      if (am > AMAX) { ax *= AMAX / am; ay *= AMAX / am; az *= AMAX / am; }
+      b.v[0] += ax * dt; b.v[1] += ay * dt; b.v[2] += az * dt;
+      p[0] += b.v[0] * dt; p[1] += b.v[1] * dt; p[2] += b.v[2] * dt;
+      b.travel += Math.hypot(b.v[0], b.v[1], b.v[2]) * dt;
+      const o = (f * N + i) * 3; POS[o] = p[0]; POS[o + 1] = p[1]; POS[o + 2] = p[2];
+      const [sxp, syp] = project(p[0], p[1], p[2]);
+      if (p[2] < 60 || syp < -700 || sxp < -900 || sxp > W + 900) { alive[i] = 0; dead[i] = 1; }
+    }
+  }
+})();
+
+function posAt(i, f) {
+  const f0 = Math.floor(f), a = f - f0;
+  if (f0 < 0 || f0 + 1 >= NF) return null;
+  const o0 = (f0 * N + i) * 3, o1 = ((f0 + 1) * N + i) * 3;
+  if (Number.isNaN(POS[o0]) || Number.isNaN(POS[o1])) return null;
+  return [POS[o0] + (POS[o1] - POS[o0]) * a, POS[o0 + 1] + (POS[o1 + 1] - POS[o0 + 1]) * a, POS[o0 + 2] + (POS[o1 + 2] - POS[o0 + 2]) * a];
+}
+
+// ---------- bat silhouette ----------
+// local frame: facing -y, half-span = 1. e = wing elevation (-1 down .. 1 up)
+function wing(c, side, sx, ty) {
+  const P = (x, y) => [side * x, y];
+  const sh = P(0.07, -0.10), wr = P(0.42 * sx, -0.20 + ty * 0.55), tip = P(1.0 * sx, -0.08 + ty);
+  const f3 = P(0.80 * sx, 0.10 + ty * 0.75), f2 = P(0.58 * sx, 0.16 + ty * 0.5), f1 = P(0.34 * sx, 0.22 + ty * 0.3), hip = P(0.07, 0.15);
+  c.moveTo(...sh);
+  c.quadraticCurveTo(side * 0.25 * sx, -0.25 + ty * 0.3, ...wr);
+  c.lineTo(...tip);
+  // scalloped trailing edge between the finger bones
+  const sc = (a, b) => c.quadraticCurveTo((a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - 0.09, ...b);
+  sc(tip, f3); sc(f3, f2); sc(f2, f1); sc(f1, hip);
+  c.closePath();
+}
+function drawBat(c, x, y, s, ang, e, bank, fill, wingAlpha) {
+  const sxv = 0.5 + 0.5 * Math.cos(e * 1.25), ty = -e * 0.38;
+  const bR = 1 - 0.45 * Math.max(0, bank), bL = 1 - 0.45 * Math.max(0, -bank);
+  c.save(); c.translate(x, y); c.rotate(ang); c.scale(s, s);
+  c.fillStyle = fill;
+  c.globalAlpha = wingAlpha;
+  c.beginPath(); wing(c, 1, sxv * bR, ty); wing(c, -1, sxv * bL, ty); c.fill();
+  c.globalAlpha = 1;
+  c.beginPath();
+  c.ellipse(0, 0.0, 0.088, 0.15, 0, 0, Math.PI * 2);
+  c.moveTo(0.066, -0.155); c.arc(0, -0.155, 0.066, 0, Math.PI * 2);
+  c.moveTo(-0.058, -0.19); c.lineTo(-0.04, -0.28); c.lineTo(-0.012, -0.2);
+  c.moveTo(0.058, -0.19); c.lineTo(0.04, -0.28); c.lineTo(0.012, -0.2);
+  // tail membrane between the legs
+  c.moveTo(-0.07, 0.1); c.lineTo(-0.11, 0.24); c.quadraticCurveTo(0, 0.2, 0.11, 0.24); c.lineTo(0.07, 0.1);
+  c.fill();
+  c.restore();
+}
+
+// ---------- assets / static layers ----------
+const load = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = src; });
+const off = (w = W, h = H) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+const tint = (img, color) => { const c = off(img.width, img.height), x = c.getContext('2d');
+  x.drawImage(img, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = color; x.fillRect(0, 0, c.width, c.height); return c; };
+let hound, houndEdge, fogA, fogB, fogDark, fogRed, neonGlow;
+const HH = 640, HW = HH * 1400 / 1630, NEON_PAD = 260;
+
+const bg = off();
+function buildBg() {
+  const b = bg.getContext('2d');
+  b.fillStyle = '#060709'; b.fillRect(0, 0, W, H);
+  b.save(); b.translate(CX, CY); b.scale(1, 0.34);
+  let g = b.createRadialGradient(0, 0, 0, 0, 0, 2300);
+  g.addColorStop(0, '#17181c'); g.addColorStop(0.4, '#0d0e11'); g.addColorStop(1, 'rgba(6,7,9,0)');
+  b.fillStyle = g; b.fillRect(-CX, -CY * 4, W, H * 8); b.restore();
+  // cool high sky the swarm heads into, and a faint warm breath from below
+  b.save(); b.translate(CX + 500, -120); b.scale(1, 0.35);
+  g = b.createRadialGradient(0, 0, 0, 0, 0, 1900);
+  g.addColorStop(0, 'rgba(120,132,148,0.10)'); g.addColorStop(1, 'rgba(120,132,148,0)');
+  b.fillStyle = g; b.fillRect(-W, -H * 4, W * 2, H * 8); b.restore();
+  g = b.createLinearGradient(0, H * 0.6, 0, H);
+  g.addColorStop(0, 'rgba(40,30,24,0)'); g.addColorStop(1, 'rgba(46,34,26,0.22)');
+  b.fillStyle = g; b.fillRect(0, 0, W, H);
+}
+const vig = off();
+function buildVig() {
+  const v = vig.getContext('2d');
+  v.save(); v.translate(CX, CY); v.scale(1, 0.3);
+  const g = v.createRadialGradient(0, 0, 0, 0, 0, CX * 1.02);
+  g.addColorStop(0.4, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.78)');
+  v.fillStyle = g; v.fillRect(-CX, -CY * 4, W, H * 8); v.restore();
+}
+function bakeNeon() {
+  const c = off(Math.ceil(HW + NEON_PAD * 2), Math.ceil(HH + NEON_PAD * 2)), x = c.getContext('2d');
+  x.globalCompositeOperation = 'lighter';
+  const layer = (img, blur, a) => { x.filter = blur ? `blur(${blur}px)` : 'none'; x.globalAlpha = a; x.drawImage(img, NEON_PAD, NEON_PAD, HW, HH); };
+  layer(neonRedImg, 130, 0.95); layer(neonRedImg, 48, 0.9); layer(neonRedImg, 14, 0.7); layer(neonRedImg, 0, 0.5);
+  layer(neonWhiteImg, 90, 0.35); layer(neonWhiteImg, 40, 0.55); layer(neonWhiteImg, 10, 0.55); layer(neonWhiteImg, 0, 0.5);
+  neonGlow = c;
+}
+let neonRedImg, neonWhiteImg;
+
+const work = off(), wx = work.getContext('2d');
+function fogIn(img, x, y, w, h, a, cx, cy, rx, ry, comp) {
+  wx.globalCompositeOperation = 'source-over'; wx.globalAlpha = 1;
+  wx.clearRect(0, 0, W, H);
+  wx.drawImage(img, x, y, w, h);
+  wx.globalCompositeOperation = 'destination-in'; wx.save(); wx.translate(cx, cy); wx.scale(1, ry / rx);
+  const g = wx.createRadialGradient(0, 0, 0, 0, 0, rx);
+  g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(0.55, 'rgba(0,0,0,0.5)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  wx.fillStyle = g; wx.fillRect(-rx * 2, -rx * 2, rx * 4, rx * 4); wx.restore();
+  wx.globalCompositeOperation = 'source-over';
+  ctx.save(); ctx.globalCompositeOperation = comp; ctx.globalAlpha = a; ctx.drawImage(work, 0, 0); ctx.restore();
+}
+function glow(x, y, rx, ry, rgb, a) {
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.translate(x, y); ctx.scale(1, ry / rx);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+  g.addColorStop(0, `rgba(${rgb},${a})`); g.addColorStop(0.5, `rgba(${rgb},${a * 0.35})`); g.addColorStop(1, `rgba(${rgb},0)`);
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, rx, 0, 7); ctx.fill(); ctx.restore();
+}
+
+// ---------- emblem ----------
+function drawEmblem(t) {
+  const push = 1 + 0.018 * smooth(t / DUR);                 // slow cinematic push-in
+  const float = Math.sin(t * 0.55) * 4;
+  const n = 0.86 + 0.07 * Math.sin(t * 2 * Math.PI / 7) + 0.02 * Math.sin(t * 13.1) + 0.015 * Math.sin(t * 29.3 + 1);
+  ctx.save();
+  ctx.translate(CX, CY + float); ctx.scale(push, push); ctx.translate(-CX, -CY);
+  const hx = CX - HW / 2, hy = CY - HH / 2 - 10;
+  glow(CX, CY - 60, 900, 470, '200,40,36', 0.075 * n);
+  glow(CX, CY - 40, 1000, 520, WARM, 0.045);
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.85)'; ctx.shadowBlur = 80; ctx.shadowOffsetY = 22;
+  ctx.drawImage(hound, hx, hy, HW, HH); ctx.restore();
+  ctx.save(); ctx.globalAlpha = 0.14; ctx.drawImage(houndEdge, hx, hy, HW, HH); ctx.restore();
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = n;
+  ctx.drawImage(neonGlow, hx - NEON_PAD, hy - NEON_PAD); ctx.restore();
+  ctx.restore();
+  // weather around it
+  const d = t * 14;
+  fogIn(fogRed, -420 + d, -70, 5200, 1250, 0.22 * n, CX, CY - 40, 900, 560, 'lighter');
+  fogIn(fogDark, -200 - d * 1.4, -90, 4800, 1250, 0.7, CX + 40, CY - 30, 780, 520, 'source-over');
+}
+
+// ---------- frame ----------
+function draw(t) {
+  const f = t * FPS;
+  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.filter = 'none';
+  ctx.drawImage(bg, 0, 0);
+  fogIn(fogA, -520 + t * 10, -50, 5200, 1200, 0.22, CX, CY, 1700, 520, 'lighter');
+  fogIn(fogB, -900 - t * 8, 40, 5400, 1200, 0.10, CX + 400, CY - 200, 1700, 420, 'lighter');
+
+  // gather visible bats with their screen state
+  const list = [];
+  for (let i = 0; i < N; i++) {
+    const p = posAt(i, f); if (!p || p[2] < 60) continue;
+    const pb = posAt(i, f - 1.5) || p, pf = posAt(i, f + 1.5) || p;
+    const s0 = project(...pb), s1 = project(...p), s2 = project(...pf);
+    const b = bats[i], size = F * b.size / p[2];
+    if (s1[0] < -size || s1[0] > W + size || s1[1] < -size || s1[1] > H + size) continue;
+    const a1 = Math.atan2(s1[1] - s0[1], s1[0] - s0[0]), a2 = Math.atan2(s2[1] - s1[1], s2[0] - s1[0]);
+    let da = a2 - a1; da = Math.atan2(Math.sin(da), Math.cos(da));
+    const vel = Math.hypot(s2[0] - s0[0], s2[1] - s0[1]) / 3 * FPS;
+    list.push({ i, p, z: p[2], x: s1[0], y: s1[1], size, ang: Math.atan2(s2[1] - s0[1], s2[0] - s0[0]) + Math.PI / 2, bank: clamp(da * 6, -0.7, 0.7), vel });
+  }
+  list.sort((a, b) => b.z - a.z);
+
+  const drawOne = (o, t) => {
+    const b = bats[o.i];
+    const ph = b.phase + 2 * Math.PI * b.freq * t;
+    const e = Math.sin(ph);
+    // body rides a smooth path; only a faint lift on the downstroke
+    const lift = Math.cos(ph) * 0.03 * o.size;
+    const haze = clamp((o.z - 500) / 5500);
+    const c0 = [4, 4, 5], c1 = [24, 25, 29];
+    const col = `rgb(${c0.map((v, k) => Math.round(v + (c1[k] - v) * haze)).join(',')})`;
+    const alpha = 0.95 - 0.4 * haze;
+    ctx.globalAlpha = alpha;
+    // fast close bats: a few sub-frame samples for motion blur
+    // 180-degree shutter: smear fast bats along their path, samples scaled to the distance moved
+    const travel = o.vel * 0.5 / FPS;
+    if (travel > 22) {
+      const steps = Math.min(32, Math.ceil(travel / 1.5));
+      for (let k = 0; k < steps; k++) {
+        const dtk = (k / (steps - 1) - 0.5) * 0.5 / FPS;
+        const p = posAt(o.i, (t + dtk) * FPS); if (!p) continue;
+        const [x, y] = project(...p);
+        ctx.globalAlpha = alpha * Math.min(1, 2.2 / steps);
+        drawBat(ctx, x, y + lift, F * b.size / p[2], o.ang, e, o.bank, col, 0.85);
+      }
+    } else {
+      drawBat(ctx, o.x, o.y + lift, o.size, o.ang, e, o.bank, col, 0.86);
+    }
+    ctx.globalAlpha = 1;
+  };
+
+  let k = 0;
+  for (; k < list.length && list[k].z > LOGO_Z; k++) drawOne(list[k], t);
+  drawEmblem(t);
+  for (; k < list.length; k++) drawOne(list[k], t);
+
+  // thin front haze keeps everything under the weather
+  fogIn(fogA, -300 - t * 18, 30, 5000, 1150, 0.07, CX, CY + 100, 1900, 560, 'lighter');
+  ctx.drawImage(vig, 0, 0);
+}
+
+window.draw = draw;
+window.ready = Promise.all(['hound-graphite.png', 'hound-edge.png', 'neon-red.png', 'neon-white.png', 'fog-a.png', 'fog-b.png'].map(load))
+  .then(([a, b, c, d, e, f]) => {
+    hound = a; houndEdge = b; neonRedImg = c; neonWhiteImg = d; fogA = e; fogB = f;
+    fogDark = tint(fogB, '#030304'); fogRed = tint(fogA, 'rgb(210,52,46)');
+    buildBg(); buildVig(); bakeNeon();
+  });
+</script>
+</body>
+</html>
