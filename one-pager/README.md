@@ -18,3 +18,5 @@ Rebuild: `python3 one-pager/build_layout.py` (layout) · `python3 one-pager/buil
 
 New quote: copy `quote/helix-2026-10-22.json`, edit the numbers and text, then run
 `python3 one-pager/quote/render.py one-pager/quote/<file>.json`. The design lives in `quote/style.css`.
+
+**Editable version:** `quote/helix-2026-10-22-editable.pptx`. In Canva, go to Create a design › Import file (or drag the file in). Every line of text, number, and divider is its own element. It also opens in Google Slides and Keynote. Rebuild: `python3 one-pager/quote/editable.py one-pager/quote/<file>.json`
