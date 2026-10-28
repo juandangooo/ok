@@ -60,8 +60,8 @@ def paint(ws, rows, cols, color):
             ws.cell(row=r, column=col).fill = fill(color)
 
 
-def box(ws, r1, r2, c1, c2, color=CARD):
-    """White card with a hairline outline."""
+def box(ws, r1, r2, c1, c2, color=PAPER):
+    """Warm card with a hairline outline."""
     paint(ws, range(r1, r2 + 1), range(c1, c2 + 1), color)
     for r in range(r1, r2 + 1):
         for c in range(c1, c2 + 1):
@@ -75,12 +75,13 @@ def box(ws, r1, r2, c1, c2, color=CARD):
 
 
 def page_grid(ws, last_row):
-    """A..K: margin, 4 cols, gutter, 4 cols, margin. Paper background."""
-    widths = {"A": 3, "B": 12, "C": 12, "D": 12, "E": 12, "F": 3,
-              "G": 12, "H": 12, "I": 12, "J": 12, "K": 3}
+    """A..K: margin, 4 cols, gutter, 4 cols, margin. White, sized to print
+    on Letter at 100%: 8.5 x 11 minus 0.25" margins leaves 768 x 1008 px."""
+    widths = {"A": 2, "B": 11.75, "C": 11.75, "D": 11.75, "E": 11.75, "F": 2.5,
+              "G": 11.75, "H": 11.75, "I": 11.75, "J": 11.75, "K": 2}
     for k, w in widths.items():
         ws.column_dimensions[k].width = w
-    paint(ws, range(1, last_row + 1), range(1, 12), PAPER)
+    paint(ws, range(1, last_row + 1), range(1, 12), CARD)
     ws.sheet_view.showGridLines = False
     ws.print_area = f"A1:K{last_row}"
     ws.page_setup.orientation = "portrait"
@@ -88,8 +89,10 @@ def page_grid(ws, last_row):
     ws.page_setup.fitToWidth = 1
     ws.page_setup.fitToHeight = 1
     ws.sheet_properties.pageSetUpPr = PageSetupProperties(fitToPage=True)
-    ws.page_margins.left = ws.page_margins.right = 0.3
-    ws.page_margins.top = ws.page_margins.bottom = 0.3
+    ws.page_margins.left = ws.page_margins.right = 0.25
+    ws.page_margins.top = ws.page_margins.bottom = 0.25
+    ws.page_margins.header = ws.page_margins.footer = 0
+    ws.print_options.horizontalCentered = True
 
 
 def heights(ws, spec):
@@ -112,7 +115,7 @@ RATES = [
     ("Sound", "Live Audio Mixing", "A mixer that balances room and remote voices and removes echo", "per day", 800, 1, 1),
     ("Video & Computers", "Show Computer Package", "Two dedicated computers: one runs the call, one is a live backup", "per day", 900, 1, 1),
     ("Video & Computers", "Camera & Lighting Package", "Professional cameras and lights so speakers look sharp on screen", "per day", 1100, 1, 1),
-    ("Video & Computers", "Dedicated Internet", "A wired connection separate from building Wi-Fi, with a cellular backup", "per day", 500, 1, 1),
+    ("Video & Computers", "Dedicated Internet", "Wired internet, separate from building Wi-Fi, with a backup", "per day", 500, 1, 1),
     ("Screens", "Display Package", "A large screen showing remote guests and slides to the room", "per screen, per day", 450, 2, 1),
     ("Crew & Rehearsal", "Lead Engineer", "Runs the show and fixes issues before anyone notices", "per day", 1400, 1, 1),
     ("Crew & Rehearsal", "Call Operator", "Manages Zoom: guests, screen shares, spotlights, recording", "per day", 1000, 1, 1),
@@ -168,9 +171,9 @@ steps = [
     ("2", "Inputs", "For each client, fill in the blue cells: who, when, and how many of each item."),
     ("3", "Page 1 · Story", "The one-pager. Check it reads well for this client."),
     ("4", "Page 2 · Details", "Every line item with prices, for the person who wants the detail."),
-    ("5", "Export", "Select the Page 1 tab, Cmd/Ctrl-click Page 2, then File › Download › PDF. "
-                    "Choose “Selected sheets”, Letter, Portrait, Fit to page, and turn off gridlines. "
-                    "(If you don’t see “Selected sheets”, export each page as “Current sheet”.)"),
+    ("5", "Print / PDF", "Open Page 1, then File › Print. Use: Letter (8.5\" x 11\") · Portrait · "
+                         "Scale: Fit to page · Margins: Narrow · uncheck Show gridlines and Show notes. "
+                         "Click Next, then Save as PDF. Repeat for Page 2. Each page prints at full size on one sheet."),
     ("6", "Event Log", "Save the PDF in the shared Drive folder and add one row with the link. That row is your record. "
                        "Then clear Inputs for the next client."),
 ]
@@ -283,23 +286,23 @@ TOTAL = "'Page 2 · Details'!J27"
 
 # ---------------------------------------------------------------- Page 1
 p1 = wb.create_sheet("Page 1 · Story")
-LAST1 = 45
+LAST1 = 43
 page_grid(p1, LAST1)
-heights(p1, {1: 14, 2: 14, 3: 14, 4: 26, 5: 18, 6: 50, 7: 40, 8: 22, 9: 32, 10: 16, 11: 30,
-             12: 24, 13: 18, 14: 10, 15: 24, 16: 48, 17: 18, 18: 34, 19: 12, 20: 24, 21: 48,
-             22: 18, 23: 34, 24: 30, 25: 24, 26: 18, 27: 10, 28: 20, 29: 24, 30: 24, 31: 24,
-             32: 24, 33: 24, 34: 26, 35: 22, 36: 44, 37: 16, 38: 22, 39: 20, 40: 18, 41: 22,
-             42: 66, 43: 14})
+heights(p1, {1: 6, 2: 12, 3: 12, 4: 8, 5: 14, 6: 38, 7: 22, 8: 8, 9: 24, 10: 13, 11: 12,
+             12: 20, 13: 14, 14: 6, 15: 20, 16: 34, 17: 14, 18: 26, 19: 8, 20: 20, 21: 34,
+             22: 14, 23: 26, 24: 12, 25: 20, 26: 14, 27: 6, 28: 14, 29: 19, 30: 19, 31: 19,
+             32: 19, 33: 19, 34: 12, 35: 16, 36: 36, 37: 10, 38: 8, 39: 16, 40: 14, 41: 8,
+             42: 52, 43: 6})
 page_header(p1)
 put(p1, "B5", '=UPPER(Inputs!B6)', 9, True, BLUE, h="center", merge="B5:J5")
-put(p1, "B6", "Your call just works.", 34, True, h="center", merge="B6:J6")
+put(p1, "B6", "Your call just works.", 30, True, h="center", merge="B6:J6")
 put(p1, "B7", "Everything an executive call needs, run by a crew that has done it hundreds of times.",
-    13, False, MUTED, h="center", wrap=True, merge="B7:J7")
+    12, False, MUTED, h="center", merge="B7:J7")
 for (c1, c2), row in zip((("B", "D"), ("E", "G"), ("H", "J")), (14, 15, 16)):
-    put(p1, f"{c1}9", f"=Inputs!B{row}", 22, True, h="center", merge=f"{c1}9:{c2}9")
+    put(p1, f"{c1}9", f"=Inputs!B{row}", 20, True, h="center", merge=f"{c1}9:{c2}9")
     put(p1, f"{c1}10", f"=Inputs!C{row}", 9, False, MUTED, h="center", merge=f"{c1}10:{c2}10")
 
-put(p1, "B12", "What you’re paying for", 16, True, merge="B12:J12")
+put(p1, "B12", "What you’re paying for", 15, True, merge="B12:J12")
 put(p1, "B13", "Four parts. Each one removes a way the call could go wrong.", 10.5, False, MUTED, merge="B13:J13")
 slots = [(15, 2, 5), (15, 7, 10), (20, 2, 5), (20, 7, 10)]
 for cat, (r0, c1, c2) in zip(CATEGORIES, slots):
@@ -309,11 +312,11 @@ for cat, (r0, c1, c2) in zip(CATEGORIES, slots):
     put(p1, f"{L}{r0}", cat, 12, True, v="bottom", indent=1, merge=f"{L}{r0}:{R}{r0}")
     put(p1, f"{L}{r0+1}", why, 9.5, False, MUTED, wrap=True, v="top", indent=1, merge=f"{L}{r0+1}:{R}{r0+1}")
     put(p1, f"{L}{r0+2}", inc, 8.5, False, FAINT, indent=1, merge=f"{L}{r0+2}:{R}{r0+2}")
-    put(p1, f"{L}{r0+3}", f'=SUMIF({LINES},"{cat}",{SUBS})', 15, True, fmt=MONEY, v="top", indent=1, merge=f"{L}{r0+3}:{R}{r0+3}")
+    put(p1, f"{L}{r0+3}", f'=SUMIF({LINES},"{cat}",{SUBS})', 14, True, fmt=MONEY, v="top", indent=1, merge=f"{L}{r0+3}:{R}{r0+3}")
     # re-apply card borders lost to merges on the left/right edge cells
     box(p1, r0, r0 + 3, c1, c2)
 
-put(p1, "B25", "Why not just plug in a webcam?", 16, True, merge="B25:J25")
+put(p1, "B25", "Why not just plug in a webcam?", 15, True, merge="B25:J25")
 put(p1, "B26", "For a team meeting, you could. When leadership is on camera, small failures get expensive.",
     10.5, False, MUTED, merge="B26:J26")
 put(p1, "B28", "DOING IT YOURSELF", 8.5, True, FAINT, merge="B28:E28")
@@ -337,22 +340,21 @@ for row in range(35, 38):
 
 put(p1, "B39", "Next step: a 15-minute walkthrough of your room and run of show.", 11, True, h="center", merge="B39:J39")
 put(p1, "B40", '=Inputs!B9&"  ·  "&Inputs!B10&"  ·  "&Inputs!B11', 9.5, False, MUTED, h="center", merge="B40:J40")
-paint(p1, range(42, 44), range(1, 12), CARD)
 
 logo368 = XLImage(str(HERE / "assets" / "368em-logo.png"))
-logo368.width = logo368.height = 74
+logo368.width = logo368.height = 64
 p1.add_image(logo368, "B42")
 logohh = XLImage(str(HERE / "assets" / "hellhound-logo.png"))
-logohh.width, logohh.height = 190, 58
+logohh.width, logohh.height = 172, 53
 p1.add_image(logohh, "H42")
 
 # ---------------------------------------------------------------- Page 2
 p2 = wb.create_sheet("Page 2 · Details")
 LAST2 = 42
 page_grid(p2, LAST2)
-heights(p2, {1: 14, 2: 14, 3: 14, 4: 26, 5: 36, 6: 18, 7: 18, 8: 20, 38: 44})
+heights(p2, {1: 6, 2: 12, 3: 12, 4: 14, 5: 30, 6: 16, 7: 10, 8: 18})
 page_header(p2)
-put(p2, "B5", "The details", 24, True, merge="B5:J5")
+put(p2, "B5", "The details", 22, True, merge="B5:J5")
 put(p2, "B6", '="Every item for "&Inputs!B5&", what it does, and what it costs."', 10.5, False, MUTED, merge="B6:J6")
 
 hdrs = [("B8", "ITEM", "B8:C8", "left"), ("D8", "WHAT IT DOES", "D8:F8", "left"), ("G8", "QTY", None, "center"),
@@ -366,7 +368,7 @@ row = 9
 for cat in CATEGORIES:
     paint(p2, [row], range(2, 11), TINT)
     put(p2, f"B{row}", cat, 9.5, True, merge=f"B{row}:J{row}")
-    p2.row_dimensions[row].height = 20
+    p2.row_dimensions[row].height = 18
     row += 1
     for i, rec in enumerate(RATES):
         if rec[0] != cat:
@@ -378,7 +380,7 @@ for cat in CATEGORIES:
         put(p2, f"H{row}", f"=Inputs!G{src}", 9.5, h="center")
         put(p2, f"I{row}", f"=Inputs!E{src}", 9.5, False, MUTED, h="right", fmt=MONEY)
         put(p2, f"J{row}", f'=IF(Inputs!H{src}=0,"Not included",Inputs!H{src})', 9.5, True, h="right", fmt=MONEY)
-        p2.row_dimensions[row].height = 30
+        p2.row_dimensions[row].height = 28
         for col in range(2, 11):
             p2.cell(row=row, column=col).border = Border(bottom=hair)
         row += 1
@@ -392,13 +394,14 @@ put(p2, "H27", "Total", 12, True, h="right", merge="H27:I27")
 put(p2, "J27", "=J25+J26", 12, True, h="right", fmt=MONEY)
 for col in (8, 9, 10):
     p2.cell(row=27, column=col).border = Border(top=ink_line)
-heights(p2, {22: 12, 23: 12, 24: 12, 25: 20, 26: 20, 27: 26, 28: 26})
+heights(p2, {22: 8, 23: 4, 24: 4, 25: 18, 26: 18, 27: 24, 28: 14, 29: 4, 30: 18,
+             35: 10, 36: 4, 37: 20, 38: 32, 39: 10, 40: 10, 41: 14, 42: 6})
 
 put(p2, "B30", "Always included", 12, True, merge="B30:J30")
 for i, line in enumerate(ALWAYS):
     put(p2, f"B{31+i}", "✓", 10, True, BLUE, h="center")
     put(p2, f"C{31+i}", line, 10, merge=f"C{31+i}:J{31+i}")
-    p2.row_dimensions[31 + i].height = 20
+    p2.row_dimensions[31 + i].height = 18
 
 put(p2, "B37", "Notes", 12, True, merge="B37:J37")
 put(p2, "B38", "=Inputs!B19", 10, False, MUTED, wrap=True, v="top", merge="B38:J38")
@@ -436,6 +439,12 @@ for r in range(6, 306):
 dv = DataValidation(type="list", formula1='"Draft,Sent,Approved,Completed,Lost"', allow_blank=True)
 log.add_data_validation(dv)
 dv.add("F6:F305")
+
+for ws, last in ((p1, LAST1), (p2, LAST2)):
+    w = sum(ws.column_dimensions[k].width * 7 + 5 for k in "ABCDEFGHIJK")
+    h = sum(ws.row_dimensions[r].height or 15 for r in range(1, last + 1)) * 4 / 3
+    assert w <= 768 and h <= 1008, f"{ws.title} is {w:.0f} x {h:.0f}px; Letter fits 768 x 1008"
+    print(f"{ws.title}: {w:.0f} x {h:.0f}px of 768 x 1008")
 
 wb.move_sheet("Page 1 · Story", offset=-2)
 wb.move_sheet("Page 2 · Details", offset=-2)
