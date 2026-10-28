@@ -3,10 +3,14 @@
 Run:  python3 one-pager/build_onepager.py
 Out:  one-pager/368-Hellhound-OnePager.xlsx  (import into Google Sheets)
 """
+import re
 from pathlib import Path
 
 from openpyxl import Workbook
 from openpyxl.drawing.image import Image as XLImage
+from openpyxl.drawing.spreadsheet_drawing import AnchorMarker, OneCellAnchor
+from openpyxl.drawing.xdr import XDRPositiveSize2D
+from openpyxl.utils.units import pixels_to_EMU
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.worksheet.properties import PageSetupProperties
@@ -25,7 +29,7 @@ TINT = "F2F0EB"
 INPUT = "EAF4FA"
 BLUE = "0096CF"  # 368EM
 RED = "E8382F"   # Hellhound
-FONT = "Inter"
+FONT = "Jost"  # geometric, Bauhaus lineage; free on Google Fonts
 MONEY = '"$"#,##0'
 
 
@@ -39,6 +43,7 @@ def font(size=10.5, bold=False, color=INK, italic=False):
 
 hair = Side(style="thin", color=LINE)
 ink_line = Side(style="thin", color=INK)
+ink_bold = Side(style="medium", color=INK)
 
 
 def put(ws, ref, value, size=10.5, bold=False, color=INK, h="left", v="center",
@@ -102,8 +107,57 @@ def heights(ws, spec):
 
 def page_header(ws):
     put(ws, "B2", "368 EVENT MANAGEMENT  ×  HELLHOUND AUDIO", 8.5, True, MUTED, merge="B2:E2")
-    put(ws, "G2", '=IF(Inputs!B4="","","Prepared for "&Inputs!B4)', 8.5, False, MUTED, h="right", merge="G2:J2")
-    put(ws, "G3", '=IF(Inputs!B7="","",TEXT(Inputs!B7,"mmmm d, yyyy"))', 8.5, False, FAINT, h="right", merge="G3:J3")
+    put(ws, "G2", '=IF(Inputs!B4="","","Prepared for "&Inputs!B4)&IF(Inputs!B7="","","  ·  "&TEXT(Inputs!B7,"mmm d, yyyy"))',
+        8.5, False, MUTED, h="right", merge="G2:J2")
+
+
+def make_shapes():
+    """Bauhaus shapes in brand colors: 368 blue, Hellhound red, ink."""
+    from PIL import Image, ImageDraw
+    rgb = lambda h: tuple(int(h[i:i + 2], 16) for i in (0, 2, 4)) + (255,)
+    out = HERE / "assets"
+
+    def canvas(size):
+        im = Image.new("RGBA", (size * 4, size * 4), (0, 0, 0, 0))
+        return im, ImageDraw.Draw(im), 4
+
+    def save(im, name, size):
+        im.resize((size, size), Image.LANCZOS).save(out / name)
+
+    # hero: circle, half-disc resting on a line, corner triangle
+    S = 1200
+    im, d, k = canvas(S)
+    d.ellipse([(430 - 360) * k, (660 - 360) * k, (430 + 360) * k, (660 + 360) * k], fill=rgb(BLUE))
+    d.pieslice([(860 - 240) * k, (380 - 240) * k, (860 + 240) * k, (380 + 240) * k], 180, 360, fill=rgb(RED))
+    d.line([560 * k, 380 * k, 1160 * k, 380 * k], fill=rgb(INK), width=10 * k)
+    d.polygon([(720 * k, 1180 * k), (1180 * k, 1180 * k), (1180 * k, 720 * k)], fill=rgb(INK))
+    save(im, "bauhaus-hero.png", 600)
+
+    # one small mark per package
+    S = 200
+    marks = {
+        "Sound": lambda d, k: d.ellipse([10 * k, 10 * k, 190 * k, 190 * k], fill=rgb(BLUE)),
+        "Video & Computers": lambda d, k: d.rectangle([20 * k, 20 * k, 180 * k, 180 * k], fill=rgb(INK)),
+        "Screens": lambda d, k: d.polygon([(100 * k, 14 * k), (190 * k, 180 * k), (10 * k, 180 * k)], fill=rgb(RED)),
+        "Crew & Rehearsal": lambda d, k: d.pieslice([10 * k, 10 * k, 370 * k, 370 * k], 180, 270, fill=rgb(BLUE)),
+    }
+    for cat, draw in marks.items():
+        im, d, k = canvas(S)
+        draw(d, k)
+        save(im, f"mark-{slug(cat)}.png", 96)
+
+
+def slug(text):
+    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+
+
+def place(ws, path, col, row, w, h, dx=0, dy=0):
+    """Float an image at a cell (0-based col/row) with a pixel offset."""
+    img = XLImage(str(path))
+    img.anchor = OneCellAnchor(
+        _from=AnchorMarker(col=col, colOff=pixels_to_EMU(dx), row=row, rowOff=pixels_to_EMU(dy)),
+        ext=XDRPositiveSize2D(pixels_to_EMU(w), pixels_to_EMU(h)))
+    ws.add_image(img)
 
 
 # ---------------------------------------------------------------- data
@@ -125,14 +179,10 @@ FIRST_LINE = 24  # first line-item row on Inputs
 LAST_LINE = FIRST_LINE + len(RATES) - 1
 
 CARDS = {
-    "Sound": ("Every voice is clear, in the room and on the call. No echo, no “can you hear me?”",
-              "Mics · Spares · Live mixing"),
-    "Video & Computers": ("The call doesn’t freeze or drop. If a computer or connection fails, the backup takes over in seconds.",
-                          "2 computers · Cameras · Wired internet"),
-    "Screens": ("Everyone in the room can see remote guests and slides, from any seat.",
-                "Large displays · Cabling · Stands"),
-    "Crew & Rehearsal": ("A professional watches every second and fixes problems before anyone notices.",
-                         "Engineer · Operator · Rehearsal day"),
+    "Sound": "Every voice is clear, in the room and on the call. No echo, no “can you hear me?”",
+    "Video & Computers": "The call won’t freeze or drop. If anything fails, the backup takes over in seconds.",
+    "Screens": "Everyone in the room sees remote guests and slides clearly, from any seat.",
+    "Crew & Rehearsal": "A professional watches every second and fixes problems before anyone notices.",
 }
 
 COMPARE = [
@@ -150,6 +200,7 @@ ALWAYS = [
     "Delivery, setup, and teardown.",
 ]
 
+make_shapes()
 wb = Workbook()
 
 # ---------------------------------------------------------------- Start Here
@@ -190,6 +241,8 @@ put(st, f"B{r+1}", "Confirm the three proof numbers on Inputs are true, and that
 st.row_dimensions[r + 1].height = 30
 put(st, f"B{r+3}", "Copy rule: clear, not cute. Short words, short lines, no jargon, nothing condescending.",
     10, False, MUTED, italic=True, merge=f"B{r+3}:C{r+3}")
+put(st, f"B{r+4}", "Font: Jost. If it shows as Arial, pick Format › Font › More fonts › Jost once and it will load.",
+    10, False, MUTED, italic=True, merge=f"B{r+4}:C{r+4}")
 
 # ---------------------------------------------------------------- Inputs
 inp = wb.create_sheet("Inputs")
@@ -285,68 +338,66 @@ SUBS = f"Inputs!$H${FIRST_LINE}:$H${LAST_LINE}"
 TOTAL = "'Page 2 · Details'!J27"
 
 # ---------------------------------------------------------------- Page 1
+# One flowing column: promise -> proof -> what you get -> why -> price -> next.
+# No boxes; rules and Bauhaus shapes carry the structure.
 p1 = wb.create_sheet("Page 1 · Story")
-LAST1 = 43
+LAST1 = 46
 page_grid(p1, LAST1)
-heights(p1, {1: 6, 2: 12, 3: 12, 4: 8, 5: 14, 6: 38, 7: 22, 8: 8, 9: 24, 10: 13, 11: 12,
-             12: 20, 13: 14, 14: 6, 15: 20, 16: 34, 17: 14, 18: 26, 19: 8, 20: 20, 21: 34,
-             22: 14, 23: 26, 24: 12, 25: 20, 26: 14, 27: 6, 28: 14, 29: 19, 30: 19, 31: 19,
-             32: 19, 33: 19, 34: 12, 35: 16, 36: 36, 37: 10, 38: 8, 39: 16, 40: 14, 41: 8,
-             42: 52, 43: 6})
+heights(p1, {1: 6, 2: 12, 3: 6, 4: 14, 5: 44, 6: 40, 7: 30, 8: 8, 9: 6, 10: 28, 11: 13,
+             12: 10, 13: 20, 14: 14, 15: 6, 28: 10, 29: 20, 30: 14, 31: 6, 32: 14,
+             38: 14, 39: 13, 40: 40, 41: 8, 42: 16, 43: 14, 44: 6, 45: 40, 46: 6})
 page_header(p1)
-put(p1, "B5", '=UPPER(Inputs!B6)', 9, True, BLUE, h="center", merge="B5:J5")
-put(p1, "B6", "Your call just works.", 30, True, h="center", merge="B6:J6")
+assets = HERE / "assets"
+
+put(p1, "B4", '=UPPER(Inputs!B6)', 9, True, BLUE, merge="B4:F4")
+put(p1, "B5", "Your call\njust works.", 32, True, wrap=True, merge="B5:F6")
 put(p1, "B7", "Everything an executive call needs, run by a crew that has done it hundreds of times.",
-    12, False, MUTED, h="center", merge="B7:J7")
+    11.5, False, MUTED, wrap=True, v="top", merge="B7:F7")
+place(p1, assets / "bauhaus-hero.png", col=7, row=3, w=180, h=180, dx=80)
+
 for (c1, c2), row in zip((("B", "D"), ("E", "G"), ("H", "J")), (14, 15, 16)):
-    put(p1, f"{c1}9", f"=Inputs!B{row}", 20, True, h="center", merge=f"{c1}9:{c2}9")
-    put(p1, f"{c1}10", f"=Inputs!C{row}", 9, False, MUTED, h="center", merge=f"{c1}10:{c2}10")
+    put(p1, f"{c1}10", f"=Inputs!B{row}", 20, True, v="bottom", merge=f"{c1}10:{c2}10")
+    put(p1, f"{c1}11", f"=Inputs!C{row}", 9, False, MUTED, merge=f"{c1}11:{c2}11")
+for col in range(2, 11):
+    p1.cell(row=10, column=col).border = Border(top=ink_line)
 
-put(p1, "B12", "What you’re paying for", 15, True, merge="B12:J12")
-put(p1, "B13", "Four parts. Each one removes a way the call could go wrong.", 10.5, False, MUTED, merge="B13:J13")
-slots = [(15, 2, 5), (15, 7, 10), (20, 2, 5), (20, 7, 10)]
-for cat, (r0, c1, c2) in zip(CATEGORIES, slots):
-    box(p1, r0, r0 + 3, c1, c2)
-    L, R = p1.cell(row=1, column=c1).column_letter, p1.cell(row=1, column=c2).column_letter
-    why, inc = CARDS[cat]
-    put(p1, f"{L}{r0}", cat, 12, True, v="bottom", indent=1, merge=f"{L}{r0}:{R}{r0}")
-    put(p1, f"{L}{r0+1}", why, 9.5, False, MUTED, wrap=True, v="top", indent=1, merge=f"{L}{r0+1}:{R}{r0+1}")
-    put(p1, f"{L}{r0+2}", inc, 8.5, False, FAINT, indent=1, merge=f"{L}{r0+2}:{R}{r0+2}")
-    put(p1, f"{L}{r0+3}", f'=SUMIF({LINES},"{cat}",{SUBS})', 14, True, fmt=MONEY, v="top", indent=1, merge=f"{L}{r0+3}:{R}{r0+3}")
-    # re-apply card borders lost to merges on the left/right edge cells
-    box(p1, r0, r0 + 3, c1, c2)
+put(p1, "B13", "What you’re paying for", 15, True, merge="B13:J13")
+put(p1, "B14", "Four parts. Each one removes a way the call could go wrong.", 10.5, False, MUTED, merge="B14:J14")
+for i, cat in enumerate(CATEGORIES):
+    r0 = 16 + i * 3
+    heights(p1, {r0: 22, r0 + 1: 16, r0 + 2: 6})
+    for col in range(2, 11):
+        p1.cell(row=r0, column=col).border = Border(top=hair)
+    place(p1, assets / f"mark-{slug(cat)}.png", col=1, row=r0 - 1, w=18, h=18, dx=0, dy=9)
+    put(p1, f"B{r0}", cat, 12, True, v="bottom", indent=3, merge=f"B{r0}:H{r0}")
+    put(p1, f"B{r0+1}", CARDS[cat], 9.5, False, MUTED, v="top", indent=3, merge=f"B{r0+1}:H{r0+1}")
+    put(p1, f"I{r0}", f'=SUMIF({LINES},"{cat}",{SUBS})', 14, True, h="right", fmt=MONEY,
+        merge=f"I{r0}:J{r0+1}")
 
-put(p1, "B25", "Why not just plug in a webcam?", 15, True, merge="B25:J25")
-put(p1, "B26", "For a team meeting, you could. When leadership is on camera, small failures get expensive.",
-    10.5, False, MUTED, merge="B26:J26")
-put(p1, "B28", "DOING IT YOURSELF", 8.5, True, FAINT, merge="B28:E28")
-put(p1, "G28", "WITH 368 × HELLHOUND", 8.5, True, BLUE, merge="G28:J28")
+put(p1, "B29", "Why not just plug in a webcam?", 15, True, merge="B29:J29")
+put(p1, "B30", "For a team meeting, you could. When leadership is on camera, small failures get expensive.",
+    10.5, False, MUTED, merge="B30:J30")
+put(p1, "B32", "DOING IT YOURSELF", 8.5, True, FAINT, merge="B32:E32")
+put(p1, "G32", "WITH 368 × HELLHOUND", 8.5, True, BLUE, merge="G32:J32")
 for i, (diy, us) in enumerate(COMPARE):
-    row = 29 + i
+    row = 33 + i
+    p1.row_dimensions[row].height = 19
     put(p1, f"B{row}", diy, 10, False, MUTED, merge=f"B{row}:E{row}")
     put(p1, f"G{row}", us, 10, True, merge=f"G{row}:J{row}")
-    for col in range(2, 11):
-        if col != 6:
-            p1.cell(row=row, column=col).border = Border(bottom=hair)
+    for col in list(range(2, 6)) + list(range(7, 11)):
+        p1.cell(row=row, column=col).border = Border(bottom=hair)
 
-paint(p1, range(35, 38), range(2, 11), INK)
-put(p1, "B35", "YOUR INVESTMENT", 8.5, True, RED, v="bottom", indent=1, merge="B35:E35")
-put(p1, "B36", f"={TOTAL}", 28, True, "FFFFFF", fmt=MONEY, indent=1, merge="B36:E36")
-put(p1, "G36", "Equipment, setup, rehearsal, and a full crew on show day.", 10, False, "D4D4D4",
-    wrap=True, h="right", indent=1, merge="G36:J36")
-for row in range(35, 38):
-    for col in range(2, 11):
-        p1.cell(row=row, column=col).fill = fill(INK)
+for col in range(2, 11):
+    p1.cell(row=39, column=col).border = Border(top=ink_bold)
+put(p1, "B39", "YOUR INVESTMENT", 8.5, True, RED, v="bottom", merge="B39:E39")
+put(p1, "B40", f"={TOTAL}", 32, True, fmt=MONEY, merge="B40:E40")
+put(p1, "G40", "Equipment, setup, rehearsal, and a full crew on show day.", 10, False, MUTED,
+    wrap=True, h="right", merge="G40:J40")
 
-put(p1, "B39", "Next step: a 15-minute walkthrough of your room and run of show.", 11, True, h="center", merge="B39:J39")
-put(p1, "B40", '=Inputs!B9&"  ·  "&Inputs!B10&"  ·  "&Inputs!B11', 9.5, False, MUTED, h="center", merge="B40:J40")
-
-logo368 = XLImage(str(HERE / "assets" / "368em-logo.png"))
-logo368.width = logo368.height = 64
-p1.add_image(logo368, "B42")
-logohh = XLImage(str(HERE / "assets" / "hellhound-logo.png"))
-logohh.width, logohh.height = 172, 53
-p1.add_image(logohh, "H42")
+put(p1, "B42", "Next step: a 15-minute walkthrough of your room and run of show.", 11, True, merge="B42:J42")
+put(p1, "B43", '=Inputs!B9&"  ·  "&Inputs!B10&"  ·  "&Inputs!B11', 9.5, False, MUTED, merge="B43:J43")
+place(p1, assets / "368em-logo.png", col=1, row=44, w=56, h=56, dx=0, dy=1)
+place(p1, assets / "hellhound-logo.png", col=8, row=44, w=172, h=53, dx=2, dy=3)
 
 # ---------------------------------------------------------------- Page 2
 p2 = wb.create_sheet("Page 2 · Details")
@@ -354,7 +405,7 @@ LAST2 = 42
 page_grid(p2, LAST2)
 heights(p2, {1: 6, 2: 12, 3: 12, 4: 14, 5: 30, 6: 16, 7: 10, 8: 18})
 page_header(p2)
-put(p2, "B5", "The details", 22, True, merge="B5:J5")
+put(p2, "B5", "The details", 24, True, merge="B5:J5")
 put(p2, "B6", '="Every item for "&Inputs!B5&", what it does, and what it costs."', 10.5, False, MUTED, merge="B6:J6")
 
 hdrs = [("B8", "ITEM", "B8:C8", "left"), ("D8", "WHAT IT DOES", "D8:F8", "left"), ("G8", "QTY", None, "center"),
@@ -366,9 +417,9 @@ for col in range(2, 11):
 
 row = 9
 for cat in CATEGORIES:
-    paint(p2, [row], range(2, 11), TINT)
-    put(p2, f"B{row}", cat, 9.5, True, merge=f"B{row}:J{row}")
-    p2.row_dimensions[row].height = 18
+    place(p2, assets / f"mark-{slug(cat)}.png", col=1, row=row - 1, w=11, h=11, dx=0, dy=9)
+    put(p2, f"B{row}", cat.upper(), 8.5, True, v="bottom", indent=2, merge=f"B{row}:J{row}")
+    p2.row_dimensions[row].height = 22
     row += 1
     for i, rec in enumerate(RATES):
         if rec[0] != cat:
@@ -384,6 +435,9 @@ for cat in CATEGORIES:
         for col in range(2, 11):
             p2.cell(row=row, column=col).border = Border(bottom=hair)
         row += 1
+    # last item in each group: no rule, so the groups read as blocks of space
+    for col in range(2, 11):
+        p2.cell(row=row - 1, column=col).border = Border()
 assert row == 22, row  # layout below assumes 4 headers + 9 items
 
 put(p2, "H25", "Subtotal", 10, False, MUTED, h="right", merge="H25:I25")
@@ -399,8 +453,8 @@ heights(p2, {22: 8, 23: 4, 24: 4, 25: 18, 26: 18, 27: 24, 28: 14, 29: 4, 30: 18,
 
 put(p2, "B30", "Always included", 12, True, merge="B30:J30")
 for i, line in enumerate(ALWAYS):
-    put(p2, f"B{31+i}", "✓", 10, True, BLUE, h="center")
-    put(p2, f"C{31+i}", line, 10, merge=f"C{31+i}:J{31+i}")
+    place(p2, assets / "mark-sound.png", col=1, row=30 + i, w=7, h=7, dx=1, dy=8)
+    put(p2, f"B{31+i}", line, 10, indent=2, merge=f"B{31+i}:J{31+i}")
     p2.row_dimensions[31 + i].height = 18
 
 put(p2, "B37", "Notes", 12, True, merge="B37:J37")
