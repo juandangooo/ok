@@ -1,5 +1,6 @@
 /**
- * Payroll: pick a pay period, see who worked and how many hours.
+ * Hellhound Pay Period Tracking and Review System
+ * Pick a pay period, see who worked and how many hours.
  *
  * Three tabs:
  *   Pay Period  - start date, end date, the two calendars
@@ -21,17 +22,20 @@ const EVENTS_CALENDAR = 'fern@hellhoundaudio.com';
 const SHOP_CALENDAR = 'c_64e8d238a2cc1d14fe784b3ece21e4119dc5b5a6eded10b9076b10231ce71e52@group.calendar.google.com';
 const OLD_ROSTER = 'Roster · reference';
 const NICKNAMES = { 'Fernando Andrade': 'Fern', 'Michelle Ferina': 'Shelly', 'Johanna Henao': 'Joha', 'Gustavo Murcia': 'Tavo' };
-const TEAM_ROW = 6;
-const LEGACY_TEAM_ROW = 12;
+const NAME = 'Hellhound Pay Period Tracking and Review System';
+const WORDMARK = 'H E L L H O U N D    A U D I O';
 const TEAM_ROWS = 100;
 
+// Hellhound black and red, softened.
 const FONT = 'Inter';
-const INK = '#1f2328';
-const MUTED = '#8a8f98';
-const LINE = '#e6e8eb';
-const SOFT = '#f6f7f9';
-const WARN = '#fff4e5';
-const WARN_INK = '#a15c00';
+const DISPLAY = 'Montserrat';
+const INK = '#1c1b1d';
+const MUTED = '#8f8789';
+const ACCENT = '#e0605e';
+const LINE = '#f2d6d4';
+const SOFT = '#fcf5f4';
+const WARN = '#fff1df';
+const WARN_INK = '#a1560a';
 
 function onOpen() {
   SpreadsheetApp.getUi()
@@ -54,34 +58,35 @@ function setup() {
   sh.clear();
   sh.getRange(1, 1, sh.getMaxRows(), sh.getMaxColumns()).clearDataValidations();
   ss.setSpreadsheetTimeZone('America/New_York');
+  ss.rename(NAME);
   styleSheet(sh, [24, 170, 320, 140]);
 
   const end = lastSaturday();
   const start = new Date(end);
   start.setDate(end.getDate() - 13);
 
-  title(sh, 'Payroll', 'Pick the dates, then click Payroll → Pull hours. People live on the Team tab.');
-  label(sh.getRange('B5:B8'), [['START'], ['END'], ['EVENTS CALENDAR'], ['SHOP / OFFICE CALENDAR']]);
-  sh.getRange('C5:C6')
+  title(sh, 'Pay Period Tracking and Review System', 'Pick the dates, then click Payroll → Pull hours. People live on the Team tab.');
+  label(sh.getRange('B6:B9'), [['START'], ['END'], ['EVENTS CALENDAR'], ['SHOP / OFFICE CALENDAR']]);
+  sh.getRange('C6:C7')
     .setValues([[start], [end]])
     .setNumberFormat('ddd, mmm d, yyyy')
     .setHorizontalAlignment('left')
     .setDataValidation(SpreadsheetApp.newDataValidation().requireDate().setAllowInvalid(false).build());
-  sh.getRange('C7:C8').setValues([[EVENTS_CALENDAR], [SHOP_CALENDAR]]).setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
-  sh.getRange('C5:C8').setBackground(SOFT);
+  sh.getRange('C8:C9').setValues([[EVENTS_CALENDAR], [SHOP_CALENDAR]]).setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
+  sh.getRange('C6:C9').setBackground(SOFT);
 
 
   const teamSh = ss.getSheetByName(TEAM) || ss.insertSheet(TEAM, 1);
   teamSh.clear();
   styleSheet(teamSh, [24, 200, 320, 160]);
   title(teamSh, 'Team', 'A person counts when they are invited by this email, or named in the event title.');
-  header(teamSh.getRange(TEAM_ROW - 1, 2, 1, 3), ['NAME', 'CALENDAR EMAIL', 'ALSO CALLED']);
-  if (team.length) teamSh.getRange(TEAM_ROW, 2, team.length, 3).setValues(team);
-  teamSh.getRange(TEAM_ROW, 2, TEAM_ROWS, 3).setBackground(SOFT).setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
+  header(teamSh.getRange(6, 2, 1, 3), ['NAME', 'CALENDAR EMAIL', 'ALSO CALLED']);
+  if (team.length) teamSh.getRange(7, 2, team.length, 3).setValues(team);
+  teamSh.getRange(7, 2, TEAM_ROWS, 3).setBackground(SOFT).setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
 
   removeOldTabs(ss, ui);
   sh.activate();
-  sh.getRange('C5').activate();
+  sh.getRange('C6').activate();
 }
 
 function pullHours() {
@@ -89,25 +94,24 @@ function pullHours() {
   const sh = ss.getSheetByName(SETUP);
   if (!sh) return SpreadsheetApp.getUi().alert('First click Payroll → Set up sheet.');
 
-  const [[start], [end], [eventsCal], [shopCal]] = sh.getRange('C5:C8').getValues();
+  const [[start], [end], [eventsCal], [shopCal]] = sh.getRange('C6:C9').getValues();
   if (!(start instanceof Date) || !(end instanceof Date) || end < start) {
-    return stop(sh, 'C5', 'Pick a start and an end date. Double-click a date to get the calendar picker.');
+    return stop(sh, 'C6', 'Pick a start and an end date. Double-click a date to get the calendar picker.');
   }
   const teamSh = ss.getSheetByName(TEAM);
-  if (!teamSh) return SpreadsheetApp.getUi().alert('The Team tab is missing. Click Payroll → Set up sheet.');
-  const team = teamSh.getRange(TEAM_ROW, 2, TEAM_ROWS, 3).getValues()
-    .filter(r => String(r[0]).trim())
+  if (!teamSh || !teamStart(teamSh)) return SpreadsheetApp.getUi().alert('The Team tab is missing. Click Payroll → Set up sheet.');
+  const team = teamRows(teamSh)
     .map(([name, email, aka]) => ({
       name: String(name).trim(),
       email: String(email).trim().toLowerCase(),
       aka: String(aka).split(',').map(s => s.trim()).filter(String),
     }));
-  if (!team.length) return stop(teamSh, 'B' + TEAM_ROW, 'Add at least one person to the Team tab.');
+  if (!team.length) return stop(teamSh, 'B' + teamStart(teamSh), 'Add at least one person to the Team tab.');
 
   const until = new Date(end);
   until.setDate(until.getDate() + 1);
   const shifts = [];
-  for (const [cell, id, kind] of [['C7', eventsCal, 'Event'], ['C8', shopCal, 'Shop/Office']]) {
+  for (const [cell, id, kind] of [['C8', eventsCal, 'Event'], ['C9', shopCal, 'Shop/Office']]) {
     if (!String(id).trim()) continue;
     const cal = CalendarApp.getCalendarById(String(id).trim());
     if (!cal) return stop(sh, cell, `Can't open the calendar "${id}". Ask its owner to share it with you ("See all event details").`);
@@ -189,10 +193,10 @@ function writeHours(ss, start, end, { rows, people, flagged }) {
   const fmt = (d, pattern) => Utilities.formatDate(d, tz, pattern);
   const check = flagged ? `   ·   ${flagged} ${flagged === 1 ? 'row needs' : 'rows need'} a look (orange)` : '   ·   nothing to review';
   title(sh, 'Hours', `${fmt(start, 'MMM d')} – ${fmt(end, 'MMM d, yyyy')}   ·   pulled ${fmt(new Date(), 'MMM d, h:mm a')}${check}`);
-  if (flagged) sh.getRange('B3').setFontColor(WARN_INK);
+  if (flagged) sh.getRange('B4').setFontColor(WARN_INK);
 
   // Totals per person
-  let r = 5;
+  let r = 6;
   header(sh.getRange(r, 2, 1, 5), ['PERSON', 'SHOP / OFFICE', 'EVENTS', 'TOTAL HOURS', 'SHIFTS']);
   if (people.length) {
     band(sh.getRange(r + 1, 2, people.length, 5).setValues(people));
@@ -202,8 +206,8 @@ function writeHours(ss, start, end, { rows, people, flagged }) {
   const sum = i => people.reduce((s, p) => s + p[i], 0);
   sh.getRange(r, 2, 1, 5).setValues([['Total', sum(1), sum(2), sum(3), sum(4)]]).setFontWeight('bold')
     .setBorder(true, null, null, null, null, null, LINE, SpreadsheetApp.BorderStyle.SOLID);
-  sh.getRange(6, 2, r - 5, 5).setHorizontalAlignment('left');
-  sh.getRange(6, 3, r - 5, 3).setNumberFormat('0.00');
+  sh.getRange(7, 2, r - 6, 5).setHorizontalAlignment('left');
+  sh.getRange(7, 3, r - 6, 3).setNumberFormat('0.00');
 
   // Every calendar entry
   r += 3;
@@ -230,12 +234,20 @@ function writeHours(ss, start, end, { rows, people, flagged }) {
 // The team list from wherever it lives now: the Team tab, the bottom of an older
 // Pay Period tab, or the original roster tab.
 function currentTeam(ss) {
-  const rows = (sh, row) => sh.getRange(row, 2, TEAM_ROWS, 3).getValues().filter(r => String(r[0]).trim());
-  const team = ss.getSheetByName(TEAM);
-  if (team) return rows(team, TEAM_ROW);
-  const setup = ss.getSheetByName(SETUP);
-  if (setup && String(setup.getRange(LEGACY_TEAM_ROW - 1, 2).getValue()) === 'NAME') return rows(setup, LEGACY_TEAM_ROW);
+  for (const sh of [ss.getSheetByName(TEAM), ss.getSheetByName(SETUP)]) {
+    if (sh && teamStart(sh)) return teamRows(sh);
+  }
   return oldRoster(ss);
+}
+
+// First row under the NAME header in column B, or 0 if the sheet has no team list.
+function teamStart(sh) {
+  const i = sh.getRange(1, 2, 20, 1).getValues().findIndex(r => r[0] === 'NAME');
+  return i < 0 ? 0 : i + 2;
+}
+
+function teamRows(sh) {
+  return sh.getRange(teamStart(sh), 2, TEAM_ROWS, 3).getValues().filter(r => String(r[0]).trim());
 }
 
 // Copies names and calendar emails from the old roster tab, if it's there.
@@ -266,6 +278,7 @@ function removeOldTabs(ss, ui) {
 
 function styleSheet(sh, widths) {
   sh.setHiddenGridlines(true);
+  sh.setTabColor(ACCENT);
   sh.getRange(1, 1, sh.getMaxRows(), sh.getMaxColumns())
     .setFontFamily(FONT).setFontSize(10).setFontColor(INK).setFontWeight('normal')
     .setVerticalAlignment('middle').setBackground(null).setBorder(false, false, false, false, false, false);
@@ -274,8 +287,10 @@ function styleSheet(sh, widths) {
 }
 
 function title(sh, text, subtitle) {
-  sh.getRange('B2').setValue(text).setFontSize(18).setFontWeight('bold');
-  sh.getRange('B3').setValue(subtitle).setFontColor(MUTED);
+  sh.getRange('B2').setValue(WORDMARK).setFontFamily(DISPLAY).setFontSize(9).setFontWeight('bold').setFontColor(ACCENT);
+  sh.getRange('B3').setValue(text).setFontFamily(DISPLAY).setFontSize(18).setFontWeight('bold');
+  sh.setRowHeight(3, 36);
+  sh.getRange('B4').setValue(subtitle).setFontColor(MUTED);
 }
 
 function label(range, values) {
