@@ -45,7 +45,7 @@ page = f'''<!doctype html><html><head><meta charset="utf-8">
   <div class="kicker">{e(o["kicker"])}</div>
   <h1>{headline}</h1>
 
-  <h2>What’s included</h2>
+  <h2>{e(o.get("included_title", "What’s included"))}</h2>
   <div class="list">{rows}</div>
 
   <h2>{e(o["also_title"])}</h2>

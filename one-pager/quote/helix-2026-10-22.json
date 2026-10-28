@@ -183,12 +183,12 @@
     ]
   ],
   "onepage": {
-    "kicker": "Helix · October 22, 2026",
-    "headline": "Your event\njust works.",
+    "kicker": "Zoom Call Package · Helix · October 22, 2026",
+    "headline": "Your Zoom call\njust works.",
     "included": {
       "Crew": "Senior audio technician (A1), video technician (V1)",
       "Video": "BirdDog X5 Ultra PTZ camera, Roland V-02HD MK II mixer, MacBook Air M2",
-      "Audio": "Focusrite Scarlett 2i2, Radial direct boxes, iPad, setup and pick-up"
+      "Audio": "Focusrite Scarlett 2i2, Radial direct boxes, iPad"
     },
     "also_title": "Also in this quote",
     "also": [
@@ -202,6 +202,7 @@
     "contact": "Rick  ·  Rick@368eventmanagement.com  ·  (201) 893-5224",
     "fold": {
       "Transport": "Audio"
-    }
+    },
+    "included_title": "What’s in the package"
   }
 }

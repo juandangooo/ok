@@ -85,7 +85,7 @@ text(R - 4, 0.6, 4, 0.18, f"Prepared for {q['client']}  ·  Quote {q['quote_numb
 text(L, 0.86, 5, 0.2, o["kicker"].upper(), 8.5, True, BLUE, name="Kicker")
 text(L, 1.0, 5.5, 1.3, o["headline"], 38, True, name="Headline")
 
-text(L, 2.55, 4, 0.3, "What’s included", 14, True)
+text(L, 2.55, 4, 0.3, o.get("included_title", "What’s included"), 14, True)
 y = 2.9
 for name, desc in o["included"].items():
     rule(L, y, INNER)
