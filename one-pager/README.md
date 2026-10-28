@@ -11,3 +11,10 @@
 Each client: fill in Inputs, copy the totals into the layout, export a PDF, and log it.
 
 Rebuild: `python3 one-pager/build_layout.py` (layout) · `python3 one-pager/build_onepager.py` (sheet)
+
+## Client quote PDF (current direction)
+
+`quote/helix-2026-10-22.pdf`: the Helix quote as a clean two-page Letter PDF. No logos. Page 1 leads with the total, the equipment value against the rental cost, and the key gear. Page 2 lists every line item with a short note on what it does.
+
+New quote: copy `quote/helix-2026-10-22.json`, edit the numbers and text, then run
+`python3 one-pager/quote/render.py one-pager/quote/<file>.json`. The design lives in `quote/style.css`.

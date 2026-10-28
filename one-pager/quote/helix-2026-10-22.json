@@ -1,0 +1,185 @@
+{
+  "client": "Helix",
+  "title": "Helix · October 22, 2026",
+  "quote_number": "0625",
+  "quote_date": "Oct 28, 2026",
+  "valid_until": "Nov 27, 2026",
+  "event_date": "Thu, Oct 22, 2026",
+  "event_time": "9:00 AM – 5:00 PM",
+  "location": [
+    "20 French St",
+    "New Brunswick, NJ 08901"
+  ],
+  "replacement_value": 10236.4,
+  "tax": 0,
+  "summary": "Two technicians, a remote-controlled camera, streaming, room audio, and delivery, setup, and pick-up.",
+  "groups": [
+    {
+      "name": "Crew",
+      "kind": "service",
+      "blurb": "Two technicians on site all day: one for sound, one for video.",
+      "items": [
+        [
+          "Senior Audio Technician (A1)",
+          "Runs all sound: mics, levels, and what remote attendees hear",
+          1,
+          1,
+          600
+        ],
+        [
+          "Video Technician (V1)",
+          "Runs the camera, switching, and the stream",
+          1,
+          1,
+          600
+        ]
+      ]
+    },
+    {
+      "name": "Video",
+      "kind": "rental",
+      "blurb": "One remote-controlled camera, switching, and a dedicated streaming computer.",
+      "items": [
+        [
+          "Roland V-02HD MK II Streaming Video Mixer",
+          "Switches between camera and presentation for the stream",
+          1,
+          1,
+          55
+        ],
+        [
+          "MacBook Air M2 13.6\"",
+          "Dedicated computer for the stream",
+          1,
+          1,
+          150
+        ],
+        [
+          "SDI (3G) & HDMI Video Cable Package",
+          "Connects camera, mixer, screens, and computer",
+          1,
+          1,
+          100
+        ],
+        [
+          "BirdDog 3 X5 Ultra PTZ Camera",
+          "Remote-controlled camera: pan, tilt, and zoom",
+          1,
+          1,
+          275
+        ],
+        [
+          "BirdDog KBD PTZ Controller",
+          "Joystick the technician uses to aim the camera",
+          1,
+          1,
+          140
+        ],
+        [
+          "E-Image Tripod for PTZ Cameras",
+          "Stand for the camera",
+          1,
+          1,
+          70
+        ],
+        [
+          "LILLIPUT A11 4K Camera Monitor 10.1\"",
+          "Lets the technician check the picture",
+          1,
+          1,
+          30
+        ],
+        [
+          "Manfrotto PIXI EVO Mini Tripod",
+          "Tabletop stand, no charge",
+          1,
+          1,
+          0
+        ],
+        [
+          "NETGEAR GS108LP 8-Port PoE+ Switch",
+          "Powers and connects the camera over one cable",
+          1,
+          1,
+          30
+        ]
+      ]
+    },
+    {
+      "name": "Audio",
+      "kind": "rental",
+      "blurb": "Clean audio from laptops and the room into the sound system and the stream.",
+      "items": [
+        [
+          "Apple iPad (10.9\")",
+          "Show control tablet",
+          1,
+          1,
+          50
+        ],
+        [
+          "Radial ProAV2 Stereo Direct Box",
+          "Connects laptop audio without hum or noise",
+          2,
+          1,
+          5
+        ],
+        [
+          "Focusrite Scarlett 2i2",
+          "Brings room audio into the streaming computer",
+          1,
+          1,
+          40
+        ]
+      ]
+    },
+    {
+      "name": "Transport",
+      "kind": "service",
+      "blurb": "Delivery, setup, and pick-up.",
+      "items": [
+        [
+          "Cartage, Setup, and Pick-Up",
+          "We bring it, set it up, and take it away",
+          1,
+          1,
+          500
+        ]
+      ]
+    }
+  ],
+  "contacts": [
+    [
+      "368 Event Management LLC",
+      "7 Industrial Rd, Ste 201, Pequannock, NJ 07440",
+      "(201) 893-5224 · Rick@368eventmanagement.com"
+    ],
+    [
+      "Hellhound Audio",
+      "10 Patton Dr, Somerset, NJ 08873",
+      "908-487-7661 · hellhoundaudio.com"
+    ]
+  ],
+  "spotlight": [
+    [
+      "Crew",
+      "Two technicians",
+      "A senior audio technician and a video technician, on site 9 AM – 5 PM."
+    ],
+    [
+      "Camera",
+      "BirdDog X5 Ultra PTZ",
+      "Broadcast camera with remote pan, tilt, and zoom, run from a dedicated joystick controller."
+    ],
+    [
+      "Switching",
+      "Roland V-02HD MK II",
+      "Streaming video mixer. Cuts between camera and presentation live."
+    ],
+    [
+      "Streaming",
+      "MacBook Air M2",
+      "Dedicated computer that runs the stream."
+    ]
+  ]
+}
