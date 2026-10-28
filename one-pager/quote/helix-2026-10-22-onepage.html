@@ -1,8 +1,11 @@
 <!doctype html><html><head><meta charset="utf-8">
 <title>Helix · Quote 0625</title><style>@page { size: Letter; margin: 0; }
+/* Static TrueType Inter so the PDF embeds standard fonts that render crisply everywhere */
+@font-face { font-family: "Inter Embed"; src: url("fonts/Inter-Regular.ttf") format("truetype"); font-weight: 400; }
+@font-face { font-family: "Inter Embed"; src: url("fonts/Inter-Bold.ttf") format("truetype"); font-weight: 700; }
 :root { --ink: #171717; --muted: #6b6b6b; --faint: #a3a3a3; --line: #e7e5e0; --blue: #0096cf; --red: #e8382f; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: "Inter", Arial, sans-serif; color: var(--ink); background: #fff;
+body { font-family: "Inter Embed", "Inter", Arial, sans-serif; color: var(--ink); background: #fff;
        -webkit-print-color-adjust: exact; print-color-adjust: exact; font-feature-settings: "tnum" 1; }
 .page { width: 8.5in; height: 11in; padding: 0.6in 0.7in; display: flex; flex-direction: column; }
 .page > * { flex-shrink: 0; }
