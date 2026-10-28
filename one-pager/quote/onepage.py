@@ -21,13 +21,16 @@ def money(n):
 
 
 totals = {g["name"]: sum(a * b * c for _, _, a, b, c in g["items"]) for g in q["groups"]}
-rental = sum(totals[g["name"]] for g in q["groups"] if g["kind"] == "rental")
-service = sum(totals[g["name"]] for g in q["groups"] if g["kind"] == "service")
+kinds = {g["name"]: g["kind"] for g in q["groups"]}
+for src_name, dst in o.get("fold", {}).items():  # show one group's cost inside another
+    totals[dst] += totals.pop(src_name)
+    kinds.pop(src_name)
+rental = sum(v for k, v in totals.items() if kinds[k] == "rental")
+service = sum(v for k, v in totals.items() if kinds[k] == "service")
 subtotal = rental + service
 tax = subtotal * q["tax"]
 total = subtotal + tax
 
-stats = "".join(f'<div><div class="stat">{e(a)}</div><div class="slabel">{e(b)}</div></div>' for a, b in o["stats"])
 rows = "".join(
     f'<div class="item"><div><div class="iname">{e(name)}</div><div class="idesc">{e(desc)}</div></div>'
     f'<div class="iamt">{money(totals[name])}</div></div>'
@@ -42,8 +45,6 @@ page = f'''<!doctype html><html><head><meta charset="utf-8">
   <div class="kicker">{e(o["kicker"])}</div>
   <h1>{headline}</h1>
 
-  <div class="stats">{stats}</div>
-
   <h2>What’s included</h2>
   <div class="list">{rows}</div>
 
@@ -53,8 +54,8 @@ page = f'''<!doctype html><html><head><meta charset="utf-8">
   <div class="total">
     <div><div class="tlabel">TOTAL</div><div class="tamt">{money(total)}</div></div>
     <div class="tbreak">
-      <div><span>Equipment rental</span><span>{money(rental)}</span></div>
-      <div><span>Crew and transport</span><span>{money(service)}</span></div>
+      <div><span>Equipment</span><span>{money(rental)}</span></div>
+      <div><span>Crew</span><span>{money(service)}</span></div>
       <div><span>Tax</span><span>{money(tax)}</span></div>
     </div>
   </div>

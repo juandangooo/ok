@@ -32,8 +32,12 @@ def money(n):
 
 
 totals = {g["name"]: sum(a * b * c for _, _, a, b, c in g["items"]) for g in q["groups"]}
-rental = sum(totals[g["name"]] for g in q["groups"] if g["kind"] == "rental")
-service = sum(totals[g["name"]] for g in q["groups"] if g["kind"] == "service")
+kinds = {g["name"]: g["kind"] for g in q["groups"]}
+for src_name, dst in o.get("fold", {}).items():  # show one group's cost inside another
+    totals[dst] += totals.pop(src_name)
+    kinds.pop(src_name)
+rental = sum(v for k, v in totals.items() if kinds[k] == "rental")
+service = sum(v for k, v in totals.items() if kinds[k] == "service")
 tax = (rental + service) * q["tax"]
 total = rental + service + tax
 
@@ -81,14 +85,8 @@ text(R - 4, 0.6, 4, 0.18, f"Prepared for {q['client']}  ·  Quote {q['quote_numb
 text(L, 0.86, 5, 0.2, o["kicker"].upper(), 8.5, True, BLUE, name="Kicker")
 text(L, 1.0, 5.5, 1.3, o["headline"], 38, True, name="Headline")
 
-rule(L, 2.72, INNER, INK)
-cw = INNER / 3
-for i, (num, label) in enumerate(o["stats"]):
-    text(L + i * cw, 2.86, cw - 0.1, 0.35, num, 19, True, name=f"Stat {i + 1}")
-    text(L + i * cw, 3.22, cw - 0.1, 0.2, label, 8, False, MUTED, name=f"Stat {i + 1} label")
-
-text(L, 3.8, 4, 0.3, "What’s included", 14, True)
-y = 4.15
+text(L, 2.55, 4, 0.3, "What’s included", 14, True)
+y = 2.9
 for name, desc in o["included"].items():
     rule(L, y, INNER)
     text(L, y + 0.13, 5.2, 0.22, name, 11, True, name=f"{name} name")
@@ -97,23 +95,23 @@ for name, desc in o["included"].items():
          name=f"{name} price")
     y += 0.575
 
-text(L, 6.85, 4, 0.3, o["also_title"], 14, True)
+text(L, 5.15, 4, 0.3, o["also_title"], 14, True)
 half = (INNER - 0.25) / 2
 for i, item in enumerate(o["also"]):
     x = L + (i // 3) * (half + 0.25)
-    yy = 7.25 + (i % 3) * 0.29
+    yy = 5.55 + (i % 3) * 0.29
     text(x, yy, half, 0.22, f"✓   {item}", 9, name=f"Also {i + 1}")
     rule(x, yy + 0.27, half)
 
-rule(L, 8.55, INNER, INK, 1.25)
-text(L, 8.66, 2, 0.16, "TOTAL", 7.5, True, RED)
-text(L, 8.8, 4, 0.55, money(total), 32, True, name="Total")
-for k, (label, val) in enumerate([("Equipment rental", rental), ("Crew and transport", service), ("Tax", tax)]):
-    yy = 8.72 + k * 0.19
+rule(L, 7.0, INNER, INK, 1.25)
+text(L, 7.11, 2, 0.16, "TOTAL", 7.5, True, RED)
+text(L, 7.25, 4, 0.55, money(total), 32, True, name="Total")
+for k, (label, val) in enumerate([("Equipment", rental), ("Crew", service), ("Tax", tax)]):
+    yy = 7.17 + k * 0.19
     text(R - 2.6, yy, 1.8, 0.17, label, 8.5, False, MUTED)
     text(R - 0.8, yy, 0.8, 0.17, money(val), 8.5, False, MUTED, "right", name=f"{label} amount")
 
-text(L, 9.65, INNER, 0.2, o["contact"], 9, False, MUTED, name="Contact")
+text(L, 8.1, INNER, 0.2, o["contact"], 9, False, MUTED, name="Contact")
 text(L, 10.25, INNER, 0.18,
      f"Quote {q['quote_number']}  ·  Issued {q['quote_date']}  ·  Valid until {q['valid_until']}",
      7.5, False, FAINT, name="Validity")

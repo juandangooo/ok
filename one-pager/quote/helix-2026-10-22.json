@@ -185,25 +185,10 @@
   "onepage": {
     "kicker": "Helix · October 22, 2026",
     "headline": "Your event\njust works.",
-    "stats": [
-      [
-        "$10,236",
-        "of equipment on site"
-      ],
-      [
-        "2",
-        "technicians, all day"
-      ],
-      [
-        "9 AM – 5 PM",
-        "Thu, Oct 22 · New Brunswick"
-      ]
-    ],
     "included": {
       "Crew": "Senior audio technician (A1), video technician (V1)",
       "Video": "BirdDog X5 Ultra PTZ camera, Roland V-02HD MK II mixer, MacBook Air M2",
-      "Audio": "Focusrite Scarlett 2i2, Radial direct boxes, iPad",
-      "Transport": "Delivery, setup, and pick-up"
+      "Audio": "Focusrite Scarlett 2i2, Radial direct boxes, iPad, setup and pick-up"
     },
     "also_title": "Also in this quote",
     "also": [
@@ -214,6 +199,9 @@
       "PoE+ network switch",
       "Camera tripods"
     ],
-    "contact": "Rick  ·  Rick@368eventmanagement.com  ·  (201) 893-5224"
+    "contact": "Rick  ·  Rick@368eventmanagement.com  ·  (201) 893-5224",
+    "fold": {
+      "Transport": "Audio"
+    }
   }
 }
