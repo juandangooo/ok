@@ -165,40 +165,35 @@ CATEGORIES = ["Sound", "Video & Computers", "Screens", "Crew & Rehearsal"]
 
 # (category, item, what's included, unit, placeholder rate, sample qty, sample days)
 RATES = [
-    ("Sound", "Executive Mic Package", "A wireless mic for each speaker, plus a spare for each one", "per day", 1200, 1, 1),
-    ("Sound", "Live Audio Mixing", "A mixer that balances room and remote voices and removes echo", "per day", 800, 1, 1),
-    ("Video & Computers", "Show Computer Package", "Two dedicated computers: one runs the call, one is a live backup", "per day", 900, 1, 1),
-    ("Video & Computers", "Camera & Lighting Package", "Professional cameras and lights so speakers look sharp on screen", "per day", 1100, 1, 1),
-    ("Video & Computers", "Dedicated Internet", "Wired internet, separate from building Wi-Fi, with a backup", "per day", 500, 1, 1),
-    ("Screens", "Display Package", "A large screen showing remote guests and slides to the room", "per screen, per day", 450, 2, 1),
-    ("Crew & Rehearsal", "Lead Engineer", "Runs the show and fixes issues before anyone notices", "per day", 1400, 1, 1),
-    ("Crew & Rehearsal", "Call Operator", "Manages Zoom: guests, screen shares, spotlights, recording", "per day", 1000, 1, 1),
-    ("Crew & Rehearsal", "Setup & Rehearsal Day", "We build everything and run a full test the day before", "flat", 1500, 1, 1),
+    ("Sound", "Executive Mic Package", "Wireless mic per speaker, plus spares", "per day", 1200, 1, 1),
+    ("Sound", "Live Audio Mixing", "Live mixing for room and remote audio", "per day", 800, 1, 1),
+    ("Video & Computers", "Show Computer Package", "Primary and backup show computers", "per day", 900, 1, 1),
+    ("Video & Computers", "Camera & Lighting Package", "Cameras and lighting for speakers", "per day", 1100, 1, 1),
+    ("Video & Computers", "Dedicated Internet", "Wired line with cellular backup", "per day", 500, 1, 1),
+    ("Screens", "Display Package", "Display, stand, and cabling", "per screen, per day", 450, 2, 1),
+    ("Crew & Rehearsal", "Lead Engineer", "Runs the show", "per day", 1400, 1, 1),
+    ("Crew & Rehearsal", "Call Operator", "Runs Zoom: guests, shares, recording", "per day", 1000, 1, 1),
+    ("Crew & Rehearsal", "Setup & Rehearsal Day", "Build and full test, day before", "flat", 1500, 1, 1),
 ]
 FIRST_LINE = 24  # first line-item row on Inputs
 LAST_LINE = FIRST_LINE + len(RATES) - 1
 
 CARDS = {
-    "Sound": "Every voice is clear, in the room and on the call. No echo, no “can you hear me?”",
-    "Video & Computers": "The call won’t freeze or drop. If anything fails, the backup takes over in seconds.",
-    "Screens": "Everyone in the room sees remote guests and slides clearly, from any seat.",
-    "Crew & Rehearsal": "A professional watches every second and fixes problems before anyone notices.",
+    "Sound": "Wireless mics, spares, live mixing",
+    "Video & Computers": "Primary and backup computers, cameras, wired internet",
+    "Screens": "Displays for the room",
+    "Crew & Rehearsal": "Lead engineer, call operator, rehearsal day",
 }
 
-COMPARE = [
-    ("One laptop runs everything", "Two computers. One is always a live backup."),
-    ("Building Wi-Fi", "Dedicated wired internet, plus a cellular backup"),
-    ("The laptop mic picks up the whole room", "A mic for every speaker, mixed live"),
-    ("Someone on staff figures it out", "An engineer who has done this hundreds of times"),
-    ("The first test is when the call starts", "A full rehearsal the day before"),
+STANDARD = [
+    "Backup computer, running live",
+    "Wired internet with cellular backup",
+    "A mic for every speaker",
+    "Lead engineer on site",
+    "Full rehearsal the day before",
+    "Delivery, setup, and teardown",
 ]
 
-ALWAYS = [
-    "A full test run before the event, with your speakers when possible.",
-    "A backup for every critical part: computer, internet, and microphones.",
-    "One point of contact from planning through show day.",
-    "Delivery, setup, and teardown.",
-]
 
 make_shapes()
 wb = Workbook()
@@ -239,7 +234,7 @@ put(st, f"B{r}", "Before sending", 11, True, merge=f"B{r}:C{r}")
 put(st, f"B{r+1}", "Confirm the three proof numbers on Inputs are true, and that the copy matches what we actually deliver.",
     10.5, False, RED, wrap=True, merge=f"B{r+1}:C{r+1}")
 st.row_dimensions[r + 1].height = 30
-put(st, f"B{r+3}", "Copy rule: clear, not cute. Short words, short lines, no jargon, nothing condescending.",
+put(st, f"B{r+3}", "Copy rule: facts, not explanations. If a line tells the reader why, cut it.",
     10, False, MUTED, italic=True, merge=f"B{r+3}:C{r+3}")
 put(st, f"B{r+4}", "Font: Jost. If it shows as Arial, pick Format › Font › More fonts › Jost once and it will load.",
     10, False, MUTED, italic=True, merge=f"B{r+4}:C{r+4}")
@@ -338,21 +333,18 @@ SUBS = f"Inputs!$H${FIRST_LINE}:$H${LAST_LINE}"
 TOTAL = "'Page 2 · Details'!J27"
 
 # ---------------------------------------------------------------- Page 1
-# One flowing column: promise -> proof -> what you get -> why -> price -> next.
-# No boxes; rules and Bauhaus shapes carry the structure.
+# Facts only: what it is, what's in it, what it costs, who to call.
 p1 = wb.create_sheet("Page 1 · Story")
-LAST1 = 46
+LAST1 = 40
 page_grid(p1, LAST1)
-heights(p1, {1: 6, 2: 12, 3: 6, 4: 14, 5: 44, 6: 40, 7: 30, 8: 8, 9: 6, 10: 28, 11: 13,
-             12: 10, 13: 20, 14: 14, 15: 6, 28: 10, 29: 20, 30: 14, 31: 6, 32: 14,
-             38: 14, 39: 13, 40: 40, 41: 8, 42: 16, 43: 14, 44: 6, 45: 40, 46: 6})
+heights(p1, {1: 6, 2: 12, 3: 6, 4: 14, 5: 44, 6: 40, 7: 12, 8: 30, 9: 6, 10: 28, 11: 13,
+             12: 30, 13: 20, 14: 8, 27: 24, 28: 20, 29: 8, 33: 30, 34: 13, 35: 40,
+             36: 24, 37: 14, 38: 12, 39: 40, 40: 6})
 page_header(p1)
 assets = HERE / "assets"
 
 put(p1, "B4", '=UPPER(Inputs!B6)', 9, True, BLUE, merge="B4:F4")
 put(p1, "B5", "Your call\njust works.", 32, True, wrap=True, merge="B5:F6")
-put(p1, "B7", "Everything an executive call needs, run by a crew that has done it hundreds of times.",
-    11.5, False, MUTED, wrap=True, v="top", merge="B7:F7")
 place(p1, assets / "bauhaus-hero.png", col=7, row=3, w=180, h=180, dx=80)
 
 for (c1, c2), row in zip((("B", "D"), ("E", "G"), ("H", "J")), (14, 15, 16)):
@@ -361,10 +353,9 @@ for (c1, c2), row in zip((("B", "D"), ("E", "G"), ("H", "J")), (14, 15, 16)):
 for col in range(2, 11):
     p1.cell(row=10, column=col).border = Border(top=ink_line)
 
-put(p1, "B13", "What you’re paying for", 15, True, merge="B13:J13")
-put(p1, "B14", "Four parts. Each one removes a way the call could go wrong.", 10.5, False, MUTED, merge="B14:J14")
+put(p1, "B13", "What’s included", 15, True, merge="B13:J13")
 for i, cat in enumerate(CATEGORIES):
-    r0 = 16 + i * 3
+    r0 = 15 + i * 3
     heights(p1, {r0: 22, r0 + 1: 16, r0 + 2: 6})
     for col in range(2, 11):
         p1.cell(row=r0, column=col).border = Border(top=hair)
@@ -374,41 +365,34 @@ for i, cat in enumerate(CATEGORIES):
     put(p1, f"I{r0}", f'=SUMIF({LINES},"{cat}",{SUBS})', 14, True, h="right", fmt=MONEY,
         merge=f"I{r0}:J{r0+1}")
 
-put(p1, "B29", "Why not just plug in a webcam?", 15, True, merge="B29:J29")
-put(p1, "B30", "For a team meeting, you could. When leadership is on camera, small failures get expensive.",
-    10.5, False, MUTED, merge="B30:J30")
-put(p1, "B32", "DOING IT YOURSELF", 8.5, True, FAINT, merge="B32:E32")
-put(p1, "G32", "WITH 368 × HELLHOUND", 8.5, True, BLUE, merge="G32:J32")
-for i, (diy, us) in enumerate(COMPARE):
-    row = 33 + i
-    p1.row_dimensions[row].height = 19
-    put(p1, f"B{row}", diy, 10, False, MUTED, merge=f"B{row}:E{row}")
-    put(p1, f"G{row}", us, 10, True, merge=f"G{row}:J{row}")
-    for col in list(range(2, 6)) + list(range(7, 11)):
+put(p1, "B28", "Standard on every show", 15, True, merge="B28:J28")
+for i, line in enumerate(STANDARD):
+    row, (c1, c2) = 30 + i % 3, (("B", "E"), ("G", "J"))[i // 3]
+    p1.row_dimensions[row].height = 20
+    put(p1, f"{c1}{row}", line, 10, indent=2, merge=f"{c1}{row}:{c2}{row}")
+    place(p1, assets / "mark-sound.png", col=1 if i < 3 else 6, row=row - 1, w=7, h=7, dx=1, dy=8)
+    for col in range(2, 6) if i < 3 else range(7, 11):
         p1.cell(row=row, column=col).border = Border(bottom=hair)
 
 for col in range(2, 11):
-    p1.cell(row=39, column=col).border = Border(top=ink_bold)
-put(p1, "B39", "YOUR INVESTMENT", 8.5, True, RED, v="bottom", merge="B39:E39")
-put(p1, "B40", f"={TOTAL}", 32, True, fmt=MONEY, merge="B40:E40")
-put(p1, "G40", "Equipment, setup, rehearsal, and a full crew on show day.", 10, False, MUTED,
-    wrap=True, h="right", merge="G40:J40")
+    p1.cell(row=34, column=col).border = Border(top=ink_bold)
+put(p1, "B34", "TOTAL", 8.5, True, RED, v="bottom", merge="B34:E34")
+put(p1, "B35", f"={TOTAL}", 32, True, fmt=MONEY, merge="B35:E35")
 
-put(p1, "B42", "Next step: a 15-minute walkthrough of your room and run of show.", 11, True, merge="B42:J42")
-put(p1, "B43", '=Inputs!B9&"  ·  "&Inputs!B10&"  ·  "&Inputs!B11', 9.5, False, MUTED, merge="B43:J43")
-place(p1, assets / "368em-logo.png", col=1, row=44, w=56, h=56, dx=0, dy=1)
-place(p1, assets / "hellhound-logo.png", col=8, row=44, w=172, h=53, dx=2, dy=3)
+put(p1, "B37", '=Inputs!B9&"  ·  "&Inputs!B10&"  ·  "&Inputs!B11', 10, False, MUTED, merge="B37:J37")
+place(p1, assets / "368em-logo.png", col=1, row=38, w=56, h=56, dx=0, dy=1)
+place(p1, assets / "hellhound-logo.png", col=8, row=38, w=172, h=53, dx=2, dy=3)
 
 # ---------------------------------------------------------------- Page 2
 p2 = wb.create_sheet("Page 2 · Details")
-LAST2 = 42
+LAST2 = 36
 page_grid(p2, LAST2)
 heights(p2, {1: 6, 2: 12, 3: 12, 4: 14, 5: 30, 6: 16, 7: 10, 8: 18})
 page_header(p2)
-put(p2, "B5", "The details", 24, True, merge="B5:J5")
-put(p2, "B6", '="Every item for "&Inputs!B5&", what it does, and what it costs."', 10.5, False, MUTED, merge="B6:J6")
+put(p2, "B5", "Line items", 24, True, merge="B5:J5")
+put(p2, "B6", '=Inputs!B5', 10.5, False, MUTED, merge="B6:J6")
 
-hdrs = [("B8", "ITEM", "B8:C8", "left"), ("D8", "WHAT IT DOES", "D8:F8", "left"), ("G8", "QTY", None, "center"),
+hdrs = [("B8", "ITEM", "B8:C8", "left"), ("D8", "DESCRIPTION", "D8:F8", "left"), ("G8", "QTY", None, "center"),
         ("H8", "DAYS", None, "center"), ("I8", "RATE", None, "right"), ("J8", "SUBTOTAL", None, "right")]
 for ref, text, m, h in hdrs:
     put(p2, ref, text, 8, True, FAINT, h=h, merge=m)
@@ -448,19 +432,12 @@ put(p2, "H27", "Total", 12, True, h="right", merge="H27:I27")
 put(p2, "J27", "=J25+J26", 12, True, h="right", fmt=MONEY)
 for col in (8, 9, 10):
     p2.cell(row=27, column=col).border = Border(top=ink_line)
-heights(p2, {22: 8, 23: 4, 24: 4, 25: 18, 26: 18, 27: 24, 28: 14, 29: 4, 30: 18,
-             35: 10, 36: 4, 37: 20, 38: 32, 39: 10, 40: 10, 41: 14, 42: 6})
+heights(p2, {22: 8, 23: 4, 24: 4, 25: 18, 26: 18, 27: 24, 28: 14, 29: 4, 30: 20, 31: 32, 32: 15, 33: 15, 34: 15, 35: 14, 36: 6})
 
-put(p2, "B30", "Always included", 12, True, merge="B30:J30")
-for i, line in enumerate(ALWAYS):
-    place(p2, assets / "mark-sound.png", col=1, row=30 + i, w=7, h=7, dx=1, dy=8)
-    put(p2, f"B{31+i}", line, 10, indent=2, merge=f"B{31+i}:J{31+i}")
-    p2.row_dimensions[31 + i].height = 18
-
-put(p2, "B37", "Notes", 12, True, merge="B37:J37")
-put(p2, "B38", "=Inputs!B19", 10, False, MUTED, wrap=True, v="top", merge="B38:J38")
-put(p2, "B41", "368 Event Management  ×  Hellhound Audio  ·  hellhoundaudio.com", 8.5, False, FAINT,
-    h="center", merge="B41:J41")
+put(p2, "B30", "Notes", 12, True, merge="B30:J30")
+put(p2, "B31", "=Inputs!B19", 10, False, MUTED, wrap=True, v="top", merge="B31:J31")
+put(p2, "B35", "368 Event Management  ×  Hellhound Audio  ·  hellhoundaudio.com", 8.5, False, FAINT,
+    h="center", merge="B35:J35")
 
 # ---------------------------------------------------------------- Event Log
 log = wb.create_sheet("Event Log")
