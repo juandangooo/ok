@@ -1,8 +1,9 @@
 /**
  * Payroll: pick a pay period, see who worked and how many hours.
  *
- * Two tabs:
- *   Pay Period  - start date, end date, the two calendars, the team list
+ * Three tabs:
+ *   Pay Period  - start date, end date, the two calendars
+ *   Team        - names, calendar emails, nicknames
  *   Hours       - totals per person on top, every calendar entry underneath
  *
  * Every timed event on both calendars is listed. Nothing is dropped silently:
@@ -15,11 +16,13 @@
 
 const SETUP = 'Pay Period';
 const HOURS = 'Hours';
+const TEAM = 'Team';
 const EVENTS_CALENDAR = 'fern@hellhoundaudio.com';
 const SHOP_CALENDAR = 'c_64e8d238a2cc1d14fe784b3ece21e4119dc5b5a6eded10b9076b10231ce71e52@group.calendar.google.com';
 const OLD_ROSTER = 'Roster · reference';
 const NICKNAMES = { 'Fernando Andrade': 'Fern', 'Michelle Ferina': 'Shelly', 'Johanna Henao': 'Joha', 'Gustavo Murcia': 'Tavo' };
-const TEAM_ROW = 12;
+const TEAM_ROW = 6;
+const LEGACY_TEAM_ROW = 12;
 const TEAM_ROWS = 100;
 
 const FONT = 'Inter';
@@ -43,9 +46,9 @@ function setup() {
   const ss = SpreadsheetApp.getActive();
   const ui = SpreadsheetApp.getUi();
   let sh = ss.getSheetByName(SETUP);
-  if (sh && ui.alert('Rebuild the Pay Period tab?', 'Dates reset. The team list is kept.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  if (sh && ui.alert('Rebuild the sheet?', 'Dates reset. The team list is kept.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
 
-  const team = sh ? sh.getRange(TEAM_ROW, 2, TEAM_ROWS, 3).getValues().filter(r => String(r[0]).trim()) : oldRoster(ss);
+  const team = currentTeam(ss);
   if (!sh) sh = ss.insertSheet(SETUP, 0);
 
   sh.clear();
@@ -57,21 +60,24 @@ function setup() {
   const start = new Date(end);
   start.setDate(end.getDate() - 13);
 
-  title(sh, 'Payroll', 'Pick the dates, then click Payroll → Pull hours.');
+  title(sh, 'Payroll', 'Pick the dates, then click Payroll → Pull hours. People live on the Team tab.');
   label(sh.getRange('B5:B8'), [['START'], ['END'], ['EVENTS CALENDAR'], ['SHOP / OFFICE CALENDAR']]);
   sh.getRange('C5:C6')
     .setValues([[start], [end]])
     .setNumberFormat('ddd, mmm d, yyyy')
+    .setHorizontalAlignment('left')
     .setDataValidation(SpreadsheetApp.newDataValidation().requireDate().setAllowInvalid(false).build());
   sh.getRange('C7:C8').setValues([[EVENTS_CALENDAR], [SHOP_CALENDAR]]).setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
   sh.getRange('C5:C8').setBackground(SOFT);
 
-  label(sh.getRange('B10'), [['TEAM']]);
-  sh.getRange('C10').setValue('A person counts when they are invited by this email, or named in the event title.')
-    .setFontColor(MUTED).setFontSize(9);
-  header(sh.getRange(TEAM_ROW - 1, 2, 1, 3), ['NAME', 'CALENDAR EMAIL', 'ALSO CALLED']);
-  if (team.length) sh.getRange(TEAM_ROW, 2, team.length, 3).setValues(team);
-  sh.getRange(TEAM_ROW, 2, TEAM_ROWS, 3).setBackground(SOFT).setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
+
+  const teamSh = ss.getSheetByName(TEAM) || ss.insertSheet(TEAM, 1);
+  teamSh.clear();
+  styleSheet(teamSh, [24, 200, 320, 160]);
+  title(teamSh, 'Team', 'A person counts when they are invited by this email, or named in the event title.');
+  header(teamSh.getRange(TEAM_ROW - 1, 2, 1, 3), ['NAME', 'CALENDAR EMAIL', 'ALSO CALLED']);
+  if (team.length) teamSh.getRange(TEAM_ROW, 2, team.length, 3).setValues(team);
+  teamSh.getRange(TEAM_ROW, 2, TEAM_ROWS, 3).setBackground(SOFT).setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP);
 
   removeOldTabs(ss, ui);
   sh.activate();
@@ -87,14 +93,16 @@ function pullHours() {
   if (!(start instanceof Date) || !(end instanceof Date) || end < start) {
     return stop(sh, 'C5', 'Pick a start and an end date. Double-click a date to get the calendar picker.');
   }
-  const team = sh.getRange(TEAM_ROW, 2, TEAM_ROWS, 3).getValues()
+  const teamSh = ss.getSheetByName(TEAM);
+  if (!teamSh) return SpreadsheetApp.getUi().alert('The Team tab is missing. Click Payroll → Set up sheet.');
+  const team = teamSh.getRange(TEAM_ROW, 2, TEAM_ROWS, 3).getValues()
     .filter(r => String(r[0]).trim())
     .map(([name, email, aka]) => ({
       name: String(name).trim(),
       email: String(email).trim().toLowerCase(),
       aka: String(aka).split(',').map(s => s.trim()).filter(String),
     }));
-  if (!team.length) return stop(sh, 'B' + TEAM_ROW, 'Add at least one person to the team list.');
+  if (!team.length) return stop(teamSh, 'B' + TEAM_ROW, 'Add at least one person to the Team tab.');
 
   const until = new Date(end);
   until.setDate(until.getDate() + 1);
@@ -219,6 +227,17 @@ function writeHours(ss, start, end, { rows, people, flagged }) {
   sh.activate();
 }
 
+// The team list from wherever it lives now: the Team tab, the bottom of an older
+// Pay Period tab, or the original roster tab.
+function currentTeam(ss) {
+  const rows = (sh, row) => sh.getRange(row, 2, TEAM_ROWS, 3).getValues().filter(r => String(r[0]).trim());
+  const team = ss.getSheetByName(TEAM);
+  if (team) return rows(team, TEAM_ROW);
+  const setup = ss.getSheetByName(SETUP);
+  if (setup && String(setup.getRange(LEGACY_TEAM_ROW - 1, 2).getValue()) === 'NAME') return rows(setup, LEGACY_TEAM_ROW);
+  return oldRoster(ss);
+}
+
 // Copies names and calendar emails from the old roster tab, if it's there.
 function oldRoster(ss) {
   const sh = ss.getSheetByName(OLD_ROSTER);
@@ -238,10 +257,10 @@ function oldRoster(ss) {
 }
 
 function removeOldTabs(ss, ui) {
-  const old = ss.getSheets().filter(s => ![SETUP, HOURS].includes(s.getName()));
+  const old = ss.getSheets().filter(s => ![SETUP, TEAM, HOURS].includes(s.getName()));
   if (!old.length) return;
   const names = old.map(s => '•  ' + s.getName()).join('\n');
-  if (ui.alert('Remove the old tabs?', names + '\n\nThe team list has already been copied into Pay Period.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+  if (ui.alert('Remove the old tabs?', names + '\n\nThe team list has already been copied into the Team tab.', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
   old.forEach(s => ss.deleteSheet(s));
 }
 
