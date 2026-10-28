@@ -29,7 +29,7 @@ TINT = "F2F0EB"
 INPUT = "EAF4FA"
 BLUE = "0096CF"  # 368EM
 RED = "E8382F"   # Hellhound
-FONT = "Jost"  # geometric, Bauhaus lineage; free on Google Fonts
+FONT = "Inter"
 MONEY = '"$"#,##0'
 
 
@@ -111,46 +111,6 @@ def page_header(ws):
         8.5, False, MUTED, h="right", merge="G2:J2")
 
 
-def make_shapes():
-    """Bauhaus shapes in brand colors: 368 blue, Hellhound red, ink."""
-    from PIL import Image, ImageDraw
-    rgb = lambda h: tuple(int(h[i:i + 2], 16) for i in (0, 2, 4)) + (255,)
-    out = HERE / "assets"
-
-    def canvas(size):
-        im = Image.new("RGBA", (size * 4, size * 4), (0, 0, 0, 0))
-        return im, ImageDraw.Draw(im), 4
-
-    def save(im, name, size):
-        im.resize((size, size), Image.LANCZOS).save(out / name)
-
-    # hero: circle, half-disc resting on a line, corner triangle
-    S = 1200
-    im, d, k = canvas(S)
-    d.ellipse([(430 - 360) * k, (660 - 360) * k, (430 + 360) * k, (660 + 360) * k], fill=rgb(BLUE))
-    d.pieslice([(860 - 240) * k, (380 - 240) * k, (860 + 240) * k, (380 + 240) * k], 180, 360, fill=rgb(RED))
-    d.line([560 * k, 380 * k, 1160 * k, 380 * k], fill=rgb(INK), width=10 * k)
-    d.polygon([(720 * k, 1180 * k), (1180 * k, 1180 * k), (1180 * k, 720 * k)], fill=rgb(INK))
-    save(im, "bauhaus-hero.png", 600)
-
-    # one small mark per package
-    S = 200
-    marks = {
-        "Sound": lambda d, k: d.ellipse([10 * k, 10 * k, 190 * k, 190 * k], fill=rgb(BLUE)),
-        "Video & Computers": lambda d, k: d.rectangle([20 * k, 20 * k, 180 * k, 180 * k], fill=rgb(INK)),
-        "Screens": lambda d, k: d.polygon([(100 * k, 14 * k), (190 * k, 180 * k), (10 * k, 180 * k)], fill=rgb(RED)),
-        "Crew & Rehearsal": lambda d, k: d.pieslice([10 * k, 10 * k, 370 * k, 370 * k], 180, 270, fill=rgb(BLUE)),
-    }
-    for cat, draw in marks.items():
-        im, d, k = canvas(S)
-        draw(d, k)
-        save(im, f"mark-{slug(cat)}.png", 96)
-
-
-def slug(text):
-    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
-
-
 def place(ws, path, col, row, w, h, dx=0, dy=0):
     """Float an image at a cell (0-based col/row) with a pixel offset."""
     img = XLImage(str(path))
@@ -195,7 +155,6 @@ STANDARD = [
 ]
 
 
-make_shapes()
 wb = Workbook()
 
 # ---------------------------------------------------------------- Start Here
@@ -236,8 +195,6 @@ put(st, f"B{r+1}", "Confirm the three proof numbers on Inputs are true, and that
 st.row_dimensions[r + 1].height = 30
 put(st, f"B{r+3}", "Copy rule: facts, not explanations. If a line tells the reader why, cut it.",
     10, False, MUTED, italic=True, merge=f"B{r+3}:C{r+3}")
-put(st, f"B{r+4}", "Font: Jost. If it shows as Arial, pick Format › Font › More fonts › Jost once and it will load.",
-    10, False, MUTED, italic=True, merge=f"B{r+4}:C{r+4}")
 
 # ---------------------------------------------------------------- Inputs
 inp = wb.create_sheet("Inputs")
@@ -345,7 +302,6 @@ assets = HERE / "assets"
 
 put(p1, "B4", '=UPPER(Inputs!B6)', 9, True, BLUE, merge="B4:F4")
 put(p1, "B5", "Your call\njust works.", 32, True, wrap=True, merge="B5:F6")
-place(p1, assets / "bauhaus-hero.png", col=7, row=3, w=180, h=180, dx=80)
 
 for (c1, c2), row in zip((("B", "D"), ("E", "G"), ("H", "J")), (14, 15, 16)):
     put(p1, f"{c1}10", f"=Inputs!B{row}", 20, True, v="bottom", merge=f"{c1}10:{c2}10")
@@ -359,9 +315,8 @@ for i, cat in enumerate(CATEGORIES):
     heights(p1, {r0: 22, r0 + 1: 16, r0 + 2: 6})
     for col in range(2, 11):
         p1.cell(row=r0, column=col).border = Border(top=hair)
-    place(p1, assets / f"mark-{slug(cat)}.png", col=1, row=r0 - 1, w=18, h=18, dx=0, dy=9)
-    put(p1, f"B{r0}", cat, 12, True, v="bottom", indent=3, merge=f"B{r0}:H{r0}")
-    put(p1, f"B{r0+1}", CARDS[cat], 9.5, False, MUTED, v="top", indent=3, merge=f"B{r0+1}:H{r0+1}")
+    put(p1, f"B{r0}", cat, 12, True, v="bottom", merge=f"B{r0}:H{r0}")
+    put(p1, f"B{r0+1}", CARDS[cat], 9.5, False, MUTED, v="top", merge=f"B{r0+1}:H{r0+1}")
     put(p1, f"I{r0}", f'=SUMIF({LINES},"{cat}",{SUBS})', 14, True, h="right", fmt=MONEY,
         merge=f"I{r0}:J{r0+1}")
 
@@ -369,8 +324,7 @@ put(p1, "B28", "Standard on every show", 15, True, merge="B28:J28")
 for i, line in enumerate(STANDARD):
     row, (c1, c2) = 30 + i % 3, (("B", "E"), ("G", "J"))[i // 3]
     p1.row_dimensions[row].height = 20
-    put(p1, f"{c1}{row}", line, 10, indent=2, merge=f"{c1}{row}:{c2}{row}")
-    place(p1, assets / "mark-sound.png", col=1 if i < 3 else 6, row=row - 1, w=7, h=7, dx=1, dy=8)
+    put(p1, f"{c1}{row}", "✓  " + line, 10, merge=f"{c1}{row}:{c2}{row}")
     for col in range(2, 6) if i < 3 else range(7, 11):
         p1.cell(row=row, column=col).border = Border(bottom=hair)
 
@@ -401,8 +355,7 @@ for col in range(2, 11):
 
 row = 9
 for cat in CATEGORIES:
-    place(p2, assets / f"mark-{slug(cat)}.png", col=1, row=row - 1, w=11, h=11, dx=0, dy=9)
-    put(p2, f"B{row}", cat.upper(), 8.5, True, v="bottom", indent=2, merge=f"B{row}:J{row}")
+    put(p2, f"B{row}", cat.upper(), 8.5, True, BLUE, v="bottom", merge=f"B{row}:J{row}")
     p2.row_dimensions[row].height = 22
     row += 1
     for i, rec in enumerate(RATES):
