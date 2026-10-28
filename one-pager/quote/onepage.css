@@ -1,0 +1,39 @@
+@page { size: Letter; margin: 0; }
+:root { --ink: #171717; --muted: #6b6b6b; --faint: #a3a3a3; --line: #e7e5e0; --blue: #0096cf; --red: #e8382f; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "Inter", Arial, sans-serif; color: var(--ink); background: #fff;
+       -webkit-print-color-adjust: exact; print-color-adjust: exact; font-feature-settings: "tnum" 1; }
+.page { width: 8.5in; height: 11in; padding: 0.6in 0.7in; display: flex; flex-direction: column; }
+.page > * { flex-shrink: 0; }
+
+header { display: flex; justify-content: space-between; font-size: 7.5pt; color: var(--muted); }
+header span:first-child { font-weight: 700; letter-spacing: .02em; }
+.kicker { margin-top: 0.12in; font-size: 8.5pt; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: .03em; }
+h1 { margin-top: 4px; font-size: 38pt; font-weight: 700; line-height: 1.08; letter-spacing: -0.02em; }
+
+.stats { margin-top: 0.55in; padding-top: 12px; border-top: 1px solid var(--ink);
+         display: grid; grid-template-columns: 1fr 1fr 1fr; }
+.stat { font-size: 19pt; font-weight: 700; letter-spacing: -0.01em; }
+.slabel { margin-top: 3px; font-size: 8pt; color: var(--muted); }
+
+h2 { margin-top: 0.45in; font-size: 14pt; font-weight: 700; }
+.list { margin-top: 10px; }
+.item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0;
+        border-top: 1px solid var(--line); }
+.iname { font-size: 11pt; font-weight: 700; }
+.idesc { margin-top: 2px; font-size: 8.5pt; color: var(--muted); }
+.iamt { font-size: 14pt; font-weight: 700; }
+
+.checks { margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; column-gap: 0.25in; grid-auto-flow: column;
+          grid-template-rows: repeat(3, auto); }
+.check { padding: 6px 0; border-bottom: 1px solid var(--line); font-size: 9pt; }
+
+.total { margin-top: 0.45in; padding-top: 8px; border-top: 1.5px solid var(--ink);
+         display: flex; justify-content: space-between; align-items: flex-end; }
+.tlabel { font-size: 7.5pt; font-weight: 700; color: var(--red); letter-spacing: .03em; }
+.tamt { margin-top: 2px; font-size: 32pt; font-weight: 700; letter-spacing: -0.02em; }
+.tbreak { width: 2.6in; font-size: 8.5pt; color: var(--muted); padding-bottom: 6px; }
+.tbreak div { display: flex; justify-content: space-between; padding: 2px 0; }
+
+.contact { margin-top: 0.3in; font-size: 9pt; color: var(--muted); }
+.valid { margin-top: auto; font-size: 7.5pt; color: var(--faint); }
