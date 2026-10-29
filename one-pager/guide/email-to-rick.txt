@@ -1,0 +1,3 @@
+Subject: Quote tool is ready
+
+Rick, the quote tool is ready. Sales picks a package, types the client and date into the blue cells, and clicks Make PDF. It builds the one-page quote and saves it in Drive. The attached slides walk through it step by step. The only thing it needs from you is real prices for the Cocktail Hour Sound and Room Rental packages.
