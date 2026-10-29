@@ -128,7 +128,7 @@ BUTTONS = (560, 180, 760, 540)  # hints and the two buttons
 
 def step(badge, title, lines, shot, crop, circles, size=20):
     s = new_slide()
-    label = f"STEP {badge}" if isinstance(badge, int) else badge
+    label = badge
     bw = 0.32 + 0.13 * len(label)
     box(s, 0.6, 0.85, bw, 0.5, fill=BLUE, radius=0.25)
     text(s, 0.6, 0.85, bw, 0.5, [[(label, True)]], 14, "FFFFFF", "center", "middle")
@@ -140,106 +140,71 @@ def step(badge, title, lines, shot, crop, circles, size=20):
     return s
 
 
-# 1 · title
+# 1 · what it is
 s = new_slide()
-text(s, 0.9, 2.3, 11, 1.2, [[("How to make a quote", True)]], 54)
-text(s, 0.9, 3.55, 11, 0.6, "Helix package quotes  ·  pick a package, fill in the blue cells, click Make PDF", 22, MUTED)
-text(s, 0.9, 6.6, 11, 0.4, "368 Event Management  ×  Hellhound Audio", 13, MUTED)
-
-# 2 · what it does
-s = new_slide()
-text(s, 0.9, 0.9, 11, 0.8, [[("What it does", True)]], 36)
-cards = [("1", "You type the details", "Client, date, package"),
-         ("2", "You click Make PDF", "One button"),
-         ("3", "You get the quote", "A clean one-page PDF, saved in Drive")]
+text(s, 0.9, 0.9, 11.5, 1.0, [[("How to make a quote", True)]], 48)
+text(s, 0.9, 1.95, 11.5, 0.6, "Helix package quotes  ·  368 Event Management  ×  Hellhound Audio", 18, MUTED)
+cards = [("1", "Pick a package", "Live Zoom, or Live Zoom + Cocktail hour"),
+         ("2", "Fill in the blue cells", "Client, date, days"),
+         ("3", "Click Make PDF", "A clean one-page quote, saved in Drive")]
 for i, (num, head, sub) in enumerate(cards):
     x = 0.9 + i * 3.95
-    box(s, x, 2.3, 3.55, 3.0, fill=SOFT, radius=0.2)
-    text(s, x + 0.4, 2.65, 2.8, 0.7, [[(num, True)]], 40, BLUE)
-    text(s, x + 0.4, 3.6, 2.9, 0.9, [[(head, True)]], 22)
-    text(s, x + 0.4, 4.45, 2.9, 0.7, sub, 16, MUTED)
+    box(s, x, 3.0, 3.55, 2.9, fill=SOFT, radius=0.2)
+    text(s, x + 0.4, 3.35, 2.8, 0.7, [[(num, True)]], 40, BLUE)
+    text(s, x + 0.4, 4.3, 2.9, 0.9, [[(head, True)]], 22)
+    text(s, x + 0.4, 5.05, 2.9, 0.7, sub, 15, MUTED)
     if i < 2:
-        text(s, x + 3.58, 3.4, 0.4, 0.6, [[("→", True)]], 28, MUTED, "center")
-text(s, 0.9, 5.85, 11.5, 0.6, [[("No math. No line items. ", True), ("Prices come from the Packages tab.", False)]], 18, MUTED)
+        text(s, x + 3.58, 4.1, 0.4, 0.6, [[("→", True)]], 28, MUTED, "center")
+text(s, 0.9, 6.45, 11.5, 0.5, [[("No math. No line items. ", True), ("Prices come from the Packages tab.", False)]], 16, MUTED)
 
-# 3-8 · the steps
-step(1, "Open the sheet. Click the Quote tab.",
-     [[("Open ", False), ("Helix Package Quotes", True), (" in Google Drive.", False)],
-      [("The tabs are at the ", False), ("bottom", True), (" of the screen.", False)]],
-     "quote", (0, 340, 800, 560), [("tab-quote", "Click here", "above")])
-step(2, "Click Start new quote.",
-     ["It clears the old client and date.",
-      [("The quote number goes up by one ", False), ("on its own", True), (".", False)]],
-     "quote", BUTTONS, [("btn-new", "Click here", "left")])
-step(3, "Pick the package.",
-     [[("Click the ", False), ("Package", True), (" cell.", False)],
-      [("Pick from the list. ", False), ("Don't type it.", True)]],
-     "quote", FORM, [("cell-package", "Pick from the list", "right")])
-step(4, "Fill in the blue cells.",
-     [[("Only type in the ", False), ("blue", True), (" cells.", False)],
-      "The gray words next to each one tell you what goes there.",
-      [("Add-ons", True), (" at the bottom are optional.", False)]],
-     "quote-empty", FORM, [("cell-client", None), ("cell-date", "Type these in", "right")])
-step(5, "Click Make PDF.",
-     ["Wait a few seconds.",
-      [("If something is missing, it ", False), ("tells you what to fix", True), (".", False)]],
-     "quote", BUTTONS, [("btn-make", "Click here", "left")])
-step(6, "Click Open PDF.",
-     [[("That's the quote. ", False), ("Send it to the client.", True)],
+# 2 · start
+step("STEP 1–2", "Start a new quote.",
+     [[("1  ", True), ("Click the ", False), ("Quote", True), (" tab at the bottom.", False)],
+      [("2  ", True), ("Click ", False), ("Start new quote", True), (".", False)],
+      "It clears the old quote and sets the next quote number."],
+     "quote", (0, 180, 1320, 720),
+     [("tab-quote", "1   Quote tab", "above"), ("btn-new", "2   Start new quote", "left")])
+
+# 3 · fill in
+step("STEP 3–4", "Fill it in.",
+     [[("3  ", True), ("Pick the ", False), ("package", True), (" from the list.", False)],
+      [("4  ", True), ("Type in the ", False), ("blue cells", True), (": client, date, days.", False)],
+      "The gray words next to each cell say what goes there."],
+     "quote-empty", FORM,
+     [("cell-package", "3   Pick from the list", "right"), ("cell-client", None),
+      ("cell-date", "4   Type in blue cells", "right")])
+
+# 4 · make it
+step("STEP 5–6", "Make the PDF.",
+     [[("5  ", True), ("Click ", False), ("Make PDF", True), (". Wait a few seconds.", False)],
+      [("6  ", True), ("Click ", False), ("Open PDF", True), (". Send it to the client.", False)],
       [("Need to change a word? Click ", False), ("Edit as Google Doc", True), (".", False)]],
-     "done", (380, 160, 900, 620), [("open-pdf", "Click here")])
+     "done", (380, 160, 960, 560),
+     [("btn-make", "5   Make PDF", "above"), ("open-pdf", "6   Open PDF", "below")])
 
-# 9 · the result
+# 5 · the result
 s = new_slide()
-text(s, 0.6, 1.05, 3.8, 1.2, [[("Your PDF looks like this.", True)]], 30, spacing=1.05)
-text(s, 0.6, 2.55, 3.6, 3.5,
-     ["One page. Letter size.",
-      [("The package, the price, and ", False), ("nothing extra", True), (".", False)],
-      "Ready to print or email."], 18, MUTED, spacing=1.2)
+text(s, 0.6, 0.85, 4.6, 1.2, [[("That’s it. This is the quote.", True)]], 30, spacing=1.05)
+text(s, 0.6, 2.4, 4.6, 4.0,
+     ["One page. Letter size. Ready to email or print.",
+      [("Saved in the ", False), ("Helix Quotes", True), (" folder in Google Drive.", False)],
+      [("Every quote is listed on the ", False), ("Log", True), (" tab, with links.", False)]], 20, MUTED, spacing=1.2)
 pic_h = 6.4
-s.shapes.add_picture(str(MOCKS / "onepager.png"), Inches(6.4), Inches(0.55), height=Inches(pic_h))
-box(s, 6.4, 0.55, pic_h * 8.5 / 11, pic_h, line="DADCE0", weight=0.75, radius=0.04)
+s.shapes.add_picture(str(MOCKS / "onepager.png"), Inches(6.6), Inches(0.55), height=Inches(pic_h))
+box(s, 6.6, 0.55, pic_h * 8.5 / 11, pic_h, line="DADCE0", weight=0.75, radius=0.04)
 
-# 10 · where files go
-step("WHERE FILES GO", "Where your files go.",
-         [[("Every PDF is saved in the ", False), ("Helix Quotes", True), (" folder in Google Drive.", False)],
-          [("The ", False), ("Log", True), (" tab lists every quote, with links.", False)]],
-         "log", (0, 180, 800, 560), [("log-row", "Every quote, saved")])
-
-# 11 · fix these first
-step("IF IT STOPS", "It says “Fix these first.”",
-     ["That means a blue cell is empty or wrong.",
-      [("Read the list. ", True), ("Fix those cells. Click ", False), ("Make PDF", True), (" again.", False)]],
-     "fix", (380, 150, 900, 620), [("alert", "Read this list", "above")])
-
-# 12 · prices
-step("PRICES", "Change a price.",
-     [[("Go to the ", False), ("Packages", True), (" tab. Type the new price.", False)],
-      [("Red rows", True), (" have fake prices. Put the real price in, then delete the word PLACEHOLDER.", False)]],
-     "packages", (500, 180, 960, 640), [("ph-price", None), ("ph-status", "Fake price: fix these")])
-
-# 13 · rules
+# 6 · if something's off
 s = new_slide()
-text(s, 0.9, 0.9, 11, 0.8, [[("Three rules", True)]], 36)
-rules = [("Only type in blue cells.", "Everything else fills itself in."),
-         ("Red rows are fake prices.", "Fix them before quoting that package."),
-         ("Use a computer.", "The buttons don't work in the phone app. Use the Quotes menu there.")]
-for i, (head, sub) in enumerate(rules):
-    y = 2.15 + i * 1.5
-    box(s, 0.9, y, 11.5, 1.25, fill=SOFT, radius=0.18)
-    text(s, 1.3, y + 0.22, 0.6, 0.8, [[(str(i + 1), True)]], 30, BLUE)
-    text(s, 2.1, y + 0.2, 10, 0.5, [[(head, True)]], 22)
-    text(s, 2.1, y + 0.68, 10, 0.45, sub, 16, MUTED)
-
-# 14 · setup
-step("SETUP", "One-time setup.",
-     [[("Only do this once.", True)],
-      "1. Make a blank Google Sheet.",
-      [("2. ", False), ("Extensions › Apps Script", True), (". Paste the script. Save.", False)],
-      "3. Reload the sheet.",
-      [("4. ", False), ("Quotes › Set up sheet", True), (". Click Allow.", False)],
-      "5. Share it with the sales team."],
-     "menu", (300, 0, 820, 580), [("menu-setup", "Click once")], size=17)
+text(s, 0.9, 0.85, 11.5, 0.8, [[("If something’s off", True)]], 36)
+fixes = [("It says “Fix these first.”", "A blue cell is empty or wrong. Fix what it lists, then click Make PDF again."),
+         ("A price is wrong.", "Go to the Packages tab and change the number. Every new quote uses it."),
+         ("The buttons don’t work.", "Use the Quotes menu at the top instead. The phone app has no buttons."),
+         ("Only type in blue cells.", "Everything else fills itself in.")]
+for i, (head, sub) in enumerate(fixes):
+    y = 1.95 + i * 1.3
+    box(s, 0.9, y, 11.5, 1.1, fill=SOFT, radius=0.18)
+    text(s, 1.3, y + 0.2, 10.6, 0.45, [[(head, True)]], 20)
+    text(s, 1.3, y + 0.62, 10.6, 0.4, sub, 15, MUTED)
 
 prs.save(OUT)
 print("wrote", OUT, len(prs.slides), "slides")

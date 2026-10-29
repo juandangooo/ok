@@ -57,7 +57,7 @@ MENUS = ["File", "Edit", "View", "Insert", "Format", "Data", "Tools", "Extension
 def chrome(active, grid, extra=""):
     menus = "".join(f'<span{" data-id=menu-quotes" if m == "Quotes" else ""}>{m}</span>' for m in MENUS)
     tabs = "".join(f'<div class="tab{" on" if t == active else ""}" data-id="tab-{t.lower()}">{t}</div>'
-                   for t in ["Quote", "Packages", "Log"])
+                   for t in ["Quote", "Log", "Packages"])
     return f"""<!doctype html><html><head><meta charset="utf-8"><style>{CSS}</style></head><body>
 <div class="top"><div class="logo"></div><div class="title">Helix Package Quotes</div></div>
 <div class="menus">{menus}</div><div class="bar"></div><div class="fx"></div>
