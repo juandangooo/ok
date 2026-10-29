@@ -1,9 +1,10 @@
 /**
- * Shopping Requests: a Google Form whose answers land in the hub sheet as a
- * checklist for Fern.
+ * Shopping Requests: a Google Form whose answers land in their own
+ * spreadsheet as a checklist for Fern. The hub links to that spreadsheet
+ * under 07 PURCHASING, like every other file.
  *
- * Install: open the hub spreadsheet > Extensions > Apps Script, paste this
- * file in, save, then run setup() once and approve the permissions.
+ * Install: go to script.google.com > New project, paste this file in, save,
+ * then run setup() once and approve the permissions.
  * Optional: run importPaperLists() once to move the old paper lists in.
  */
 
@@ -14,13 +15,14 @@ const ASAP = 'ASAP - blocking work';
 
 /** Run once. Creates the form, links it to this spreadsheet and builds the list tab. */
 function setup() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const props = PropertiesService.getDocumentProperties();
+  const props = PropertiesService.getScriptProperties();
   if (props.getProperty('formId')) {
-    const existing = FormApp.openById(props.getProperty('formId'));
-    showLinks_(existing, ss);
+    showLinks_(FormApp.openById(props.getProperty('formId')), listSpreadsheet_());
     return;
   }
+
+  const ss = SpreadsheetApp.create('Hellhound Shopping Requests');
+  props.setProperty('sheetId', ss.getId());
 
   const form = FormApp.create('Shopping Requests')
     .setDescription('Need something for the shop? Put it here and it goes straight onto Fern\'s Shopping List.');
@@ -41,7 +43,10 @@ function setup() {
   props.setProperty('formId', form.getId());
 
   buildListSheet_(ss);
+  const blank = ss.getSheetByName('Sheet1');
+  if (blank) ss.deleteSheet(blank);
   ScriptApp.newTrigger('onFormSubmit').forSpreadsheet(ss).onFormSubmit().create();
+  ScriptApp.newTrigger('onListEdit').forSpreadsheet(ss).onEdit().create();
   showLinks_(form, ss);
 }
 
@@ -54,7 +59,7 @@ function onFormSubmit(e) {
 }
 
 /** Stamps the date when Fern ticks "Got it" (and clears it if unticked). */
-function onEdit(e) {
+function onListEdit(e) {
   const range = e.range;
   if (range.getSheet().getName() !== LIST_SHEET || range.getColumn() !== GOT_IT_COL || range.getRow() < 2) return;
   range.offset(0, 1).setValue(range.getValue() === true ? new Date() : '');
@@ -92,14 +97,18 @@ function addItems_(when, who, forWhat, itemsText, howSoon, notes) {
   const lock = LockService.getDocumentLock();
   lock.waitLock(30000);
   try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(LIST_SHEET) ||
-      buildListSheet_(SpreadsheetApp.getActiveSpreadsheet());
+    const ss = listSpreadsheet_();
+    const sheet = ss.getSheetByName(LIST_SHEET) || buildListSheet_(ss);
     const start = sheet.getLastRow() + 1;
     sheet.getRange(start, 1, rows.length, HEADERS.length).setValues(rows);
     sheet.getRange(start, GOT_IT_COL, rows.length, 1).insertCheckboxes();
   } finally {
     lock.releaseLock();
   }
+}
+
+function listSpreadsheet_() {
+  return SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('sheetId'));
 }
 
 function buildListSheet_(ss) {
@@ -127,13 +136,8 @@ function buildListSheet_(ss) {
 }
 
 function showLinks_(form, ss) {
-  const msg = 'Form link (put this in the hub for everyone):\n' + form.getPublishedUrl() +
-    '\n\nFern\'s list: ' + ss.getUrl() + '#gid=' + ss.getSheetByName(LIST_SHEET).getSheetId() +
-    '\n\nEdit the form: ' + form.getEditUrl();
-  Logger.log(msg);
-  try {
-    SpreadsheetApp.getUi().alert('Shopping Requests is ready', msg, SpreadsheetApp.getUi().ButtonSet.OK);
-  } catch (err) {
-    // No UI when run outside the spreadsheet; the links are in the execution log.
-  }
+  Logger.log('Form link (for everyone): ' + form.getPublishedUrl());
+  Logger.log('Fern\'s list: ' + ss.getUrl());
+  Logger.log('List file ID (for the hub row): ' + ss.getId());
+  Logger.log('Edit the form: ' + form.getEditUrl());
 }

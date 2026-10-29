@@ -1,22 +1,36 @@
 # Shopping Requests
 
 Anyone who needs something for the shop fills out a Google Form. Each item they ask for
-shows up as its own row in a **Shopping List** tab in the hub spreadsheet, with a
+shows up as its own row in the **Hellhound Shopping Requests** spreadsheet, with a
 **Got it** checkbox for Fern. Ticking the box greys out and strikes through the row and
 records the date. Rows marked "ASAP - blocking work" are highlighted red.
 
 ## Install (about 2 minutes, one time)
 
-1. Open the hub spreadsheet, then go to **Extensions → Apps Script**.
+1. Go to script.google.com and click **New project**. Name it "Shopping Requests".
 2. Delete the placeholder code, paste in everything from `Code.gs`, and save.
 3. Choose `setup` in the function dropdown, click **Run**, and approve the permissions.
-4. A popup in the sheet shows the **form link**. Put that link in the hub where people
-   will see it (for example, a "Shopping Requests" button or cell).
+4. Open **Execution log**. It shows the form link, Fern's list link, and the list's file ID.
 5. Optional: run `importPaperLists` once to copy the handwritten lists from 8/3/26
-   (Fern's repair bench list and the laptop case lists) into the Shopping List.
+   (Fern's repair bench list and the laptop case lists) into the list.
 
-Google also adds a "Form Responses" tab to the sheet. That tab holds the raw answers.
-Leave it there, but Fern only needs to look at **Shopping List**.
+## Add it to the hub
+
+Under **07 PURCHASING**, add a row in the same format as the others:
+
+| Column | Value |
+|---|---|
+| B | `3. Shopping Requests` |
+| C | `What people need bought. Tick Got it when done.` |
+| G | the list file ID from the execution log |
+| H | `Hellhound Shopping Requests` |
+| I | `Purchasing & ideas` |
+
+Then put the **form link** wherever the crew will see it (the same row, a pinned
+message, a QR code on the repair bench).
+
+Google also adds a "Form Responses 1" tab that holds the raw answers. Leave it there.
+Fern only needs the **Shopping List** tab.
 
 ## Writing items in the form
 
