@@ -9,6 +9,9 @@
 
 const BRAND_LINE = '368 EVENT MANAGEMENT  ×  HELLHOUND AUDIO';
 const DEFAULT_FOLDER = 'Helix Quotes';
+// The live web app link (Deploy › Manage deployments › Web app URL, ending in /exec).
+// Google's own lookup can hand back the owner-only /dev test link, so the real one is kept here.
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzQXjlFwK0-Ud6KiCelcnWeCwRoWdqfDviOYqGq9FoIOcSXs_Y_Vgx65qWnlJKyC6-y/exec';
 const FONT = 'Inter';
 const C = { ink: '#171717', muted: '#6b6b6b', faint: '#a3a3a3', blue: '#0096cf', red: '#e8382f', input: '#eaf4fa' };
 
@@ -294,7 +297,8 @@ function webMake(kind, f, force) {
 function shareQuoteMaker() {
   const ui = SpreadsheetApp.getUi();
   const ss = SpreadsheetApp.getActive();
-  const url = ScriptApp.getService().getUrl();
+  const found = ScriptApp.getService().getUrl() || '';
+  const url = WEB_APP_URL || (/\/exec$/.test(found) ? found : '');
   if (!url) {
     ui.alert('Deploy it first',
       'In Extensions › Apps Script: Deploy › New deployment › type: Web app.\n' +
