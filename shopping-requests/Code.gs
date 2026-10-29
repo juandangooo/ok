@@ -3,17 +3,19 @@
  * spreadsheet as a checklist for Fern. The hub links to that spreadsheet
  * under 07 PURCHASING, like every other file.
  *
- * Install: go to script.google.com > New project, paste this file in, save,
- * then run setup() once and approve the permissions.
- * Optional: run importPaperLists() once to move the old paper lists in.
+ * The spreadsheet already exists in the shared drive with the 8/3/26 paper
+ * lists loaded. Install: go to script.google.com > New project, paste this
+ * file in, save, then run setup() once and approve the permissions.
  */
+
+const SHEET_ID = '1oIJeO4MjFsLUZGueXf2fBXmARzGbDkXGUoGPfexMgjE'; // Hellhound Shopping Requests
 
 const LIST_SHEET = 'Shopping List';
 const HEADERS = ['Requested', 'Who', 'For', 'Qty', 'Item', 'How soon', 'Notes', 'Got it', 'Got it on'];
 const GOT_IT_COL = 8;
 const ASAP = 'ASAP - blocking work';
 
-/** Run once. Creates the form, links it to this spreadsheet and builds the list tab. */
+/** Run once. Creates the form, links it to the spreadsheet and formats the list tab. */
 function setup() {
   const props = PropertiesService.getScriptProperties();
   if (props.getProperty('formId')) {
@@ -21,8 +23,8 @@ function setup() {
     return;
   }
 
-  const ss = SpreadsheetApp.create('Hellhound Shopping Requests');
-  props.setProperty('sheetId', ss.getId());
+  const ss = listSpreadsheet_();
+  if (!ss.getSheetByName(LIST_SHEET)) ss.getSheets()[0].setName(LIST_SHEET);
 
   const form = FormApp.create('Shopping Requests')
     .setDescription('Need something for the shop? Put it here and it goes straight onto Fern\'s Shopping List.');
@@ -43,8 +45,6 @@ function setup() {
   props.setProperty('formId', form.getId());
 
   buildListSheet_(ss);
-  const blank = ss.getSheetByName('Sheet1');
-  if (blank) ss.deleteSheet(blank);
   ScriptApp.newTrigger('onFormSubmit').forSpreadsheet(ss).onFormSubmit().create();
   ScriptApp.newTrigger('onListEdit').forSpreadsheet(ss).onEdit().create();
   showLinks_(form, ss);
@@ -63,25 +63,6 @@ function onListEdit(e) {
   const range = e.range;
   if (range.getSheet().getName() !== LIST_SHEET || range.getColumn() !== GOT_IT_COL || range.getRow() < 2) return;
   range.offset(0, 1).setValue(range.getValue() === true ? new Date() : '');
-}
-
-/** Optional, run once: copies the handwritten lists from 8/3/26 into the Shopping List. */
-function importPaperLists() {
-  const when = new Date(2026, 7, 3);
-  const lists = [
-    ['Repair bench', '(2) IEC connectors\n(1) powerCON connector (white) for a jumper'],
-    ['Midnight laptop case', '(1) Mouse\n(1) Lightning to 1/8\n(1) USB-C to 1/8'],
-    ['Goldie laptop case', '(1) Lightning to 1/8\n(1) USB-C to 1/8'],
-    ['Perry laptop case', '(1) Mouse\n(1) Lightning to 1/8\n(2) USB-C to 1/8\n(1) HDMI to HDMI\n' +
-      '(1) HDMI to HDMI mini\n(1) Clicker\n(1) USB-C to USB-A'],
-    ['No name (silver laptop) case', '(1) Clicker\n(1) USB-C to USB-A (for clicker/charger)\n(1) Mouse\n' +
-      '(1) 1/8 to RCA\n(1) Lightning to 1/8\n(1) USB-C to 1/8\n(1) USB-C to USB-A (female)\n' +
-      '(1) Lightning to USB-C\n(1) HDMI to HDMI\n(1) HDMI to HDMI mini\n(1) 1/8 to 1/8\n(1) USB-C to USB-A'],
-    ['No name (black laptop) case', '(1) USB-C to USB-A (female)\n(1) Lightning to 1/8\n(1) USB-C to 1/8\n' +
-      '(1) HDMI to HDMI mini\n(1) Clicker\n(1) USB-C to USB-A (charger)\n(1) USB-C to Lightning\n' +
-      '(1) USB-C to USB-A\n(1) 1/8 to 1/8\n(1) 1/8 to RCA\n(1) HDMI to HDMI'],
-  ];
-  lists.forEach(([forWhat, items]) => addItems_(when, 'Paper list', forWhat, items, 'Whenever', ''));
 }
 
 function addItems_(when, who, forWhat, itemsText, howSoon, notes) {
@@ -108,7 +89,7 @@ function addItems_(when, who, forWhat, itemsText, howSoon, notes) {
 }
 
 function listSpreadsheet_() {
-  return SpreadsheetApp.openById(PropertiesService.getScriptProperties().getProperty('sheetId'));
+  return SpreadsheetApp.openById(SHEET_ID);
 }
 
 function buildListSheet_(ss) {
@@ -120,6 +101,7 @@ function buildListSheet_(ss) {
   sheet.getRange('I:I').setNumberFormat('m/d/yy');
   sheet.setColumnWidth(5, 280);
   sheet.setColumnWidth(7, 220);
+  if (sheet.getLastRow() > 1) sheet.getRange(2, GOT_IT_COL, sheet.getLastRow() - 1, 1).insertCheckboxes();
 
   const body = sheet.getRange(2, 1, sheet.getMaxRows() - 1, HEADERS.length);
   sheet.setConditionalFormatRules([
