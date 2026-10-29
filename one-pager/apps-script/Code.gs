@@ -32,6 +32,7 @@ function onOpen() {
     .addSeparator()
     .addItem('Load Live Zoom line items', 'loadLineItems')
     .addItem('Share the quote maker (link for everyone)', 'shareQuoteMaker')
+    .addItem('Fix access on existing quotes', 'shareExistingQuotes')
     .addItem('Set up sheet', 'setupSheet')
     .addToUi();
   try { ensureRickButton_(); } catch (e) { /* the menu still works */ }
@@ -129,6 +130,10 @@ function produce_(kind, q, book, force) {
   const docFile = DriveApp.getFileById(doc.getId());
   docFile.moveTo(folder);
   const pdf = folder.createFile(docFile.getAs(MimeType.PDF)).setName(title + '.pdf');
+  // The files live in the owner's Drive; open them to whoever has the link,
+  // so the person who made the quote can open it without requesting access.
+  shareByLink_(pdf, DriveApp.Permission.VIEW);
+  shareByLink_(docFile, DriveApp.Permission.EDIT);
   book.getSheetByName('Log').appendRow([
     new Date(), q.client, q.package + (kind === 'onepager' ? '' : ' (breakdown)'), q.eventDate, total,
     docFile.getUrl(), pdf.getUrl(),
@@ -622,6 +627,30 @@ function plainTable_(table, widths) {
 }
 
 // ---------------------------------------------------------------- helpers
+
+// Anyone with the link; falls back to anyone in the company if Workspace blocks public links.
+function shareByLink_(file, permission) {
+  try {
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, permission);
+  } catch (e) {
+    try { file.setSharing(DriveApp.Access.DOMAIN_WITH_LINK, permission); } catch (e2) { /* leave as is */ }
+  }
+}
+
+// One-time fix for quotes made before files were shared by link.
+function shareExistingQuotes() {
+  const ui = SpreadsheetApp.getUi();
+  const sh = SpreadsheetApp.getActive().getSheetByName('Quote');
+  const folder = getFolder_(sh ? String(sh.getRange(FIELDS.folder, 2).getValue()).trim() : '');
+  let n = 0;
+  const files = folder.getFiles();
+  while (files.hasNext()) {
+    const f = files.next();
+    shareByLink_(f, f.getMimeType() === MimeType.GOOGLE_DOCS ? DriveApp.Permission.EDIT : DriveApp.Permission.VIEW);
+    n++;
+  }
+  ui.alert(`Done. ${n} files in "${folder.getName()}" now open for anyone with the link.`);
+}
 
 function getFolder_(value) {
   const id = (value.match(/[-\w]{25,}/) || [])[0];
