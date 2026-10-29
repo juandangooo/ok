@@ -1,0 +1,154 @@
+<!doctype html>
+<html>
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #171717; --muted: #6b6b6b; --faint: #a3a3a3; --line: #e7e5e0; --soft: #f5f5f7; --blue: #0096cf; --red: #e8382f; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: Inter, Arial, sans-serif; color: var(--ink); background: #fafafa; }
+  main { max-width: 640px; margin: 0 auto; padding: 40px 20px 60px; }
+  .kicker { font-size: 12px; font-weight: 700; letter-spacing: .04em; color: var(--blue); }
+  h1 { font-size: 34px; letter-spacing: -0.02em; margin: 6px 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 28px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 22px; margin-bottom: 14px;
+          box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 6px 20px rgba(0,0,0,.04); }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 0 0 6px; }
+  .hint { font-weight: 400; color: var(--faint); }
+  input, select { width: 100%; font: inherit; font-size: 15px; padding: 11px 12px; border: 1px solid #d9d9de;
+                  border-radius: 10px; background: #fff; color: var(--ink); }
+  input:focus, select:focus { outline: 2px solid rgba(0,150,207,.35); border-color: var(--blue); }
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .addon { display: grid; grid-template-columns: 1.1fr 1.6fr .8fr; gap: 8px; margin-bottom: 8px; }
+  h2 { font-size: 15px; margin: 0 0 4px; }
+  .note { font-size: 13px; color: var(--muted); margin: 0 0 14px; }
+  details summary { cursor: pointer; font-size: 14px; font-weight: 600; }
+  details[open] summary { margin-bottom: 14px; }
+  .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+  button { font: inherit; font-size: 16px; font-weight: 600; padding: 15px; border: 0; border-radius: 12px; cursor: pointer; }
+  button small { display: block; font-size: 11px; font-weight: 500; opacity: .85; margin-top: 2px; }
+  .pdf { background: var(--ink); color: #fff; }
+  .rick { background: var(--blue); color: #fff; }
+  button:disabled { opacity: .5; cursor: wait; }
+  #msg { margin-top: 18px; }
+  .err { border-color: #f3c4c0; background: #fdf3f2; color: #a8261d; }
+  .err ul { margin: 6px 0 0; padding-left: 18px; }
+  .ok h2 { font-size: 17px; }
+  .ok a { display: inline-block; margin: 10px 10px 0 0; padding: 10px 16px; border-radius: 10px; background: var(--soft);
+          color: var(--ink); font-weight: 600; text-decoration: none; }
+  .ok a.main { background: var(--ink); color: #fff; }
+  .num { font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">368 EVENT MANAGEMENT × HELLHOUND AUDIO</div>
+  <h1>Quote maker</h1>
+  <p class="sub">Pick a package, fill in the details, click a button. <span class="num" id="qnum"></span></p>
+
+  <div class="card">
+    <div class="field">
+      <label for="package">Package</label>
+      <select id="package"><option>Loading…</option></select>
+    </div>
+    <div class="field">
+      <label for="client">Client <span class="hint">· who the quote is for</span></label>
+      <input id="client" autocomplete="organization">
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="date">Event date</label>
+        <input id="date" type="date">
+      </div>
+      <div class="field">
+        <label for="days">Days</label>
+        <input id="days" type="number" min="1" value="1">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Add-ons <span class="hint">· optional</span></h2>
+    <p class="note">Anything extra, at a flat price.</p>
+    <div id="addons"></div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>Contact and tax</summary>
+      <div class="field"><label for="contactName">Contact name</label><input id="contactName"></div>
+      <div class="row">
+        <div class="field"><label for="contactEmail">Email</label><input id="contactEmail"></div>
+        <div class="field"><label for="contactPhone">Phone</label><input id="contactPhone"></div>
+      </div>
+      <div class="field"><label for="taxPct">Tax rate % <span class="hint">· 0, or 6.625</span></label>
+        <input id="taxPct" type="number" min="0" max="20" step="0.001" value="0"></div>
+    </details>
+  </div>
+
+  <div class="buttons">
+    <button class="pdf" id="b-pdf" onclick="make('onepager')">Make PDF<small>sales one-pager</small></button>
+    <button class="rick" id="b-rick" onclick="make('breakdown')">RICKafy<small>price breakdown</small></button>
+  </div>
+  <div id="msg"></div>
+</main>
+
+<script>
+  var $ = function (id) { return document.getElementById(id); };
+  for (var i = 0; i < 3; i++) {
+    $('addons').insertAdjacentHTML('beforeend',
+      '<div class="addon"><input placeholder="Name" class="a-name"><input placeholder="Description" class="a-desc">' +
+      '<input placeholder="$ Price" type="number" min="0" class="a-price"></div>');
+  }
+
+  function busy(on, text) {
+    $('b-pdf').disabled = $('b-rick').disabled = on;
+    if (text) show('card', text);
+  }
+
+  function show(cls, html) { $('msg').innerHTML = '<div class="card ' + cls + '">' + html + '</div>'; }
+  function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+
+  function failed(e) { busy(false); show('err', '<b>Something went wrong.</b><br>' + esc(e && e.message || e)); }
+
+  google.script.run.withSuccessHandler(function (d) {
+    $('package').innerHTML = d.packages.map(function (p) { return '<option>' + esc(p) + '</option>'; }).join('');
+    $('contactName').value = d.contactName; $('contactEmail').value = d.contactEmail; $('contactPhone').value = d.contactPhone;
+    $('taxPct').value = d.taxPct;
+    $('qnum').textContent = 'Next quote: ' + d.quoteNumber;
+  }).withFailureHandler(failed).webInit();
+
+  function form() {
+    var rows = document.querySelectorAll('.addon');
+    var addons = [];
+    rows.forEach(function (r) {
+      addons.push({ name: r.querySelector('.a-name').value, desc: r.querySelector('.a-desc').value,
+                    price: r.querySelector('.a-price').value });
+    });
+    return { package: $('package').value, client: $('client').value, date: $('date').value, days: $('days').value,
+             taxPct: $('taxPct').value, contactName: $('contactName').value, contactEmail: $('contactEmail').value,
+             contactPhone: $('contactPhone').value, addons: addons };
+  }
+
+  function make(kind, force) {
+    busy(true, 'Making your ' + (kind === 'onepager' ? 'PDF' : 'price breakdown') + '… this takes a few seconds.');
+    google.script.run.withSuccessHandler(function (res) {
+      busy(false);
+      if (res.problems) {
+        show('err', '<b>Fix these first</b><ul>' + res.problems.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ul>');
+      } else if (res.confirm) {
+        if (confirm(res.confirm)) make(kind, true); else $('msg').innerHTML = '';
+      } else {
+        show('ok', '<h2>' + esc(res.title) + '</h2><div>Total ' + esc(res.totalText) + '</div>' +
+          '<a class="main" href="' + esc(res.pdfUrl) + '" target="_blank">Open PDF</a>' +
+          '<a href="' + esc(res.docUrl) + '" target="_blank">Edit as Google Doc</a>');
+        $('qnum').textContent = 'Next quote: ' + res.nextQuoteNumber;
+      }
+    }).withFailureHandler(failed).webMake(kind, form(), !!force);
+  }
+</script>
+</body>
+</html>

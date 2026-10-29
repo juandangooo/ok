@@ -28,6 +28,7 @@ function onOpen() {
     .addItem('Start new quote', 'newQuote')
     .addSeparator()
     .addItem('Load Live Zoom line items', 'loadLineItems')
+    .addItem('Share the quote maker (link for everyone)', 'shareQuoteMaker')
     .addItem('Set up sheet', 'setupSheet')
     .addToUi();
   try { ensureRickButton_(); } catch (e) { /* the menu still works */ }
@@ -37,6 +38,7 @@ function onOpen() {
 function ensureRickButton_() {
   const sh = SpreadsheetApp.getActive().getSheetByName('Quote');
   if (!sh) return;
+  if (String(sh.getRange('E2').getFormula()).indexOf('HYPERLINK') >= 0) return;
   const has = sh.getImages().some(img => { try { return img.getScript() === 'rickafy'; } catch (e) { return false; } });
   if (has) return;
   const blob = Utilities.newBlob(Utilities.base64Decode(BUTTON_RICKAFY), 'image/png', 'rickafy.png');
@@ -65,49 +67,70 @@ function makeOnePager() {
 }
 
 function makeOnePagerLocked_(ui, ss) {
-  const q = readQuote_(ss.getSheetByName('Quote'));
-  const pkg = readPackage_(ss.getSheetByName('Packages'), q.package);
+  showResult_(ui, ss, 'onepager', readQuote_(ss.getSheetByName('Quote')));
+}
 
-  const problems = validate_(q, pkg);
-  if (problems.length) {
-    ui.alert('Fix these first', problems.map(p => '•  ' + p).join('\n'), ui.ButtonSet.OK);
+// Runs a sheet button: validate, confirm placeholders, make the files, show the links.
+function showResult_(ui, ss, kind, q) {
+  let res = produce_(kind, q, ss, false);
+  if (res.problems) {
+    ui.alert('Fix these first', res.problems.map(p => '•  ' + p).join('\n'), ui.ButtonSet.OK);
     return;
   }
-  if (pkg.placeholders.length) {
-    const ok = ui.alert('Placeholder prices',
-      `${q.package} still has placeholder prices for: ${pkg.placeholders.join(', ')}.\n\nMake the PDF anyway?`,
-      ui.ButtonSet.YES_NO);
-    if (ok !== ui.Button.YES) return;
+  if (res.confirm) {
+    if (ui.alert('Placeholder prices', res.confirm, ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+    res = produce_(kind, q, ss, true);
+  }
+  const html = HtmlService.createHtmlOutput(
+    `<div style="font-family:Arial;font-size:13px;line-height:1.6">
+       <b>${escape_(res.title)}</b><br>Total ${res.totalText}<br><br>
+       <a href="${res.pdfUrl}" target="_blank">Open PDF</a> &nbsp;·&nbsp;
+       <a href="${res.docUrl}" target="_blank">Edit as Google Doc</a></div>`)
+    .setWidth(380).setHeight(130);
+  ui.showModalDialog(html, kind === 'onepager' ? 'One-pager ready' : 'Price breakdown ready');
+}
+
+// Makes the Google Doc + PDF for a quote and logs it. Used by the sheet buttons and the web app.
+// Returns {problems} | {confirm} | {title, total, totalText, pdfUrl, docUrl, quoteNumber}.
+function produce_(kind, q, book, force) {
+  const pkg = readPackage_(book.getSheetByName('Packages'), q.package);
+  const problems = validate_(q, pkg);
+  if (problems.length) return { problems };
+  if (kind === 'onepager' && pkg.placeholders.length && !force) {
+    return { confirm: `${q.package} still has placeholder prices for: ${pkg.placeholders.join(', ')}.\n\nMake the PDF anyway?` };
   }
 
-  const lines = pkg.sections
-    .map(s => ({ name: s.name, desc: s.desc, price: s.price * q.days }))
-    .concat(q.addons);
-  const subtotal = lines.reduce((sum, l) => sum + l.price, 0);
-  const total = subtotal * (1 + q.taxRate);
+  let title, total, totalText, build;
+  if (kind === 'onepager') {
+    const lines = pkg.sections
+      .map(s => ({ name: s.name, desc: s.desc, price: s.price * q.days }))
+      .concat(q.addons);
+    total = lines.reduce((sum, l) => sum + l.price, 0) * (1 + q.taxRate);
+    totalText = money_(total);
+    title = `${q.client} - ${q.package} - Quote ${q.quoteNumber}`;
+    build = doc => buildDoc_(doc, q, pkg, lines, total);
+  } else {
+    const groups = breakdown_(q, pkg);
+    const subtotal = groups.reduce((sum, g) => sum + g.total, 0);
+    const tax = subtotal * q.taxRate;
+    total = subtotal + tax;
+    totalText = money2_(total);
+    title = `${q.client} - ${q.package} - Quote ${q.quoteNumber} (breakdown)`;
+    build = doc => buildBreakdownDoc_(doc, q, groups, subtotal, tax, total);
+  }
 
-  ss.toast('Making your PDF…', 'Quotes', 30);
-  const title = `${q.client} - ${q.package} - Quote ${q.quoteNumber}`;
   const doc = DocumentApp.create(title);
-  buildDoc_(doc, q, pkg, lines, total);
+  build(doc);
   doc.saveAndClose();
-
   const folder = getFolder_(q.folder);
   const docFile = DriveApp.getFileById(doc.getId());
   docFile.moveTo(folder);
   const pdf = folder.createFile(docFile.getAs(MimeType.PDF)).setName(title + '.pdf');
-
-  ss.getSheetByName('Log').appendRow([
-    new Date(), q.client, q.package, q.eventDate, total, docFile.getUrl(), pdf.getUrl(),
+  book.getSheetByName('Log').appendRow([
+    new Date(), q.client, q.package + (kind === 'onepager' ? '' : ' (breakdown)'), q.eventDate, total,
+    docFile.getUrl(), pdf.getUrl(),
   ]);
-
-  const html = HtmlService.createHtmlOutput(
-    `<div style="font-family:Arial;font-size:13px;line-height:1.6">
-       <b>${escape_(title)}</b><br>Total ${money_(total)}<br><br>
-       <a href="${pdf.getUrl()}" target="_blank">Open PDF</a> &nbsp;·&nbsp;
-       <a href="${docFile.getUrl()}" target="_blank">Edit as Google Doc</a></div>`)
-    .setWidth(360).setHeight(130);
-  ui.showModalDialog(html, 'One-pager ready');
+  return { title, total, totalText, pdfUrl: pdf.getUrl(), docUrl: docFile.getUrl(), quoteNumber: q.quoteNumber };
 }
 
 // Plain-English problems with the Quote tab, or [] if it's ready.
@@ -116,7 +139,7 @@ function validate_(q, pkg) {
   if (!q.package) out.push('Pick a package (Quote tab, Package).');
   else if (!pkg.sections.length && !pkg.items.length) out.push(`"${q.package}" has nothing in it on the Packages tab.`);
   if (!q.client) out.push('Enter the client name.');
-  if (!(q.eventDate instanceof Date)) out.push('Event date needs to be a date. Double-click the cell to pick one.');
+  if (!(q.eventDate instanceof Date)) out.push('Pick an event date.');
   if (!(q.days >= 1)) out.push('Days needs to be 1 or more.');
   if (!q.quoteNumber) out.push('Enter a quote number.');
   if (q.taxRate < 0 || q.taxRate > 0.2) out.push('Tax rate looks wrong. Use a percent like 6.625%, or 0.');
@@ -187,6 +210,110 @@ function readPackage_(sheet, name) {
   };
 }
 
+// ---------------------------------------------------------------- web app: the shareable quote maker
+// Deploy once as a web app that runs as the owner (see README). Everyone else just opens the link:
+// no Extensions, no permission prompts. Prices still come from the Packages tab.
+
+function doGet() {
+  return HtmlService.createHtmlOutput(WEB_PAGE)
+    .setTitle('Quote maker · 368 × Hellhound')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+}
+
+function book_() {
+  let ss = null;
+  try { ss = SpreadsheetApp.getActive(); } catch (e) { /* no active sheet inside a web app */ }
+  if (ss) return ss;
+  const id = PropertiesService.getScriptProperties().getProperty('sheetId');
+  if (!id) throw new Error('Open the sheet and run Quotes › Share the quote maker first.');
+  return SpreadsheetApp.openById(id);
+}
+
+// Next quote number: a counter seeded from the Quote tab, so numbers never repeat.
+function nextQuoteNumber_(book, take) {
+  const props = PropertiesService.getScriptProperties();
+  let n = Number(props.getProperty('nextQuote'));
+  if (!n) {
+    const seed = Number(String(book.getSheetByName('Quote').getRange(FIELDS.quoteNumber, 2).getValue()).trim());
+    n = seed > 0 && seed < 1e7 ? seed + 1 : 1001;
+  }
+  if (take) props.setProperty('nextQuote', String(n + 1));
+  return String(n).padStart(4, '0');
+}
+
+function webInit() {
+  const book = book_();
+  const pk = book.getSheetByName('Packages');
+  const rows = pk.getRange(2, 1, Math.max(pk.getLastRow() - 1, 1), 2).getValues();
+  const packages = [...new Set(rows.filter(r => /^headline$/i.test(String(r[1]).trim()))
+    .map(r => String(r[0]).trim()).filter(Boolean))];
+  const qs = book.getSheetByName('Quote');
+  const v = row => String(qs.getRange(row, 2).getValue()).trim();
+  return {
+    packages,
+    quoteNumber: nextQuoteNumber_(book, false),
+    taxPct: (Number(qs.getRange(FIELDS.taxRate, 2).getValue()) || 0) * 100,
+    contactName: v(FIELDS.contactName), contactEmail: v(FIELDS.contactEmail), contactPhone: v(FIELDS.contactPhone),
+  };
+}
+
+function webMake(kind, f, force) {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) return { problems: ['Someone else is making a quote right now. Try again in a few seconds.'] };
+  try {
+    const book = book_();
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(f.date || ''));
+    const issued = new Date();
+    const q = {
+      package: String(f.package || '').trim(),
+      client: String(f.client || '').trim(),
+      eventDate: m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : '',
+      days: Number(f.days) || 0,
+      quoteNumber: nextQuoteNumber_(book, false),
+      issued,
+      validUntil: new Date(issued.getTime() + 30 * 864e5),
+      taxRate: (Number(f.taxPct) || 0) / 100,
+      contact: [f.contactName, f.contactEmail, f.contactPhone].map(x => String(x || '').trim()).filter(Boolean),
+      folder: String(book.getSheetByName('Quote').getRange(FIELDS.folder, 2).getValue()).trim(),
+      addons: (f.addons || []).filter(a => String(a.name || '').trim())
+        .map(a => ({ name: String(a.name).trim(), desc: String(a.desc || '').trim(), price: Number(a.price) || 0 })),
+    };
+    const res = produce_(kind === 'breakdown' ? 'breakdown' : 'onepager', q, book, !!force);
+    if (res.title) {
+      nextQuoteNumber_(book, true);
+      res.nextQuoteNumber = nextQuoteNumber_(book, false);
+    }
+    return res;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// Owner only, once after deploying: saves where the sheet is, swaps the script buttons
+// (which ask every user for permission) for the shareable link.
+function shareQuoteMaker() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActive();
+  const url = ScriptApp.getService().getUrl();
+  if (!url) {
+    ui.alert('Deploy it first',
+      'In Extensions › Apps Script: Deploy › New deployment › type: Web app.\n' +
+      'Execute as: Me.  Who has access: Anyone with a Google account.\nClick Deploy, then run this again.',
+      ui.ButtonSet.OK);
+    return;
+  }
+  PropertiesService.getScriptProperties().setProperty('sheetId', ss.getId());
+  const sh = ss.getSheetByName('Quote');
+  if (sh) {
+    sh.getImages().forEach(img => img.remove());
+    sh.getRange('E2').setFormula(`=HYPERLINK("${url}", "Open the quote maker →")`)
+      .setFontSize(14).setFontWeight('bold').setFontColor(C.blue).setFontFamily(FONT);
+    sh.getRange('E3').setValue('Share this link with the team. Nothing to install.').setFontColor(C.faint);
+  }
+  ui.alert('Quote maker link', `Share this link with anyone who makes quotes:\n\n${url}\n\nIt’s also on the Quote tab.`,
+    ui.ButtonSet.OK);
+}
+
 // ---------------------------------------------------------------- RICKafy: the plain price breakdown
 
 const COMPANY = ['368 Event Management LLC', '7 Industrial Rd, Ste 201', 'Pequannock, NJ 07440',
@@ -212,39 +339,7 @@ function rickafy() {
 }
 
 function rickafyLocked_(ui, ss) {
-  const q = readQuote_(ss.getSheetByName('Quote'));
-  const pkg = readPackage_(ss.getSheetByName('Packages'), q.package);
-  const problems = validate_(q, pkg);
-  if (problems.length) {
-    ui.alert('Fix these first', problems.map(p => '•  ' + p).join('\n'), ui.ButtonSet.OK);
-    return;
-  }
-  const groups = breakdown_(q, pkg);
-  const subtotal = groups.reduce((sum, g) => sum + g.total, 0);
-  const tax = subtotal * q.taxRate;
-  const total = subtotal + tax;
-
-  ss.toast('Making the price breakdown…', 'Quotes', 30);
-  const title = `${q.client} - ${q.package} - Quote ${q.quoteNumber} (breakdown)`;
-  const doc = DocumentApp.create(title);
-  buildBreakdownDoc_(doc, q, groups, subtotal, tax, total);
-  doc.saveAndClose();
-
-  const folder = getFolder_(q.folder);
-  const docFile = DriveApp.getFileById(doc.getId());
-  docFile.moveTo(folder);
-  const pdf = folder.createFile(docFile.getAs(MimeType.PDF)).setName(title + '.pdf');
-  ss.getSheetByName('Log').appendRow([
-    new Date(), q.client, q.package + ' (breakdown)', q.eventDate, total, docFile.getUrl(), pdf.getUrl(),
-  ]);
-
-  const html = HtmlService.createHtmlOutput(
-    `<div style="font-family:Arial;font-size:13px;line-height:1.6">
-       <b>${escape_(title)}</b><br>Total ${money2_(total)}<br><br>
-       <a href="${pdf.getUrl()}" target="_blank">Open PDF</a> &nbsp;·&nbsp;
-       <a href="${docFile.getUrl()}" target="_blank">Edit as Google Doc</a></div>`)
-    .setWidth(380).setHeight(130);
-  ui.showModalDialog(html, 'Price breakdown ready');
+  showResult_(ui, ss, 'breakdown', readQuote_(ss.getSheetByName('Quote')));
 }
 
 // Line items grouped by category. Item rows are used when the package has them; any Section
@@ -720,6 +815,9 @@ function setupLog_(ss) {
   sh.getRange(1, 1, sh.getMaxRows(), 7).setFontFamily(FONT);
   sh.protect().setDescription('Filled in automatically by Make PDF').setWarningOnly(true);
 }
+
+// ---------------------------------------------------------------- web page (from web.html)
+const WEB_PAGE = "<!doctype html>\n<html>\n<head>\n<base target=\"_top\">\n<meta charset=\"utf-8\">\n<link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap\" rel=\"stylesheet\">\n<style>\n  :root { --ink: #171717; --muted: #6b6b6b; --faint: #a3a3a3; --line: #e7e5e0; --soft: #f5f5f7; --blue: #0096cf; --red: #e8382f; }\n  * { box-sizing: border-box; }\n  body { margin: 0; font-family: Inter, Arial, sans-serif; color: var(--ink); background: #fafafa; }\n  main { max-width: 640px; margin: 0 auto; padding: 40px 20px 60px; }\n  .kicker { font-size: 12px; font-weight: 700; letter-spacing: .04em; color: var(--blue); }\n  h1 { font-size: 34px; letter-spacing: -0.02em; margin: 6px 0 4px; }\n  .sub { color: var(--muted); margin: 0 0 28px; }\n  .card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 22px; margin-bottom: 14px;\n          box-shadow: 0 1px 2px rgba(0,0,0,.03), 0 6px 20px rgba(0,0,0,.04); }\n  label { display: block; font-size: 13px; font-weight: 600; margin: 0 0 6px; }\n  .hint { font-weight: 400; color: var(--faint); }\n  input, select { width: 100%; font: inherit; font-size: 15px; padding: 11px 12px; border: 1px solid #d9d9de;\n                  border-radius: 10px; background: #fff; color: var(--ink); }\n  input:focus, select:focus { outline: 2px solid rgba(0,150,207,.35); border-color: var(--blue); }\n  .field { margin-bottom: 16px; }\n  .field:last-child { margin-bottom: 0; }\n  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }\n  .addon { display: grid; grid-template-columns: 1.1fr 1.6fr .8fr; gap: 8px; margin-bottom: 8px; }\n  h2 { font-size: 15px; margin: 0 0 4px; }\n  .note { font-size: 13px; color: var(--muted); margin: 0 0 14px; }\n  details summary { cursor: pointer; font-size: 14px; font-weight: 600; }\n  details[open] summary { margin-bottom: 14px; }\n  .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }\n  button { font: inherit; font-size: 16px; font-weight: 600; padding: 15px; border: 0; border-radius: 12px; cursor: pointer; }\n  button small { display: block; font-size: 11px; font-weight: 500; opacity: .85; margin-top: 2px; }\n  .pdf { background: var(--ink); color: #fff; }\n  .rick { background: var(--blue); color: #fff; }\n  button:disabled { opacity: .5; cursor: wait; }\n  #msg { margin-top: 18px; }\n  .err { border-color: #f3c4c0; background: #fdf3f2; color: #a8261d; }\n  .err ul { margin: 6px 0 0; padding-left: 18px; }\n  .ok h2 { font-size: 17px; }\n  .ok a { display: inline-block; margin: 10px 10px 0 0; padding: 10px 16px; border-radius: 10px; background: var(--soft);\n          color: var(--ink); font-weight: 600; text-decoration: none; }\n  .ok a.main { background: var(--ink); color: #fff; }\n  .num { font-size: 13px; color: var(--muted); }\n</style>\n</head>\n<body>\n<main>\n  <div class=\"kicker\">368 EVENT MANAGEMENT × HELLHOUND AUDIO</div>\n  <h1>Quote maker</h1>\n  <p class=\"sub\">Pick a package, fill in the details, click a button. <span class=\"num\" id=\"qnum\"></span></p>\n\n  <div class=\"card\">\n    <div class=\"field\">\n      <label for=\"package\">Package</label>\n      <select id=\"package\"><option>Loading…</option></select>\n    </div>\n    <div class=\"field\">\n      <label for=\"client\">Client <span class=\"hint\">· who the quote is for</span></label>\n      <input id=\"client\" autocomplete=\"organization\">\n    </div>\n    <div class=\"row\">\n      <div class=\"field\">\n        <label for=\"date\">Event date</label>\n        <input id=\"date\" type=\"date\">\n      </div>\n      <div class=\"field\">\n        <label for=\"days\">Days</label>\n        <input id=\"days\" type=\"number\" min=\"1\" value=\"1\">\n      </div>\n    </div>\n  </div>\n\n  <div class=\"card\">\n    <h2>Add-ons <span class=\"hint\">· optional</span></h2>\n    <p class=\"note\">Anything extra, at a flat price.</p>\n    <div id=\"addons\"></div>\n  </div>\n\n  <div class=\"card\">\n    <details>\n      <summary>Contact and tax</summary>\n      <div class=\"field\"><label for=\"contactName\">Contact name</label><input id=\"contactName\"></div>\n      <div class=\"row\">\n        <div class=\"field\"><label for=\"contactEmail\">Email</label><input id=\"contactEmail\"></div>\n        <div class=\"field\"><label for=\"contactPhone\">Phone</label><input id=\"contactPhone\"></div>\n      </div>\n      <div class=\"field\"><label for=\"taxPct\">Tax rate % <span class=\"hint\">· 0, or 6.625</span></label>\n        <input id=\"taxPct\" type=\"number\" min=\"0\" max=\"20\" step=\"0.001\" value=\"0\"></div>\n    </details>\n  </div>\n\n  <div class=\"buttons\">\n    <button class=\"pdf\" id=\"b-pdf\" onclick=\"make('onepager')\">Make PDF<small>sales one-pager</small></button>\n    <button class=\"rick\" id=\"b-rick\" onclick=\"make('breakdown')\">RICKafy<small>price breakdown</small></button>\n  </div>\n  <div id=\"msg\"></div>\n</main>\n\n<script>\n  var $ = function (id) { return document.getElementById(id); };\n  for (var i = 0; i < 3; i++) {\n    $('addons').insertAdjacentHTML('beforeend',\n      '<div class=\"addon\"><input placeholder=\"Name\" class=\"a-name\"><input placeholder=\"Description\" class=\"a-desc\">' +\n      '<input placeholder=\"$ Price\" type=\"number\" min=\"0\" class=\"a-price\"></div>');\n  }\n\n  function busy(on, text) {\n    $('b-pdf').disabled = $('b-rick').disabled = on;\n    if (text) show('card', text);\n  }\n\n  function show(cls, html) { $('msg').innerHTML = '<div class=\"card ' + cls + '\">' + html + '</div>'; }\n  function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }\n\n  function failed(e) { busy(false); show('err', '<b>Something went wrong.</b><br>' + esc(e && e.message || e)); }\n\n  google.script.run.withSuccessHandler(function (d) {\n    $('package').innerHTML = d.packages.map(function (p) { return '<option>' + esc(p) + '</option>'; }).join('');\n    $('contactName').value = d.contactName; $('contactEmail').value = d.contactEmail; $('contactPhone').value = d.contactPhone;\n    $('taxPct').value = d.taxPct;\n    $('qnum').textContent = 'Next quote: ' + d.quoteNumber;\n  }).withFailureHandler(failed).webInit();\n\n  function form() {\n    var rows = document.querySelectorAll('.addon');\n    var addons = [];\n    rows.forEach(function (r) {\n      addons.push({ name: r.querySelector('.a-name').value, desc: r.querySelector('.a-desc').value,\n                    price: r.querySelector('.a-price').value });\n    });\n    return { package: $('package').value, client: $('client').value, date: $('date').value, days: $('days').value,\n             taxPct: $('taxPct').value, contactName: $('contactName').value, contactEmail: $('contactEmail').value,\n             contactPhone: $('contactPhone').value, addons: addons };\n  }\n\n  function make(kind, force) {\n    busy(true, 'Making your ' + (kind === 'onepager' ? 'PDF' : 'price breakdown') + '… this takes a few seconds.');\n    google.script.run.withSuccessHandler(function (res) {\n      busy(false);\n      if (res.problems) {\n        show('err', '<b>Fix these first</b><ul>' + res.problems.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('') + '</ul>');\n      } else if (res.confirm) {\n        if (confirm(res.confirm)) make(kind, true); else $('msg').innerHTML = '';\n      } else {\n        show('ok', '<h2>' + esc(res.title) + '</h2><div>Total ' + esc(res.totalText) + '</div>' +\n          '<a class=\"main\" href=\"' + esc(res.pdfUrl) + '\" target=\"_blank\">Open PDF</a>' +\n          '<a href=\"' + esc(res.docUrl) + '\" target=\"_blank\">Edit as Google Doc</a>');\n        $('qnum').textContent = 'Next quote: ' + res.nextQuoteNumber;\n      }\n    }).withFailureHandler(failed).webMake(kind, form(), !!force);\n  }\n</script>\n</body>\n</html>\n";
 
 // ---------------------------------------------------------------- button images (PNG, base64)
 const BUTTON_MAKE_PDF = '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tK+++mps374daWlpYaecWAHRKlxQU1MDm80Gu93e5jlEzjkSEhLg8/kaZWqh701rgqWmaeqrYbumaaKiogLTp0/HddddF3Y6y8qVK3HixIlGx4cRcqahSj+k01mLf1avXq2q3QDAfffdh8zMTJVNrlmzRg0dxsLaT2g9jAHA6/Wirq4O8fHxYXswi4uLcc011+C8886LeTGLdU1paSkSEhJQU1OD6dOno6KiIqzc3rx589CvXz912oh1+sjnn3+uVskCwOTJkzFgwAAcP34cdXV1MAwDpmnC4/GgqKgI999/P9599128/PLLePDBB8MK0beFlX03/Ap931rTZlVVVdhXRUUFTp06BY/HA6fTiaeffhpz5sxR99I0DaWlpXj77beppB05K1CGSTqdlWXu378fO3bswIgRIyCEQHZ2tgoIlZWV2LRpU4tKwTHGUFZWpirmSCnRr18/3H333Xj55ZdVQYKkpCTcfffdmD9/fquGN3VdRyAQQEpKCvLz8zF//nwsWLBABZ4uXbrgueeew6233qoWCCUkJGD58uX4/e9/r7LM1NRULFu2DHPnzsXOnTtRXl6utps8/PDDePzxx8E5x4gRIwDUl+778ssvkZiYeMZsyLeCt8vlwrBhw1T5Pus8yqSkJFx66aUYP348cnJyAEAVJ2CMYfbs2di3b59aKEWBk5zJKGCS04JzjsrKSqxZswYjRoxQ2Y017Llr1y7s3bs35v1/VpWfPXv24McffwyrQ/uXv/wF119/PQ4cOACXy4UePXpg8ODBAOprpKamprao71aAtbaLvPbaaxg6dCgmTJgA0zRhmiZGjBiBadOm4amnnkJSUhJsNhuOHz+OWbNmYenSpdA0DYZhoGfPnli2bBkKCwtRUlKi5nO7d+8OKaXKjr/99lusWLHijDsU2Qpw3bt3x4oVK1TfIq3GtQ4BtzLsZ555BitWrDijfgEgpCkUMEmHsPYQWpVwIj0Q7XY7tm7diqKiInVyh7X/ct26dervoQEzWrtWxZpjx45h4cKFePXVV8MKiA8fPhzDhw8Pu/+aNWtQXFyMKVOmqELsDRcXhc4lNlxwEjrnOGvWLAwYMAA9evSA3++HaZqYOnUqvvjiC3z22WdISUmBy+XCu+++i5SUFMybNw/x8fGq771790bv3r3Vfa3MND4+Ht988w3uvfdelJeXIy4urkWrVmP5HFrDajd0RWrDw5sNw1Cfnc1mU8PTRUVFmDdvHpYvX65OcumsfhPSFjT+QdqdlBJOp1OVpNN1XW3atwgh4HQ68f333yM/P1+tzrTZbKirq8NHH32kVpSGtutyuRq1G7qlJDExEe+88w4eeOABHDt2TAXgUD6fDytXrsRDDz0Eu90OXdcRHx8PXdfDFp5YQ7upqanQdR1xcXGqn9Y1VrH4o0ePYsaMGWoo0tpysnTpUvTv318dYZaQkIDXXnsNt9xyC9avX6+KtjekaRqKi4uxePFi3HbbbTh8+HCLg2WkzyG0nm5rhbbrcDjUquPQRT/W9g/rMxVCoKioCIsWLcL48eOxfPlyuN3uiNlyR/WbkLaiDJO0KyvIFBQU4IMPPlDDogcPHmz0cLSqvixbtkw9VDnn2LVrF06ePNmoOICu69izZ09Yuz/++GPY3kQrEK9atQobN27EmDFjMHDgQHTp0gU1NTU4evQoPv30U3zzzTeQUjbq565du+BwONSWlKqqKqxevVoNG1p7GUODpmmacLvd+OSTT/D4449jyJAhKrDpuo6BAweisLBQDTu73W5s27YNu3btwkUXXYS8vDzk5uYiJSVF1cLdu3cvPv/8cxw7dgwOh6PFJ5RE+xyOHTvW7LmTLWm3qYL4Ho8HJ0+eRElJCfLz87Fv3z6cOnUKnPOow7Ad1W9C2gPLzMw8cyZEyC+CdeJGbW2t+p6u60hKSop4rdfrRU1Njfqe3W6PWOibMQaPx4O6urqwdhMTExs9SK2jtrxeLwKBgFpQomka4uLi4HA4wBhDdXU1vF6v+rm4uDiVZVona1RVVYUFq8TExIhbXRhjqKqqCiuwYGVLLpcr7Hqr7J9V0KDhthKbzYa4uDi1H7W1VX0afg6apiEpKalNgSdSu9Gus4ZhHQ6HqhoEoMng31H9JqStKGCSDmE9KC1N7e3rqGutObWG14eexNFce1bhgFBNVZKxVoiGslbPRusj5zziz7Rlm4el4esDELVIQlvbjSZ0QVdb2m+PfhPSFhQwCSGEkBjQoh9CCCEkBhQwCSGEkBhQwCSEEEJiQAGTEEIIiQEFTEIIISQGFDAJIYSQGFDAJIQQQmJAAZMQQgiJAQVMQgghJAYUMAkhhJAYUMAkhBBCYkABkxBCCIkBBUxCCCEkBhxA5LORCCGEEGIxOWNMa/46Qggh5NeLMaZxKeWi4OG1lGkSQggh4UzGGKSUizhj7DPGmARAB0kTQggh4SRjTDLGPuMAMlgwxSSEEEJIuGCMzOCmaR4QQhwNfoOyTEIIIaSeZIwxIcRR0zQP8NLS0u2mae4OLv4xTnfvCCGEkDOEwRjTTNPcXVpaup0D4JzzL6WUErQvkxBCCLFwKaXknH8JgKu5y4yMjDLGWGrwrzSnSQgh5NdMAoCU8mRJSUkaUJ9R6gA0KeWfOOcMNCxLCCGEGJxzJqX8EwANgG5V+mFSyvVSyoLg4h/ak0kIIeTXymSMMSllgZRyPepHXU2OYNpZVlZWBGAZY0wHDckSQgj59WLBWLgsGBsBQIYGRh2AkZ6ePlfTtD9LKa3hWkIIIeTXwmCMCdM0F5aWlj6BYGwEGmeSDgC+rKysDYyxUUIIPwB7J3eWEEIIOR38nHO7lPLzEydOjEYwJlr/2HAbSQAAZ4w9KYTwoT5Yis7rKyGEEHJaCAB2IYSPMfYk6uNjIPSCSHOVGgAzLS0tT9f1dQBcUkoDlGkSQgj5ZfIH5yw9hmGMLysr24JgLAy9KNriHhuAQGZm5mAAmznnDiGEAZrTJIQQ8sticM714KjqlcXFxfkIxsCGF0ar7BMAoBcXF+ebpnm1lPL9YPQVoC0nhBBCzn4mAMEY06WU75umeXUwWOqIECyB5rePqJQ0PT19rq7rj0spIYQIMMZs7dp1QgghpBNIKQOccxtjDIZhzAuuhgUiDMOGimW/JUd9eurLzMycyRibxDm/1DRNoD7jFMGb0N5NQgghZyKJ+kDIAXBN0yCE2COl/L/i4uJnUL8aNoBmFrm2JMhpAMwuXbq47Xb79aZpvsg5T2WMQQgBKaURPFaTBa8lhBBCThcTgJRSgjGmc84RHCE9qWnaVL/fv7a8vLwazWSVoVqaFaqGs7OznUKIhznnA4UQoznnqajvHeoPPiGEEEJOD8YYgkkchBAnOecbhBBfc85fKCoqqg1eFnOwBFo3jGplkKpIe3Z29iAAvaWUAdM0h2iaNk1KaYIyTUIIIZ3LDJ5huUjTtB3B9TaFRUVFu0Ou0RHMQFvS8P8DUpr0GnY0q34AAAAASUVORK5CYII=';
