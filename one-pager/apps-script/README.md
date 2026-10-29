@@ -16,6 +16,14 @@
 If something's missing, the script tells you what to fix. It won't make a broken PDF.
 The buttons work in a web browser. In the phone app, use the **Quotes** menu instead.
 
+## RICKafy (price breakdown)
+The blue **RICKafy** button makes the plain itemized quote: every line item with qty, price, days, and total, grouped (Crew, Video, Audio, Transport) with subtotals, a grand total, and a signature line. Same Drive folder, same Log.
+
+**Updating an existing sheet:** in Extensions › Apps Script, replace everything with the new `Code.gs` and click Save. Then reload the sheet. The RICKafy button adds itself. Then run **Quotes › Load Live Zoom line items** once. This adds the 15 real line items from Helix quote 0625 to each "Live Zoom…" package.
+
+Line items are **Item** rows on the Packages tab: `Package | Item | item name | category | price per day | status | qty`.
+Transport and add-ons are charged once; everything else is × Days. A Section with no matching Item category (like the Cocktail Hour Mic Package) shows as its own line.
+
 ## Changing packages or prices (Rick)
 **Packages** tab, one row per piece: `Package | Type | Name | Description | Price per day | Status`
 - **Headline**: the page title, one per package. Ctrl+Enter makes a line break.
