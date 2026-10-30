@@ -14,6 +14,11 @@ services:
       - PUID=1000
       - PGID=1000
 
+      # Your own Spotify app keys (developer.spotify.com/dashboard), set in .env.
+      # The shared spotDL default key is often rate-limited.
+      - CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+
       # General Configuration
       - TRACK_OUTPUT=/data/media/music/singles/{artist} - {title}.{output-ext}
       - ALBUM_OUTPUT=/data/media/music/{artist}/{album} - ({year})/{artist} - {title}.{output-ext}
