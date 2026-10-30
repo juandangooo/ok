@@ -5,11 +5,11 @@ services:
     ports:
       - 6544:6544
     volumes:
-      - /data:/data # If you need to change this also change it for the TRACK_OUTPUT, ALBUM_OUTPUT, PLAYLIST_OUTPUT, ARTIST_OUTPUT
-      - /path/to/config:/config # Option to store cookies file
-      - /path/to/temp:/temp # Optional.
-      - /etc/localtime:/etc/localtime:ro # Optional. Sync time with host.
-      - /etc/timezone:/etc/timezone:ro # Optional. Sync timezone with host.
+      # Host folders are relative to this file (macOS / Docker Desktop friendly).
+      # Keep the container side as /data, or change TRACK_OUTPUT, ALBUM_OUTPUT, PLAYLIST_OUTPUT, ARTIST_OUTPUT too.
+      - ./data:/data
+      - ./config:/config # Option to store cookies file
+      - ./temp:/temp
     environment:
       - PUID=1000
       - PGID=1000
