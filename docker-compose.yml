@@ -1,0 +1,16 @@
+services:
+  spotspot:
+    image: ghcr.io/mattblackonly/spotspot:latest
+    container_name: spotspot
+    ports:
+      - 6544:6544
+    volumes:
+      - /data:/data # If you need to change this also change it for the TRACK_OUTPUT, ALBUM_OUTPUT, PLAYLIST_OUTPUT, ARTIST_OUTPUT
+      - /path/to/config:/config # Option to store cookies file
+      - /path/to/temp:/temp # Optional.
+      - /etc/localtime:/etc/localtime:ro # Optional. Sync time with host.
+      - /etc/timezone:/etc/timezone:ro # Optional. Sync timezone with host.
+    environment:
+      - PUID=1000
+      - PGID=1000
+    restart: unless-stopped
