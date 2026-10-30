@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shop Requests</title>
+<link rel="stylesheet" href="https://unpkg.com/xp.css@0.2.6/dist/XP.css">
+<style>
+  :root {
+    --hh-red: #ee3e27;
+    --hh-red-dark: #b8261a;
+    --sky-top: #1f5fd0;
+    --sky-mid: #5d9cf0;
+    --sky-low: #b7dcfb;
+    --hill: #4fa72c;
+    --hill-dark: #2f7a17;
+    --ink: #1b1b1b;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: #0c2f74;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 16px;
+    font-family: Tahoma, "Segoe UI", Verdana, sans-serif;
+  }
+
+  /* The poster is drawn at a 544×704 "screen" so xp.css chrome stays at its
+     native pixel sizes, then zoomed up as a whole (×1.5 = US Letter in print). */
+  .poster {
+    position: relative;
+    width: 544px;
+    height: 704px;
+    overflow: hidden;
+    flex: none;
+    font-family: Tahoma, "Segoe UI", Verdana, sans-serif;
+    font-size: 11px;
+    color: var(--ink);
+    background:
+      radial-gradient(ellipse 60px 18px at 18% 14%, #fff9 0, #fff0 100%),
+      radial-gradient(ellipse 90px 22px at 26% 16%, #fff8 0, #fff0 100%),
+      radial-gradient(ellipse 110px 20px at 88% 30%, #fff7 0, #fff0 100%),
+      radial-gradient(ellipse 70px 14px at 80% 33%, #fff6 0, #fff0 100%),
+      radial-gradient(ellipse 520px 150px at 30% 104%, var(--hill) 0 60%, #fff0 61%),
+      radial-gradient(ellipse 700px 230px at 85% 112%, #63bb34 0 58%, var(--hill-dark) 64%, #fff0 64.5%),
+      linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 45%, var(--sky-low) 78%);
+    box-shadow: 0 10px 40px #0008;
+  }
+
+  /* ---------- big rotated HH marks ---------- */
+  .mark { position: absolute; filter: drop-shadow(3px 5px 0 #0003); }
+  .mark--tr { width: 170px; top: -34px; right: -38px; transform: rotate(18deg); }
+  .mark--bl { width: 150px; bottom: 6px; left: -46px; transform: rotate(-22deg); }
+
+  /* ---------- desktop icons ---------- */
+  .desktop-icons {
+    position: absolute;
+    top: 118px;
+    right: 6px;
+    width: 86px;
+    display: grid;
+    gap: 14px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .desktop-icons li { display: grid; justify-items: center; gap: 3px; text-align: center; }
+  .desktop-icons svg { width: 40px; height: 40px; filter: drop-shadow(1px 2px 1px #0006); }
+  .desktop-icons span {
+    color: #fff;
+    font-size: 11px;
+    line-height: 1.2;
+    text-shadow: 1px 1px 1px #000, 0 0 2px #000;
+    padding: 0 2px;
+  }
+  .desktop-icons li.selected svg { filter: drop-shadow(1px 2px 1px #0006) brightness(.75) sepia(1) hue-rotate(180deg) saturate(3); }
+  .desktop-icons li.selected span { background: #316ac5; text-shadow: none; outline: 1px dotted #fff; }
+
+  /* ---------- main window ---------- */
+  .main {
+    position: absolute;
+    top: 16px;
+    left: 18px;
+    width: 422px;
+  }
+  .window { box-shadow: 2px 4px 14px #0006; }
+  .title-bar-text { display: flex; align-items: center; gap: 4px; }
+  .title-bar-text svg { width: 14px; height: 14px; }
+
+  .menu-bar {
+    display: flex;
+    gap: 2px;
+    margin: 0 3px;
+    padding: 2px 4px;
+    background: #ece9d8;
+    border-bottom: 1px solid #fff;
+    box-shadow: 0 1px 0 #aca899;
+    font-size: 11px;
+  }
+  .menu-bar span { padding: 1px 6px; }
+  .menu-bar span:first-letter { text-decoration: underline; }
+  .menu-bar img { margin-left: auto; }
+
+  .main .window-body { margin: 8px 8px 6px; }
+
+  .masthead {
+    position: relative;
+    text-align: center;
+    padding: 8px 10px 6px;
+    background: #fff;
+    border: 1px solid #7f9db9;
+  }
+  .brand { display: inline-flex; align-items: center; gap: 6px; }
+  .brand svg { width: 26px; height: 26px; }
+  .brand b {
+    color: var(--hh-red);
+    font: 700 8px/1.15 Tahoma, Verdana, sans-serif;
+    letter-spacing: .32em;
+    text-align: left;
+  }
+  .wordart {
+    margin: 0;
+    font: 900 64px/0.9 "Arial Black", "Arial Bold", Gadget, sans-serif;
+    letter-spacing: -1px;
+    background: linear-gradient(180deg, #ff7a45 0%, var(--hh-red) 45%, var(--hh-red-dark) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(3px 3px 0 #f5c2b8);
+    padding-top: 6px;
+  }
+  .subtitle {
+    margin: 2px 0 0;
+    color: var(--hh-red);
+    font: 400 20px/1.2 "Trebuchet MS", Tahoma, sans-serif;
+  }
+
+  .panels {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  fieldset { margin: 0; }
+  .qr-box {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+  }
+  .qr-frame {
+    background: #fff;
+    padding: 9px;
+    border: 1px solid #7f9db9;
+  }
+  .qr { display: block; width: 146px; height: 146px; fill: var(--ink); }
+  .qr-box .hint { margin: 0; font-size: 11px; color: #444; }
+
+  .side { display: grid; gap: 8px; align-content: start; }
+  .checklist { display: grid; gap: 3px; }
+  .checklist .field-row { margin: 0; }
+  .side progress { width: 100%; }
+  .side p { margin: 4px 0 0; }
+
+  .blurb {
+    margin: 8px 0 0;
+    padding: 8px 10px;
+    background: #ffffe1;
+    border: 1px solid #a0a0a0;
+    font-size: 11.5px;
+    line-height: 1.45;
+  }
+  .blurb strong { color: var(--hh-red-dark); }
+
+  .status-bar { margin: 0 3px 3px; }
+
+  /* ---------- urgent dialog ---------- */
+  .urgent {
+    position: absolute;
+    top: 540px;
+    left: 34px;
+    width: 280px;
+  }
+  .urgent .window-body { display: grid; grid-template-columns: auto 1fr; gap: 12px; margin: 10px 12px 8px; align-items: start; }
+  .urgent .window-body svg { width: 34px; height: 34px; }
+  .urgent p { margin: 0; font-size: 11.5px; line-height: 1.4; }
+  .urgent .buttons { grid-column: 1 / -1; display: flex; justify-content: center; gap: 8px; }
+
+  .cursor { position: absolute; top: 632px; left: 146px; width: 15px; filter: drop-shadow(1px 1px 0 #0005); }
+
+  /* ---------- balloon tip ---------- */
+  .balloon {
+    position: absolute;
+    right: 8px;
+    bottom: 42px;
+    width: 214px;
+    padding: 8px 10px 9px;
+    background: #ffffe1;
+    border: 1px solid #000;
+    border-radius: 8px;
+    box-shadow: 2px 3px 6px #0005;
+    font-size: 11px;
+  }
+  .balloon::after {
+    content: "";
+    position: absolute;
+    right: 46px;
+    bottom: -13px;
+    width: 0; height: 0;
+    border-left: 14px solid transparent;
+    border-top: 13px solid #000;
+  }
+  .balloon::before {
+    content: "";
+    position: absolute;
+    right: 47px;
+    bottom: -11px;
+    width: 0; height: 0;
+    border-left: 12px solid transparent;
+    border-top: 12px solid #ffffe1;
+    z-index: 1;
+  }
+  .balloon header { display: flex; align-items: center; gap: 5px; font-weight: 700; margin-bottom: 4px; }
+  .balloon header svg { width: 16px; height: 16px; }
+  .balloon header i {
+    margin-left: auto;
+    font-style: normal;
+    width: 14px; height: 14px;
+    display: grid; place-items: center;
+    border: 1px solid #b0b0b0; border-radius: 3px;
+    font-size: 10px; color: #666;
+  }
+  .balloon p { margin: 0; line-height: 1.4; }
+  .balloon a { color: #0033cc; text-decoration: underline; }
+
+  /* ---------- taskbar ---------- */
+  .taskbar {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 30px;
+    display: flex;
+    align-items: stretch;
+    background: linear-gradient(180deg, #3f8cf3 0%, #245edb 9%, #245edb 85%, #1941a5 100%);
+    border-top: 1px solid #0c59b9;
+  }
+  .start {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 16px 0 8px;
+    color: #fff;
+    font: italic 700 17px/1 "Trebuchet MS", Tahoma, sans-serif;
+    text-shadow: 1px 1px 2px #0008;
+    background: linear-gradient(180deg, #5eac56 0%, #3c9a33 12%, #318a2a 80%, #2b7322 100%);
+    border-radius: 0 12px 12px 0;
+    box-shadow: inset -2px 0 3px #0004, 2px 0 4px #0003;
+  }
+  .start svg { width: 20px; height: 20px; filter: drop-shadow(1px 1px 1px #0006); }
+  .tasks { flex: 1; display: flex; align-items: center; padding: 0 8px; }
+  .task {
+    display: flex; align-items: center; gap: 5px;
+    width: 150px; height: 23px;
+    padding: 0 8px;
+    color: #fff;
+    font-size: 11px;
+    background: linear-gradient(180deg, #1e52b7, #1a4aa8);
+    border-radius: 3px;
+    box-shadow: inset 1px 1px 2px #0007;
+    white-space: nowrap; overflow: hidden;
+  }
+  .task svg { width: 14px; height: 14px; flex: none; }
+  .tray {
+    display: flex; align-items: center; gap: 7px;
+    padding: 0 10px 0 12px;
+    color: #fff;
+    font-size: 11px;
+    background: linear-gradient(180deg, #1290e8 0%, #0e8ae4 50%, #0b73d0 100%);
+    border-left: 1px solid #092e84;
+    box-shadow: inset 1px 0 1px #18bbff;
+  }
+  .tray svg { width: 15px; height: 15px; }
+
+  @page { size: letter; margin: 0; }
+  @media print {
+    body { background: none; padding: 0; display: block; }
+    .stage { zoom: 1.5 !important; }
+    .poster { box-shadow: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="hh" viewBox="0 0 100 100">
+      <polygon points="50,3 93,27 93,73 50,97 7,73 7,27" fill="#b8261a"/>
+      <polygon points="50,8 88,30 88,70 50,92 12,70 12,30" fill="#ee3e27"/>
+      <path fill="#fbf3ea" d="M22 30h7v40h-7zM41 30h7v40h-7zM29 46.5h12v7H29zM52 30h7v40h-7zM71 30h7v40h-7zM59 46.5h12v7H59z"/>
+    </symbol>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fdfdfd"/><stop offset=".5" stop-color="#b9c0c8"/><stop offset="1" stop-color="#6d7680"/>
+    </linearGradient>
+    <linearGradient id="dark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5a5f68"/><stop offset="1" stop-color="#22252a"/>
+    </linearGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff7a5a"/><stop offset="1" stop-color="#c3271a"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6fb3ff"/><stop offset="1" stop-color="#1d55c4"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<div class="stage">
+<main class="poster">
+
+  <svg class="mark mark--tr" aria-hidden="true"><use href="#hh"/></svg>
+  <svg class="mark mark--bl" aria-hidden="true"><use href="#hh"/></svg>
+
+  <!-- desktop icons: the gear from the original poster -->
+  <ul class="desktop-icons" aria-label="Studio gear">
+    <li>
+      <svg viewBox="0 0 32 32"><ellipse cx="16" cy="29" rx="9" ry="2.4" fill="url(#dark)"/><rect x="15" y="12" width="2" height="17" fill="url(#metal)"/><rect x="12.5" y="2" width="7" height="12" rx="3.5" fill="url(#metal)" stroke="#555" stroke-width=".6"/><rect x="12.5" y="9" width="7" height="2" fill="url(#red)"/></svg>
+      <span>Mic Stand</span>
+    </li>
+    <li>
+      <svg viewBox="0 0 32 32"><g transform="rotate(-35 16 16)"><path d="M13 13h6l-1.4 17h-3.2z" fill="url(#dark)"/><circle cx="16" cy="8" r="6.5" fill="url(#metal)" stroke="#555" stroke-width=".6"/><path d="M10.5 8h11M16 2.5v11M12 4l8 8M20 4l-8 8" stroke="#7a828c" stroke-width=".5"/><rect x="12.6" y="13" width="6.8" height="2" fill="url(#red)"/></g></svg>
+      <span>Mic.wav</span>
+    </li>
+    <li class="selected">
+      <svg viewBox="0 0 32 32"><path d="M3 10l26-3v17L3 27z" fill="url(#metal)" stroke="#444" stroke-width=".7"/><path d="M3 27l26-3v2L3 29z" fill="#5c636b"/><g stroke="#333" stroke-width=".9"><path d="M7 14v9M11 13.5v9M15 13v9M19 12.5v9M23 12v9"/></g><g fill="url(#red)"><rect x="5.8" y="17" width="2.4" height="2"/><rect x="9.8" y="15" width="2.4" height="2"/><rect x="13.8" y="18" width="2.4" height="2"/><rect x="17.8" y="14.5" width="2.4" height="2"/><rect x="21.8" y="16" width="2.4" height="2"/></g><g fill="#333"><circle cx="26" cy="11" r="1.2"/><circle cx="26" cy="15" r="1.2"/><circle cx="26" cy="19" r="1.2"/></g></svg>
+      <span>Mixer.exe</span>
+    </li>
+    <li>
+      <svg viewBox="0 0 32 32"><rect x="12" y="1.5" width="8" height="3" rx="1" fill="url(#dark)"/><rect x="6" y="4" width="20" height="25" rx="2" fill="url(#metal)" stroke="#444" stroke-width=".7"/><rect x="8.5" y="10" width="15" height="16.5" rx="1" fill="url(#dark)"/><path d="M8.5 13h15M8.5 16h15M8.5 19h15M8.5 22h15" stroke="#6b7078" stroke-width=".4"/><rect x="8.5" y="6" width="5" height="2" rx=".5" fill="url(#red)"/><circle cx="21" cy="7" r="1" fill="#333"/></svg>
+      <span>Amp</span>
+    </li>
+    <li>
+      <svg viewBox="0 0 32 32"><path d="M16 22h14l-3 5H16z" fill="#c9c9c9" stroke="#777" stroke-width=".5"/><circle cx="14" cy="15" r="11" fill="url(#metal)" stroke="#555" stroke-width=".7"/><circle cx="14" cy="15" r="6" fill="#f3f3f3" stroke="#777" stroke-width=".7"/><circle cx="14" cy="15" r="8.5" fill="none" stroke="url(#red)" stroke-width="1.6"/></svg>
+      <span>Gaffer Tape</span>
+    </li>
+    <li>
+      <svg viewBox="0 0 32 32"><path d="M6 5h20v15H6z" fill="#3a3f46"/><path d="M7.5 6.5h17v12h-17z" fill="url(#screen)"/><path d="M8 7h9l-5 6H8z" fill="#fff4"/><path d="M3 21h26l-2 5H5z" fill="url(#metal)" stroke="#555" stroke-width=".6"/><path d="M7 22.5h18M6.5 24h19" stroke="#7a828c" stroke-width=".6"/></svg>
+      <span>Laptop</span>
+    </li>
+  </ul>
+
+  <!-- main window -->
+  <section class="window main" aria-labelledby="poster-title">
+    <div class="title-bar">
+      <div class="title-bar-text"><svg aria-hidden="true"><use href="#hh"/></svg>Shop Requests - Hellhound Audio</div>
+      <div class="title-bar-controls"><button aria-label="Minimize"></button><button aria-label="Maximize"></button><button aria-label="Close"></button></div>
+    </div>
+    <div class="menu-bar" aria-hidden="true"><span>File</span><span>Edit</span><span>View</span><span>Favorites</span><span>Tools</span><span>Help</span></div>
+    <div class="window-body">
+
+      <header class="masthead">
+        <div class="brand"><svg aria-hidden="true"><use href="#hh"/></svg><b>HELLHOUND<br>AUDIO</b></div>
+        <h1 class="wordart" id="poster-title">SHOP</h1>
+        <p class="subtitle">Requests</p>
+      </header>
+
+      <div class="panels">
+        <fieldset class="qr-box">
+          <legend>Scan to add a request</legend>
+          <div class="qr-frame">
+<svg class="qr" viewBox="0 0 45 45" shape-rendering="crispEdges" role="img" aria-label="QR code to the shop request form"><path d="M0 0h1v1h-1zM1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM5 0h1v1h-1zM6 0h1v1h-1zM8 0h1v1h-1zM9 0h1v1h-1zM10 0h1v1h-1zM11 0h1v1h-1zM12 0h1v1h-1zM13 0h1v1h-1zM14 0h1v1h-1zM16 0h1v1h-1zM17 0h1v1h-1zM19 0h1v1h-1zM20 0h1v1h-1zM22 0h1v1h-1zM26 0h1v1h-1zM27 0h1v1h-1zM29 0h1v1h-1zM30 0h1v1h-1zM36 0h1v1h-1zM38 0h1v1h-1zM39 0h1v1h-1zM40 0h1v1h-1zM41 0h1v1h-1zM42 0h1v1h-1zM43 0h1v1h-1zM44 0h1v1h-1zM0 1h1v1h-1zM6 1h1v1h-1zM10 1h1v1h-1zM14 1h1v1h-1zM15 1h1v1h-1zM16 1h1v1h-1zM18 1h1v1h-1zM19 1h1v1h-1zM22 1h1v1h-1zM23 1h1v1h-1zM24 1h1v1h-1zM25 1h1v1h-1zM27 1h1v1h-1zM32 1h1v1h-1zM33 1h1v1h-1zM35 1h1v1h-1zM38 1h1v1h-1zM44 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM4 2h1v1h-1zM6 2h1v1h-1zM9 2h1v1h-1zM11 2h1v1h-1zM12 2h1v1h-1zM13 2h1v1h-1zM14 2h1v1h-1zM16 2h1v1h-1zM20 2h1v1h-1zM22 2h1v1h-1zM24 2h1v1h-1zM28 2h1v1h-1zM29 2h1v1h-1zM32 2h1v1h-1zM33 2h1v1h-1zM35 2h1v1h-1zM38 2h1v1h-1zM40 2h1v1h-1zM41 2h1v1h-1zM42 2h1v1h-1zM44 2h1v1h-1zM0 3h1v1h-1zM2 3h1v1h-1zM3 3h1v1h-1zM4 3h1v1h-1zM6 3h1v1h-1zM8 3h1v1h-1zM9 3h1v1h-1zM10 3h1v1h-1zM11 3h1v1h-1zM13 3h1v1h-1zM17 3h1v1h-1zM19 3h1v1h-1zM20 3h1v1h-1zM24 3h1v1h-1zM25 3h1v1h-1zM28 3h1v1h-1zM29 3h1v1h-1zM31 3h1v1h-1zM35 3h1v1h-1zM36 3h1v1h-1zM38 3h1v1h-1zM40 3h1v1h-1zM41 3h1v1h-1zM42 3h1v1h-1zM44 3h1v1h-1zM0 4h1v1h-1zM2 4h1v1h-1zM3 4h1v1h-1zM4 4h1v1h-1zM6 4h1v1h-1zM8 4h1v1h-1zM9 4h1v1h-1zM10 4h1v1h-1zM14 4h1v1h-1zM16 4h1v1h-1zM20 4h1v1h-1zM21 4h1v1h-1zM22 4h1v1h-1zM23 4h1v1h-1zM24 4h1v1h-1zM25 4h1v1h-1zM26 4h1v1h-1zM29 4h1v1h-1zM30 4h1v1h-1zM32 4h1v1h-1zM33 4h1v1h-1zM34 4h1v1h-1zM35 4h1v1h-1zM36 4h1v1h-1zM38 4h1v1h-1zM40 4h1v1h-1zM41 4h1v1h-1zM42 4h1v1h-1zM44 4h1v1h-1zM0 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM9 5h1v1h-1zM11 5h1v1h-1zM15 5h1v1h-1zM17 5h1v1h-1zM19 5h1v1h-1zM20 5h1v1h-1zM24 5h1v1h-1zM26 5h1v1h-1zM27 5h1v1h-1zM28 5h1v1h-1zM29 5h1v1h-1zM30 5h1v1h-1zM32 5h1v1h-1zM33 5h1v1h-1zM38 5h1v1h-1zM44 5h1v1h-1zM0 6h1v1h-1zM1 6h1v1h-1zM2 6h1v1h-1zM3 6h1v1h-1zM4 6h1v1h-1zM5 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM14 6h1v1h-1zM16 6h1v1h-1zM18 6h1v1h-1zM20 6h1v1h-1zM22 6h1v1h-1zM24 6h1v1h-1zM26 6h1v1h-1zM28 6h1v1h-1zM30 6h1v1h-1zM32 6h1v1h-1zM34 6h1v1h-1zM36 6h1v1h-1zM38 6h1v1h-1zM39 6h1v1h-1zM40 6h1v1h-1zM41 6h1v1h-1zM42 6h1v1h-1zM43 6h1v1h-1zM44 6h1v1h-1zM8 7h1v1h-1zM9 7h1v1h-1zM13 7h1v1h-1zM14 7h1v1h-1zM17 7h1v1h-1zM18 7h1v1h-1zM19 7h1v1h-1zM20 7h1v1h-1zM24 7h1v1h-1zM25 7h1v1h-1zM26 7h1v1h-1zM27 7h1v1h-1zM34 7h1v1h-1zM0 8h1v1h-1zM4 8h1v1h-1zM6 8h1v1h-1zM7 8h1v1h-1zM8 8h1v1h-1zM9 8h1v1h-1zM11 8h1v1h-1zM13 8h1v1h-1zM14 8h1v1h-1zM17 8h1v1h-1zM19 8h1v1h-1zM20 8h1v1h-1zM21 8h1v1h-1zM22 8h1v1h-1zM23 8h1v1h-1zM24 8h1v1h-1zM25 8h1v1h-1zM29 8h1v1h-1zM30 8h1v1h-1zM32 8h1v1h-1zM35 8h1v1h-1zM36 8h1v1h-1zM37 8h1v1h-1zM38 8h1v1h-1zM39 8h1v1h-1zM40 8h1v1h-1zM41 8h1v1h-1zM44 8h1v1h-1zM5 9h1v1h-1zM8 9h1v1h-1zM11 9h1v1h-1zM12 9h1v1h-1zM13 9h1v1h-1zM14 9h1v1h-1zM15 9h1v1h-1zM18 9h1v1h-1zM23 9h1v1h-1zM24 9h1v1h-1zM26 9h1v1h-1zM27 9h1v1h-1zM29 9h1v1h-1zM30 9h1v1h-1zM33 9h1v1h-1zM35 9h1v1h-1zM36 9h1v1h-1zM37 9h1v1h-1zM38 9h1v1h-1zM39 9h1v1h-1zM40 9h1v1h-1zM41 9h1v1h-1zM2 10h1v1h-1zM4 10h1v1h-1zM6 10h1v1h-1zM8 10h1v1h-1zM10 10h1v1h-1zM11 10h1v1h-1zM13 10h1v1h-1zM17 10h1v1h-1zM19 10h1v1h-1zM21 10h1v1h-1zM22 10h1v1h-1zM23 10h1v1h-1zM26 10h1v1h-1zM28 10h1v1h-1zM33 10h1v1h-1zM37 10h1v1h-1zM38 10h1v1h-1zM39 10h1v1h-1zM40 10h1v1h-1zM42 10h1v1h-1zM43 10h1v1h-1zM0 11h1v1h-1zM1 11h1v1h-1zM2 11h1v1h-1zM8 11h1v1h-1zM9 11h1v1h-1zM11 11h1v1h-1zM14 11h1v1h-1zM16 11h1v1h-1zM18 11h1v1h-1zM22 11h1v1h-1zM25 11h1v1h-1zM27 11h1v1h-1zM28 11h1v1h-1zM29 11h1v1h-1zM31 11h1v1h-1zM32 11h1v1h-1zM33 11h1v1h-1zM34 11h1v1h-1zM35 11h1v1h-1zM37 11h1v1h-1zM0 12h1v1h-1zM3 12h1v1h-1zM6 12h1v1h-1zM9 12h1v1h-1zM15 12h1v1h-1zM16 12h1v1h-1zM18 12h1v1h-1zM20 12h1v1h-1zM24 12h1v1h-1zM27 12h1v1h-1zM28 12h1v1h-1zM29 12h1v1h-1zM30 12h1v1h-1zM32 12h1v1h-1zM33 12h1v1h-1zM35 12h1v1h-1zM36 12h1v1h-1zM37 12h1v1h-1zM39 12h1v1h-1zM43 12h1v1h-1zM2 13h1v1h-1zM3 13h1v1h-1zM4 13h1v1h-1zM7 13h1v1h-1zM8 13h1v1h-1zM9 13h1v1h-1zM11 13h1v1h-1zM12 13h1v1h-1zM15 13h1v1h-1zM16 13h1v1h-1zM19 13h1v1h-1zM20 13h1v1h-1zM21 13h1v1h-1zM22 13h1v1h-1zM23 13h1v1h-1zM26 13h1v1h-1zM28 13h1v1h-1zM29 13h1v1h-1zM30 13h1v1h-1zM31 13h1v1h-1zM33 13h1v1h-1zM35 13h1v1h-1zM36 13h1v1h-1zM38 13h1v1h-1zM39 13h1v1h-1zM40 13h1v1h-1zM43 13h1v1h-1zM0 14h1v1h-1zM1 14h1v1h-1zM4 14h1v1h-1zM5 14h1v1h-1zM6 14h1v1h-1zM8 14h1v1h-1zM13 14h1v1h-1zM17 14h1v1h-1zM21 14h1v1h-1zM25 14h1v1h-1zM26 14h1v1h-1zM29 14h1v1h-1zM30 14h1v1h-1zM31 14h1v1h-1zM32 14h1v1h-1zM33 14h1v1h-1zM34 14h1v1h-1zM35 14h1v1h-1zM41 14h1v1h-1zM42 14h1v1h-1zM43 14h1v1h-1zM0 15h1v1h-1zM1 15h1v1h-1zM2 15h1v1h-1zM3 15h1v1h-1zM9 15h1v1h-1zM11 15h1v1h-1zM13 15h1v1h-1zM15 15h1v1h-1zM17 15h1v1h-1zM19 15h1v1h-1zM23 15h1v1h-1zM25 15h1v1h-1zM26 15h1v1h-1zM30 15h1v1h-1zM32 15h1v1h-1zM33 15h1v1h-1zM35 15h1v1h-1zM37 15h1v1h-1zM39 15h1v1h-1zM40 15h1v1h-1zM43 15h1v1h-1zM0 16h1v1h-1zM1 16h1v1h-1zM2 16h1v1h-1zM5 16h1v1h-1zM6 16h1v1h-1zM9 16h1v1h-1zM12 16h1v1h-1zM14 16h1v1h-1zM15 16h1v1h-1zM17 16h1v1h-1zM18 16h1v1h-1zM19 16h1v1h-1zM25 16h1v1h-1zM29 16h1v1h-1zM32 16h1v1h-1zM34 16h1v1h-1zM37 16h1v1h-1zM39 16h1v1h-1zM41 16h1v1h-1zM43 16h1v1h-1zM0 17h1v1h-1zM2 17h1v1h-1zM3 17h1v1h-1zM5 17h1v1h-1zM8 17h1v1h-1zM9 17h1v1h-1zM10 17h1v1h-1zM11 17h1v1h-1zM13 17h1v1h-1zM15 17h1v1h-1zM16 17h1v1h-1zM19 17h1v1h-1zM21 17h1v1h-1zM23 17h1v1h-1zM24 17h1v1h-1zM26 17h1v1h-1zM27 17h1v1h-1zM29 17h1v1h-1zM30 17h1v1h-1zM31 17h1v1h-1zM33 17h1v1h-1zM35 17h1v1h-1zM36 17h1v1h-1zM38 17h1v1h-1zM40 17h1v1h-1zM41 17h1v1h-1zM42 17h1v1h-1zM43 17h1v1h-1zM0 18h1v1h-1zM1 18h1v1h-1zM3 18h1v1h-1zM5 18h1v1h-1zM6 18h1v1h-1zM8 18h1v1h-1zM12 18h1v1h-1zM13 18h1v1h-1zM14 18h1v1h-1zM18 18h1v1h-1zM19 18h1v1h-1zM20 18h1v1h-1zM21 18h1v1h-1zM27 18h1v1h-1zM28 18h1v1h-1zM29 18h1v1h-1zM30 18h1v1h-1zM31 18h1v1h-1zM32 18h1v1h-1zM33 18h1v1h-1zM36 18h1v1h-1zM39 18h1v1h-1zM40 18h1v1h-1zM43 18h1v1h-1zM1 19h1v1h-1zM4 19h1v1h-1zM8 19h1v1h-1zM9 19h1v1h-1zM10 19h1v1h-1zM11 19h1v1h-1zM13 19h1v1h-1zM14 19h1v1h-1zM15 19h1v1h-1zM18 19h1v1h-1zM19 19h1v1h-1zM22 19h1v1h-1zM23 19h1v1h-1zM24 19h1v1h-1zM25 19h1v1h-1zM26 19h1v1h-1zM27 19h1v1h-1zM29 19h1v1h-1zM32 19h1v1h-1zM33 19h1v1h-1zM34 19h1v1h-1zM36 19h1v1h-1zM39 19h1v1h-1zM40 19h1v1h-1zM43 19h1v1h-1zM44 19h1v1h-1zM2 20h1v1h-1zM3 20h1v1h-1zM4 20h1v1h-1zM5 20h1v1h-1zM6 20h1v1h-1zM7 20h1v1h-1zM8 20h1v1h-1zM10 20h1v1h-1zM13 20h1v1h-1zM14 20h1v1h-1zM15 20h1v1h-1zM17 20h1v1h-1zM18 20h1v1h-1zM20 20h1v1h-1zM21 20h1v1h-1zM22 20h1v1h-1zM23 20h1v1h-1zM24 20h1v1h-1zM25 20h1v1h-1zM27 20h1v1h-1zM29 20h1v1h-1zM32 20h1v1h-1zM33 20h1v1h-1zM34 20h1v1h-1zM35 20h1v1h-1zM36 20h1v1h-1zM37 20h1v1h-1zM38 20h1v1h-1zM39 20h1v1h-1zM40 20h1v1h-1zM41 20h1v1h-1zM0 21h1v1h-1zM1 21h1v1h-1zM4 21h1v1h-1zM8 21h1v1h-1zM9 21h1v1h-1zM10 21h1v1h-1zM11 21h1v1h-1zM14 21h1v1h-1zM17 21h1v1h-1zM20 21h1v1h-1zM24 21h1v1h-1zM27 21h1v1h-1zM29 21h1v1h-1zM30 21h1v1h-1zM31 21h1v1h-1zM32 21h1v1h-1zM33 21h1v1h-1zM35 21h1v1h-1zM36 21h1v1h-1zM40 21h1v1h-1zM41 21h1v1h-1zM42 21h1v1h-1zM43 21h1v1h-1zM1 22h1v1h-1zM2 22h1v1h-1zM3 22h1v1h-1zM4 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM10 22h1v1h-1zM12 22h1v1h-1zM14 22h1v1h-1zM17 22h1v1h-1zM20 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM27 22h1v1h-1zM29 22h1v1h-1zM30 22h1v1h-1zM32 22h1v1h-1zM36 22h1v1h-1zM38 22h1v1h-1zM40 22h1v1h-1zM41 22h1v1h-1zM0 23h1v1h-1zM1 23h1v1h-1zM3 23h1v1h-1zM4 23h1v1h-1zM8 23h1v1h-1zM9 23h1v1h-1zM10 23h1v1h-1zM11 23h1v1h-1zM12 23h1v1h-1zM14 23h1v1h-1zM20 23h1v1h-1zM24 23h1v1h-1zM27 23h1v1h-1zM29 23h1v1h-1zM30 23h1v1h-1zM31 23h1v1h-1zM32 23h1v1h-1zM35 23h1v1h-1zM36 23h1v1h-1zM40 23h1v1h-1zM0 24h1v1h-1zM1 24h1v1h-1zM2 24h1v1h-1zM3 24h1v1h-1zM4 24h1v1h-1zM5 24h1v1h-1zM6 24h1v1h-1zM7 24h1v1h-1zM8 24h1v1h-1zM9 24h1v1h-1zM10 24h1v1h-1zM11 24h1v1h-1zM13 24h1v1h-1zM14 24h1v1h-1zM16 24h1v1h-1zM18 24h1v1h-1zM19 24h1v1h-1zM20 24h1v1h-1zM21 24h1v1h-1zM22 24h1v1h-1zM23 24h1v1h-1zM24 24h1v1h-1zM27 24h1v1h-1zM30 24h1v1h-1zM31 24h1v1h-1zM32 24h1v1h-1zM33 24h1v1h-1zM34 24h1v1h-1zM35 24h1v1h-1zM36 24h1v1h-1zM37 24h1v1h-1zM38 24h1v1h-1zM39 24h1v1h-1zM40 24h1v1h-1zM41 24h1v1h-1zM44 24h1v1h-1zM0 25h1v1h-1zM1 25h1v1h-1zM4 25h1v1h-1zM7 25h1v1h-1zM8 25h1v1h-1zM9 25h1v1h-1zM11 25h1v1h-1zM12 25h1v1h-1zM14 25h1v1h-1zM15 25h1v1h-1zM17 25h1v1h-1zM18 25h1v1h-1zM22 25h1v1h-1zM23 25h1v1h-1zM24 25h1v1h-1zM26 25h1v1h-1zM29 25h1v1h-1zM30 25h1v1h-1zM31 25h1v1h-1zM32 25h1v1h-1zM33 25h1v1h-1zM35 25h1v1h-1zM37 25h1v1h-1zM39 25h1v1h-1zM41 25h1v1h-1zM42 25h1v1h-1zM43 25h1v1h-1zM0 26h1v1h-1zM2 26h1v1h-1zM3 26h1v1h-1zM5 26h1v1h-1zM6 26h1v1h-1zM13 26h1v1h-1zM14 26h1v1h-1zM16 26h1v1h-1zM17 26h1v1h-1zM18 26h1v1h-1zM22 26h1v1h-1zM23 26h1v1h-1zM24 26h1v1h-1zM26 26h1v1h-1zM29 26h1v1h-1zM31 26h1v1h-1zM33 26h1v1h-1zM36 26h1v1h-1zM37 26h1v1h-1zM40 26h1v1h-1zM43 26h1v1h-1zM1 27h1v1h-1zM3 27h1v1h-1zM7 27h1v1h-1zM8 27h1v1h-1zM9 27h1v1h-1zM10 27h1v1h-1zM11 27h1v1h-1zM12 27h1v1h-1zM13 27h1v1h-1zM19 27h1v1h-1zM21 27h1v1h-1zM22 27h1v1h-1zM23 27h1v1h-1zM25 27h1v1h-1zM27 27h1v1h-1zM28 27h1v1h-1zM38 27h1v1h-1zM39 27h1v1h-1zM40 27h1v1h-1zM41 27h1v1h-1zM44 27h1v1h-1zM0 28h1v1h-1zM1 28h1v1h-1zM2 28h1v1h-1zM6 28h1v1h-1zM8 28h1v1h-1zM14 28h1v1h-1zM16 28h1v1h-1zM18 28h1v1h-1zM19 28h1v1h-1zM20 28h1v1h-1zM23 28h1v1h-1zM24 28h1v1h-1zM30 28h1v1h-1zM32 28h1v1h-1zM36 28h1v1h-1zM37 28h1v1h-1zM39 28h1v1h-1zM40 28h1v1h-1zM3 29h1v1h-1zM7 29h1v1h-1zM9 29h1v1h-1zM11 29h1v1h-1zM12 29h1v1h-1zM15 29h1v1h-1zM16 29h1v1h-1zM17 29h1v1h-1zM18 29h1v1h-1zM19 29h1v1h-1zM21 29h1v1h-1zM22 29h1v1h-1zM23 29h1v1h-1zM26 29h1v1h-1zM28 29h1v1h-1zM29 29h1v1h-1zM30 29h1v1h-1zM32 29h1v1h-1zM33 29h1v1h-1zM35 29h1v1h-1zM37 29h1v1h-1zM39 29h1v1h-1zM41 29h1v1h-1zM42 29h1v1h-1zM43 29h1v1h-1zM2 30h1v1h-1zM5 30h1v1h-1zM6 30h1v1h-1zM8 30h1v1h-1zM9 30h1v1h-1zM10 30h1v1h-1zM12 30h1v1h-1zM13 30h1v1h-1zM16 30h1v1h-1zM17 30h1v1h-1zM19 30h1v1h-1zM22 30h1v1h-1zM23 30h1v1h-1zM25 30h1v1h-1zM27 30h1v1h-1zM28 30h1v1h-1zM29 30h1v1h-1zM30 30h1v1h-1zM31 30h1v1h-1zM34 30h1v1h-1zM35 30h1v1h-1zM36 30h1v1h-1zM39 30h1v1h-1zM40 30h1v1h-1zM43 30h1v1h-1zM1 31h1v1h-1zM2 31h1v1h-1zM4 31h1v1h-1zM5 31h1v1h-1zM7 31h1v1h-1zM10 31h1v1h-1zM11 31h1v1h-1zM15 31h1v1h-1zM16 31h1v1h-1zM19 31h1v1h-1zM20 31h1v1h-1zM21 31h1v1h-1zM22 31h1v1h-1zM24 31h1v1h-1zM25 31h1v1h-1zM26 31h1v1h-1zM28 31h1v1h-1zM30 31h1v1h-1zM32 31h1v1h-1zM33 31h1v1h-1zM34 31h1v1h-1zM36 31h1v1h-1zM38 31h1v1h-1zM39 31h1v1h-1zM40 31h1v1h-1zM44 31h1v1h-1zM0 32h1v1h-1zM1 32h1v1h-1zM2 32h1v1h-1zM3 32h1v1h-1zM4 32h1v1h-1zM6 32h1v1h-1zM8 32h1v1h-1zM9 32h1v1h-1zM10 32h1v1h-1zM11 32h1v1h-1zM12 32h1v1h-1zM13 32h1v1h-1zM17 32h1v1h-1zM18 32h1v1h-1zM20 32h1v1h-1zM21 32h1v1h-1zM25 32h1v1h-1zM27 32h1v1h-1zM29 32h1v1h-1zM31 32h1v1h-1zM32 32h1v1h-1zM33 32h1v1h-1zM37 32h1v1h-1zM38 32h1v1h-1zM40 32h1v1h-1zM41 32h1v1h-1zM42 32h1v1h-1zM44 32h1v1h-1zM4 33h1v1h-1zM7 33h1v1h-1zM9 33h1v1h-1zM10 33h1v1h-1zM11 33h1v1h-1zM14 33h1v1h-1zM16 33h1v1h-1zM18 33h1v1h-1zM19 33h1v1h-1zM23 33h1v1h-1zM26 33h1v1h-1zM28 33h1v1h-1zM29 33h1v1h-1zM30 33h1v1h-1zM33 33h1v1h-1zM36 33h1v1h-1zM38 33h1v1h-1zM39 33h1v1h-1zM41 33h1v1h-1zM42 33h1v1h-1zM43 33h1v1h-1zM44 33h1v1h-1zM4 34h1v1h-1zM6 34h1v1h-1zM7 34h1v1h-1zM8 34h1v1h-1zM9 34h1v1h-1zM10 34h1v1h-1zM11 34h1v1h-1zM12 34h1v1h-1zM13 34h1v1h-1zM14 34h1v1h-1zM16 34h1v1h-1zM21 34h1v1h-1zM22 34h1v1h-1zM24 34h1v1h-1zM28 34h1v1h-1zM29 34h1v1h-1zM30 34h1v1h-1zM37 34h1v1h-1zM39 34h1v1h-1zM42 34h1v1h-1zM43 34h1v1h-1zM1 35h1v1h-1zM2 35h1v1h-1zM3 35h1v1h-1zM4 35h1v1h-1zM10 35h1v1h-1zM12 35h1v1h-1zM13 35h1v1h-1zM14 35h1v1h-1zM15 35h1v1h-1zM17 35h1v1h-1zM18 35h1v1h-1zM20 35h1v1h-1zM22 35h1v1h-1zM28 35h1v1h-1zM32 35h1v1h-1zM33 35h1v1h-1zM34 35h1v1h-1zM40 35h1v1h-1zM43 35h1v1h-1zM0 36h1v1h-1zM3 36h1v1h-1zM4 36h1v1h-1zM6 36h1v1h-1zM7 36h1v1h-1zM8 36h1v1h-1zM10 36h1v1h-1zM11 36h1v1h-1zM13 36h1v1h-1zM14 36h1v1h-1zM15 36h1v1h-1zM16 36h1v1h-1zM17 36h1v1h-1zM20 36h1v1h-1zM21 36h1v1h-1zM22 36h1v1h-1zM23 36h1v1h-1zM24 36h1v1h-1zM26 36h1v1h-1zM27 36h1v1h-1zM32 36h1v1h-1zM36 36h1v1h-1zM37 36h1v1h-1zM38 36h1v1h-1zM39 36h1v1h-1zM40 36h1v1h-1zM43 36h1v1h-1zM44 36h1v1h-1zM8 37h1v1h-1zM9 37h1v1h-1zM12 37h1v1h-1zM13 37h1v1h-1zM15 37h1v1h-1zM16 37h1v1h-1zM20 37h1v1h-1zM24 37h1v1h-1zM25 37h1v1h-1zM26 37h1v1h-1zM28 37h1v1h-1zM29 37h1v1h-1zM30 37h1v1h-1zM32 37h1v1h-1zM35 37h1v1h-1zM36 37h1v1h-1zM40 37h1v1h-1zM41 37h1v1h-1zM42 37h1v1h-1zM43 37h1v1h-1zM0 38h1v1h-1zM1 38h1v1h-1zM2 38h1v1h-1zM3 38h1v1h-1zM4 38h1v1h-1zM5 38h1v1h-1zM6 38h1v1h-1zM8 38h1v1h-1zM9 38h1v1h-1zM10 38h1v1h-1zM12 38h1v1h-1zM15 38h1v1h-1zM19 38h1v1h-1zM20 38h1v1h-1zM22 38h1v1h-1zM24 38h1v1h-1zM25 38h1v1h-1zM28 38h1v1h-1zM30 38h1v1h-1zM31 38h1v1h-1zM32 38h1v1h-1zM36 38h1v1h-1zM38 38h1v1h-1zM40 38h1v1h-1zM41 38h1v1h-1zM43 38h1v1h-1zM0 39h1v1h-1zM6 39h1v1h-1zM9 39h1v1h-1zM10 39h1v1h-1zM13 39h1v1h-1zM17 39h1v1h-1zM20 39h1v1h-1zM24 39h1v1h-1zM25 39h1v1h-1zM26 39h1v1h-1zM27 39h1v1h-1zM29 39h1v1h-1zM31 39h1v1h-1zM32 39h1v1h-1zM33 39h1v1h-1zM34 39h1v1h-1zM36 39h1v1h-1zM40 39h1v1h-1zM43 39h1v1h-1zM44 39h1v1h-1zM0 40h1v1h-1zM2 40h1v1h-1zM3 40h1v1h-1zM4 40h1v1h-1zM6 40h1v1h-1zM8 40h1v1h-1zM9 40h1v1h-1zM11 40h1v1h-1zM16 40h1v1h-1zM19 40h1v1h-1zM20 40h1v1h-1zM21 40h1v1h-1zM22 40h1v1h-1zM23 40h1v1h-1zM24 40h1v1h-1zM27 40h1v1h-1zM29 40h1v1h-1zM30 40h1v1h-1zM31 40h1v1h-1zM32 40h1v1h-1zM33 40h1v1h-1zM34 40h1v1h-1zM35 40h1v1h-1zM36 40h1v1h-1zM37 40h1v1h-1zM38 40h1v1h-1zM39 40h1v1h-1zM40 40h1v1h-1zM41 40h1v1h-1zM0 41h1v1h-1zM2 41h1v1h-1zM3 41h1v1h-1zM4 41h1v1h-1zM6 41h1v1h-1zM9 41h1v1h-1zM11 41h1v1h-1zM18 41h1v1h-1zM20 41h1v1h-1zM24 41h1v1h-1zM26 41h1v1h-1zM27 41h1v1h-1zM28 41h1v1h-1zM29 41h1v1h-1zM30 41h1v1h-1zM33 41h1v1h-1zM35 41h1v1h-1zM37 41h1v1h-1zM38 41h1v1h-1zM39 41h1v1h-1zM41 41h1v1h-1zM43 41h1v1h-1zM0 42h1v1h-1zM2 42h1v1h-1zM3 42h1v1h-1zM4 42h1v1h-1zM6 42h1v1h-1zM12 42h1v1h-1zM14 42h1v1h-1zM15 42h1v1h-1zM17 42h1v1h-1zM18 42h1v1h-1zM20 42h1v1h-1zM22 42h1v1h-1zM26 42h1v1h-1zM28 42h1v1h-1zM29 42h1v1h-1zM30 42h1v1h-1zM35 42h1v1h-1zM38 42h1v1h-1zM40 42h1v1h-1zM42 42h1v1h-1zM43 42h1v1h-1zM0 43h1v1h-1zM6 43h1v1h-1zM9 43h1v1h-1zM11 43h1v1h-1zM12 43h1v1h-1zM13 43h1v1h-1zM14 43h1v1h-1zM15 43h1v1h-1zM19 43h1v1h-1zM20 43h1v1h-1zM23 43h1v1h-1zM32 43h1v1h-1zM33 43h1v1h-1zM34 43h1v1h-1zM37 43h1v1h-1zM40 43h1v1h-1zM41 43h1v1h-1zM0 44h1v1h-1zM1 44h1v1h-1zM2 44h1v1h-1zM3 44h1v1h-1zM4 44h1v1h-1zM5 44h1v1h-1zM6 44h1v1h-1zM8 44h1v1h-1zM11 44h1v1h-1zM13 44h1v1h-1zM15 44h1v1h-1zM16 44h1v1h-1zM20 44h1v1h-1zM21 44h1v1h-1zM22 44h1v1h-1zM23 44h1v1h-1zM24 44h1v1h-1zM25 44h1v1h-1zM26 44h1v1h-1zM27 44h1v1h-1zM29 44h1v1h-1zM30 44h1v1h-1zM32 44h1v1h-1zM33 44h1v1h-1zM34 44h1v1h-1zM35 44h1v1h-1zM37 44h1v1h-1zM38 44h1v1h-1zM39 44h1v1h-1zM41 44h1v1h-1zM44 44h1v1h-1z"/></svg>
+          </div>
+          <p class="hint">Opens the shopping list form</p>
+        </fieldset>
+
+        <div class="side">
+          <fieldset class="checklist">
+            <legend>Running low on...</legend>
+            <div class="field-row"><input type="checkbox" id="c1" checked><label for="c1">Cables</label></div>
+            <div class="field-row"><input type="checkbox" id="c2" checked><label for="c2">Adapters</label></div>
+            <div class="field-row"><input type="checkbox" id="c3"><label for="c3">Connectors</label></div>
+            <div class="field-row"><input type="checkbox" id="c4" checked><label for="c4">Batteries</label></div>
+            <div class="field-row"><input type="checkbox" id="c5" checked><label for="c5">Tape</label></div>
+            <div class="field-row"><input type="checkbox" id="c6"><label for="c6">...whatever</label></div>
+          </fieldset>
+          <fieldset>
+            <legend>Weekly review</legend>
+            <progress max="100" value="64"></progress>
+            <p>Fern looks over the list every week.</p>
+          </fieldset>
+        </div>
+      </div>
+
+      <p class="blurb">
+        <strong>A shopping list for Hellhound Audio.</strong>
+        Notice something running low, missing or worn out? Scan the code and add it to the list: cables, adapters, connectors, batteries, tape, whatever.
+      </p>
+    </div>
+    <div class="status-bar">
+      <p class="status-bar-field">Ready</p>
+      <p class="status-bar-field">Reviewed weekly by Fern</p>
+      <p class="status-bar-field">Hellhound Audio</p>
+    </div>
+  </section>
+
+  <!-- urgent dialog -->
+  <section class="window urgent" aria-labelledby="urgent-title">
+    <div class="title-bar">
+      <div class="title-bar-text" id="urgent-title">Can't wait?</div>
+      <div class="title-bar-controls"><button aria-label="Close"></button></div>
+    </div>
+    <div class="window-body">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5L30.5 28h-29z" fill="#ffd21f" stroke="#a87b00" stroke-width="1.2" stroke-linejoin="round"/><rect x="14.4" y="10" width="3.2" height="10" rx="1.4" fill="#222"/><circle cx="16" cy="23.8" r="1.9" fill="#222"/></svg>
+      <p>If something really can't wait, mark it <b>urgent</b> on the form and send Juan an email :)</p>
+      <div class="buttons"><button>Mark urgent</button><button>Send email</button></div>
+    </div>
+  </section>
+
+  <svg class="cursor" viewBox="0 0 12 19" aria-hidden="true"><path d="M.5.5v15.6l3.6-3.5 2.4 5.6 2.4-1-2.4-5.5h5z" fill="#fff" stroke="#000" stroke-width="1" stroke-linejoin="round"/></svg>
+
+  <!-- balloon tip -->
+  <aside class="balloon">
+    <header>
+      <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7.3" fill="#2a63d9" stroke="#123c9c"/><rect x="7" y="7" width="2" height="5.5" fill="#fff"/><circle cx="8" cy="4.6" r="1.2" fill="#fff"/></svg>
+      Questions?
+      <i aria-hidden="true">✕</i>
+    </header>
+    <p>Send to <a href="mailto:juan@hellhoundaudio.com">juan@hellhoundaudio.com</a></p>
+  </aside>
+
+  <!-- taskbar -->
+  <footer class="taskbar">
+    <div class="start"><svg aria-hidden="true"><use href="#hh"/></svg>start</div>
+    <div class="tasks">
+      <div class="task"><svg aria-hidden="true"><use href="#hh"/></svg>Shop Requests - Hellhou...</div>
+    </div>
+    <div class="tray">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 6h3l4-3.5v11L5 10H2z" fill="#eee" stroke="#333" stroke-width=".7"/><path d="M11 5.5a3.5 3.5 0 010 5M12.5 3.8a6 6 0 010 8.4" fill="none" stroke="#fff" stroke-width="1.1"/></svg>
+      <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="7.3" fill="#2a63d9" stroke="#fff" stroke-width=".8"/><rect x="7" y="7" width="2" height="5.5" fill="#fff"/><circle cx="8" cy="4.6" r="1.2" fill="#fff"/></svg>
+      <span>9:41 AM</span>
+    </div>
+  </footer>
+
+</main>
+</div>
+
+<script>
+  // Scale the 544px-wide poster to fill the viewport width (print uses a fixed ×1.5).
+  const stage = document.querySelector('.stage');
+  const fit = () => { stage.style.zoom = Math.min(1.5, (innerWidth - 32) / 544); };
+  addEventListener('resize', fit);
+  fit();
+</script>
+</body>
+</html>
