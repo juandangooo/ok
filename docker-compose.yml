@@ -13,4 +13,37 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
+
+      # General Configuration
+      - TRACK_OUTPUT=/data/media/music/singles/{artist} - {title}.{output-ext}
+      - ALBUM_OUTPUT=/data/media/music/{artist}/{album} - ({year})/{artist} - {title}.{output-ext}
+      - PLAYLIST_OUTPUT=/data/media/music/{list-name}/{artist} - {title}.{output-ext}
+      - ARTIST_OUTPUT=/data/media/music/{artist}/{album} - ({year})/{artist} - {title}.{output-ext}
+
+      # Jellyfin Configuration (set to True and fill in .env to enable)
+      - TRIGGER_JELLYFIN_SCAN=False
+      - JELLYFIN_ADDRESS=${JELLYFIN_ADDRESS:-http://192.168.1.123:8096}
+      - JELLYFIN_API_KEY=${JELLYFIN_API_KEY:-}
+
+      # Plex Configuration (set to True and fill in .env to enable)
+      - TRIGGER_PLEX_SCAN=False
+      - PLEX_ADDRESS=${PLEX_ADDRESS:-http://192.168.1.123:32400}
+      - PLEX_TOKEN=${PLEX_TOKEN:-}
+      - PLEX_LIBRARY_NAME=Music
+      - PLEX_SECTION_ID=1
+      - PLEX_PLAYLIST_IMPORT_DELAY=180
+
+      # Playlist Configuration
+      - GENERATE_M3U_PLAYLIST=True
+      - M3U_PLAYLIST_NAME=spotify_singles
+      - M3U_PLAYLIST_PATH=/data/media/music/playlists
+      - M3U_PLAYLIST_SORT_ORDER=date_desc
+      - ABSOLUTE_SERVER_PATH=/data/media/music/singles
+
+      # SpotDL Configuration
+      - FORMAT=mp3
+      - THREADS=4
+      - LOG_LEVEL=INFO
+      # - BITRATE=320k
+      # - COOKIE_FILE=/config/cookies.txt
     restart: unless-stopped
