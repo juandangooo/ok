@@ -1,14 +1,19 @@
 """
-HH Cube Ornament - parametric generator.
+HH Cube Ornament - parametric generator (v2).
 
-Produces print-ready STLs for a Bambu Lab P2S (or any 0.4 mm FDM printer):
+The cube is a real box: four full-colour side walls (black, red, black, red),
+red top and bottom. Every seam sits exactly on a cube edge (45-degree mitres),
+so a black side meets a red side right at the corner, like the logo.
 
-  core.stl     red cube body with 4 face pockets + hanging tab
-  tile_A.stl   black plate, raised white H   (x2)  -> filament change at Z=1.4
-  tile_B.stl   red plate, black H + border   (x2)  -> filament change at Z=1.4
+The H is RECESSED into each side, like the logo: the H is the floor of a
+pocket and a sliver "extrusion wall" shows up-and-left of every stroke.
 
-plus colour-split parts (parts/) for AMS per-part painting and an assembled
-preview (preview/). All dimensions in millimetres.
+  core.stl     red: inner block + top/bottom caps + hanging tab
+  tile_A.stl   x2  white floor / red step / black face   (layer colour changes)
+  tile_B.stl   x2  black floor / red face with black sliver lines
+
+Every colour boundary inside a tile is horizontal (a Z height) when printed,
+so each tile needs only whole-layer filament changes - AMS or manual swap.
 
 Run:  python3 build.py
 """
@@ -23,34 +28,31 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 # ----------------------------------------------------------------- parameters
 S = 45.0            # cube edge
-EDGE_CH = 0.6       # chamfer on every cube edge
-FRAME = 2.5         # red border left around each face pocket
-POCKET_D = 1.2      # pocket depth == tile base thickness
-CLEAR = 0.2         # clearance per side, tile vs pocket
-TILE_T = POCKET_D   # tile base thickness (flush with frame when installed)
-TILE_FOOT = 0.3     # chamfer on tile bed edge (eats elephant foot)
-RAISE = 1.0         # height of the H above the face
-H_CH = 0.4          # 45 deg bevel on the top edges of the H
-LINE_RAISE = 0.6    # height of the thin black border line on tile B
-LINE_W = 1.0        # width of that line
-LINE_INSET = 1.4    # gap between tile edge and the line
+LAYER = 0.2         # print layer height these heights are designed for
+T = 2.2             # wall (tile) thickness
+FLOOR = 1.0         # recess floor thickness  (layers 1-5)
+STEP = 0.6          # tile A: red step layer  (layers 6-8), black face (layers 9-11)
+GAP = 0.15          # mitre clearance per side of each tile
 
-# H letter (on the tile, centred)
-H_H = 28.0          # letter height
-H_W = 23.0          # letter width
-H_STEM = 6.6        # vertical stroke width
-H_BAR = 5.6         # crossbar thickness
+# H letter (tile coordinates: x right, y up, centred on the face)
+H_H = 28.0
+H_W = 23.0
+H_STEM = 6.6
+H_BAR = 5.6
+SHIFT = 1.0         # sliver width: extrusion direction is up-left (-x, +y)
 
-# hanging tab
-TAB_W = 12.0        # across x
-TAB_T = 5.5         # thickness along y (hole axis)
-TAB_RISE = 8.0      # top face -> hole centre
-HOLE_R = 2.25       # 4.5 mm hole, fits ribbon / ornament hook
-PLINTH = (17.0, 10.0, 2.0)  # base footprint x, y and height
+FRAME_INSET = 2.6   # tile B: black border line, distance from cube edge
+FRAME_W = 1.0       # tile B: border line width
 
-POCKET = S - 2 * FRAME          # 40.0
-TILE = POCKET - 2 * CLEAR       # 39.6
+# hanging tab (on the top cap)
+TAB_W = 12.0
+TAB_T = 5.5
+TAB_RISE = 8.0
+HOLE_R = 2.25
+PLINTH = (17.0, 10.0, 2.0)
+
 SEG = 96
+EPS = 1e-3
 
 
 # -------------------------------------------------------------------- helpers
@@ -58,102 +60,106 @@ def box(x0, x1, y0, y1, z0, z1):
     return Manifold.cube([x1 - x0, y1 - y0, z1 - z0]).translate([x0, y0, z0])
 
 
-def chamfer_box(sx, sy, sz, c, top=True, bottom=True, sides=True):
-    """Box centred in x/y, z from 0..sz, with 45-degree chamfers."""
-    parts = []
-    cx = c if sides else 0
-    # full-size slab in the middle, shrunk slabs at the chamfered ends
-    zb = c if bottom else 0
-    zt = sz - c if top else sz
-    parts.append(box(-sx / 2, sx / 2, -sy / 2 + cx, sy / 2 - cx, zb, zt))
-    parts.append(box(-sx / 2 + cx, sx / 2 - cx, -sy / 2, sy / 2, zb, zt))
-    if bottom:
-        parts.append(box(-sx / 2 + c, sx / 2 - c, -sy / 2 + c, sy / 2 - c, 0, zb))
-    if top:
-        parts.append(box(-sx / 2 + c, sx / 2 - c, -sy / 2 + c, sy / 2 - c, zt, sz))
-    return Manifold.batch_hull(parts)
+def rect2(x0, x1, y0, y1):
+    return CrossSection.square([x1 - x0, y1 - y0]).translate([x0, y0])
 
 
-def beveled_rect(x0, x1, y0, y1, z0, h, ch):
-    """Rectangular prism with a 45-degree bevel of `ch` on its top edges."""
-    lower = box(x0, x1, y0, y1, z0, z0 + h - ch)
-    upper = box(x0 + ch, x1 - ch, y0 + ch, y1 - ch, z0 + h - 1e-3, z0 + h)
-    return Manifold.batch_hull([lower, upper])
-
-
-def letter_h(z0, h, ch):
-    """Raised H with bevelled top. Union of convex bevelled pieces gives
-    correct mitred inner corners for 45-degree bevels."""
+def h_pieces():
+    """H as three convex rectangles, re-centred so the whole extruded
+    letter (H plus slivers) sits in the middle of the face."""
     hw, hh = H_W / 2, H_H / 2
-    left = beveled_rect(-hw, -hw + H_STEM, -hh, hh, z0, h, ch)
-    right = beveled_rect(hw - H_STEM, hw, -hh, hh, z0, h, ch)
-    bar = beveled_rect(-hw + H_STEM / 2, hw - H_STEM / 2,
-                       -H_BAR / 2, H_BAR / 2, z0, h, ch)
-    return left + right + bar
+    cx, cy = SHIFT, -SHIFT          # 2*SHIFT of slivers go up-left -> nudge
+    r = [rect2(-hw, -hw + H_STEM, -hh, hh),
+         rect2(hw - H_STEM, hw, -hh, hh),
+         rect2(-hw + H_STEM / 2, hw - H_STEM / 2, -H_BAR / 2, H_BAR / 2)]
+    return [p.translate([cx, cy]) for p in r]
 
 
-def square_ring(outer, width, z0, h):
-    o = outer / 2
-    i = o - width
-    return box(-o, o, -o, o, z0, z0 + h) - box(-i, i, -i, i, z0 - 1, z0 + h + 1)
+def h_extruded(k):
+    """H swept k*SHIFT up-left (Minkowski sum with a segment) - this is the
+    logo's 3D look: the H plus the visible side wall of its extrusion."""
+    out = None
+    for p in h_pieces():
+        q = CrossSection.batch_hull([p, p.translate([-k * SHIFT, k * SHIFT])]) if k else p
+        out = q if out is None else out + q
+    return out
 
 
-# ---------------------------------------------------------------------- parts
-def make_tile_base():
-    return chamfer_box(TILE, TILE, TILE_T, TILE_FOOT, top=False, bottom=True)
+def prism(cs, z0, z1):
+    return cs.extrude(z1 - z0).translate([0, 0, z0])
 
 
-def make_tile_a_parts():
-    base = make_tile_base()
-    h = letter_h(TILE_T, RAISE, H_CH)
-    return {"black": base, "white": h}
+def tile_blank():
+    """Mitred wall: front face (z = T) is the full cube face minus clearance,
+    all four sides slope 45 degrees inward to the back (z = 0)."""
+    w = S - 2 * GAP
+    front = box(-w / 2, w / 2, -w / 2, w / 2, T - EPS, T)
+    back = box(-w / 2 + T, w / 2 - T, -w / 2 + T, w / 2 - T, 0, EPS)
+    return Manifold.batch_hull([front, back])
 
 
-def make_tile_b_parts():
-    base = make_tile_base()
-    h = letter_h(TILE_T, RAISE, H_CH)
-    line = square_ring(TILE - 2 * LINE_INSET, LINE_W, TILE_T, LINE_RAISE)
-    return {"red": base, "black": h + line}
+def slab(m, z0, z1):
+    return m ^ box(-S, S, -S, S, z0, z1)
 
 
+def up_arrow():
+    """Small arrow engraved in the back face (bed side) - points to the top."""
+    tri = CrossSection.hull(CrossSection([[(-3, 14), (3, 14), (0, 18)]]))
+    stem = rect2(-1, 1, 10, 14)
+    return prism(tri + stem, -1, 0.4)
+
+
+# ---------------------------------------------------------------------- tiles
+def make_tile_a():
+    blank = tile_blank()
+    H0 = h_extruded(0)
+    H1 = h_extruded(1)
+    white = slab(blank, 0, FLOOR) - up_arrow()
+    red = slab(blank, FLOOR, FLOOR + STEP) - prism(H0, FLOOR - 1, T + 1)
+    black = slab(blank, FLOOR + STEP, T) - prism(H1, FLOOR - 1, T + 1)
+    return {"white": white, "red": red, "black": black}
+
+
+def make_tile_b():
+    blank = tile_blank()
+    H0, H1, H2 = h_extruded(0), h_extruded(1), h_extruded(2)
+    groove = H2 - H1                                      # black line beyond the sliver
+    o = S / 2 - FRAME_INSET
+    frame = rect2(-o, o, -o, o) - rect2(-o + FRAME_W, o - FRAME_W, -o + FRAME_W, o - FRAME_W)
+    cut = H0 + groove + frame
+    black = slab(blank, 0, FLOOR) - up_arrow()
+    red = slab(blank, FLOOR, T) - prism(cut, FLOOR - 1, T + 1)
+    return {"black": black, "red": red}
+
+
+# ----------------------------------------------------------------------- core
 def make_core():
-    cube = chamfer_box(S, S, S, EDGE_CH)
-    half = S / 2
-    p = POCKET / 2
-    z0, z1 = half - p, half + p
-    # pockets on the four vertical faces
-    pockets = [
-        box(half - POCKET_D, half + 1, -p, p, z0, z1),     # +x
-        box(-half - 1, -half + POCKET_D, -p, p, z0, z1),   # -x
-        box(-p, p, half - POCKET_D, half + 1, z0, z1),     # +y
-        box(-p, p, -half - 1, -half + POCKET_D, z0, z1),   # -y
-    ]
-    for pk in pockets:
-        cube = cube - pk
+    i = S / 2 - T                                         # inner block half-width
+    block = box(-i, i, -i, i, 0, S)
+    bottom = Manifold.batch_hull([box(-S / 2, S / 2, -S / 2, S / 2, 0, EPS),
+                                  box(-i, i, -i, i, T - EPS, T)])
+    top = Manifold.batch_hull([box(-i, i, -i, i, S - T, S - T + EPS),
+                               box(-S / 2, S / 2, -S / 2, S / 2, S - EPS, S)])
+    core = block + bottom + top
 
-    # hanging tab: chamfered plinth + rounded tab + teardrop hole (axis = y)
     px, py, ph = PLINTH
     plinth = Manifold.batch_hull([
         box(-px / 2, px / 2, -py / 2, py / 2, S - 0.5, S),
-        box(-TAB_W / 2, TAB_W / 2, -TAB_T / 2, TAB_T / 2, S + ph - 1e-3, S + ph),
+        box(-TAB_W / 2, TAB_W / 2, -TAB_T / 2, TAB_T / 2, S + ph - EPS, S + ph),
     ])
     zc = S + TAB_RISE
-    rim = TAB_W / 2
-    disc = (CrossSection.circle(rim, SEG)
-            .translate([0, zc]))
-    stem = CrossSection.square([TAB_W, zc - S + 0.5]).translate([-TAB_W / 2, S - 0.5])
-    profile = CrossSection.batch_hull([disc, stem])            # in (x, z)
-    tab = profile.extrude(TAB_T).translate([0, 0, -TAB_T / 2])  # z is thickness
-    tab = tab.rotate([90, 0, 0])                               # -> thickness along y
-    # teardrop hole, tip truncated so >3 mm of plastic stays above it
-    tip = HOLE_R * 1.2
+    profile = CrossSection.batch_hull([
+        CrossSection.circle(TAB_W / 2, SEG).translate([0, zc]),
+        rect2(-TAB_W / 2, TAB_W / 2, S - 0.5, zc),
+    ])
+    tab = profile.extrude(TAB_T).translate([0, 0, -TAB_T / 2]).rotate([90, 0, 0])
+    tip = HOLE_R * 1.2                                    # truncated teardrop
     tear = CrossSection.batch_hull([
         CrossSection.circle(HOLE_R, SEG),
-        CrossSection.square([0.9, 0.01]).translate([-0.45, tip - 0.01]),
+        rect2(-0.45, 0.45, tip - 0.01, tip),
     ]).translate([0, zc])
     hole = tear.extrude(TAB_T + 4).translate([0, 0, -TAB_T / 2 - 2]).rotate([90, 0, 0])
-    hanger = (plinth + tab) - hole
-    return cube + hanger
+    return core + ((plinth + tab) - hole)
 
 
 # ----------------------------------------------------------- export / checks
@@ -163,102 +169,109 @@ def to_trimesh(m):
                            faces=np.asarray(mesh.tri_verts), process=True)
 
 
-def check(name, m):
+def check_solid(name, m, bodies=1):
     t = to_trimesh(m)
-    info = {
-        "name": name,
-        "watertight": bool(t.is_watertight),
-        "winding_consistent": bool(t.is_winding_consistent),
-        "volume_positive": bool(t.volume > 0),
-        "bodies": len(m.decompose()),
-        "volume_cm3": round(t.volume / 1000, 3),
-        "pla_grams_solid": round(t.volume / 1000 * 1.24, 1),
-        "bbox_mm": [round(v, 3) for v in (t.bounds[1] - t.bounds[0])],
-        "min_z": round(float(t.bounds[0][2]), 4),
-    }
-    assert info["watertight"] and info["winding_consistent"] and info["volume_positive"], info
-    assert info["bodies"] == 1, info
-    assert abs(info["min_z"]) < 1e-6, info
-    return t, info
+    assert t.is_watertight and t.is_winding_consistent and t.volume > 0, name
+    n = len(m.decompose())
+    assert n == bodies, (name, n)
+    return t
+
+
+def min_feature_loss(cs, r):
+    """Fraction of area lost by a morphological opening with radius r:
+    features narrower than 2r disappear. Near zero = nothing too thin."""
+    a = cs.area()
+    if a == 0:
+        return 0.0
+    opened = cs.offset(-r, circular_segments=SEG).offset(r, circular_segments=SEG)
+    return 1 - opened.area() / a
 
 
 def tile_to_face(m, face):
-    """Place a tile (built flat, H upright along +y) into a face pocket."""
-    half = S / 2
-    floor = half - POCKET_D
-    m = m.rotate([90, 0, 0])            # tile +z -> -y, tile +y -> +z
-    m = m.translate([0, 0, half])       # centre on face
+    """Tile frame (back z=0, front z=T, H up = +y) -> cube side wall."""
+    m = m.rotate([90, 0, 0])                       # +z -> -y, +y -> +z
+    m = m.translate([0, -(S / 2 - T), S / 2])      # front lands on y = -S/2
     yaw = {"-y": 0, "+x": 90, "+y": 180, "-x": 270}[face]
-    m = m.translate([0, -floor, 0])     # base sits on pocket floor of -y face
     return m.rotate([0, 0, yaw])
 
 
 def main():
-    out = HERE
-    os.makedirs(os.path.join(out, "parts"), exist_ok=True)
-    os.makedirs(os.path.join(out, "preview"), exist_ok=True)
-    report = []
+    os.makedirs(os.path.join(HERE, "parts"), exist_ok=True)
+    os.makedirs(os.path.join(HERE, "preview"), exist_ok=True)
+    report = {"layer_height": LAYER, "checks": []}
+    log = report["checks"].append
 
     core = make_core()
-    ta = make_tile_a_parts()
-    tb = make_tile_b_parts()
-    tile_a = ta["black"] + ta["white"]
-    tile_b = tb["red"] + tb["black"]
+    ta, tb = make_tile_a(), make_tile_b()
 
-    for name, m in [("core", core), ("tile_A", tile_a), ("tile_B", tile_b)]:
-        t, info = check(name, m)
-        t.export(os.path.join(out, f"{name}.stl"))
-        report.append(info)
+    # --- every part: manifold, one body, on the bed
+    t = check_solid("core", core)
+    t.export(os.path.join(HERE, "core.stl"))
+    log(f"core: watertight, 1 body, {t.volume/1000:.1f} cm3 solid, bbox {np.round(t.extents,2).tolist()}")
+    for tname, parts in (("tile_A", ta), ("tile_B", tb)):
+        whole = None
+        for col, m in parts.items():
+            check_solid(f"{tname}_{col}", m, bodies=len(m.decompose()))  # islands OK, whole tile checked below
+            to_trimesh(m).export(os.path.join(HERE, "parts", f"{tname}_{col}.stl"))
+            whole = m if whole is None else whole + m
+        # colours must not overlap, must stack into one solid
+        assert abs(whole.volume() - sum(m.volume() for m in parts.values())) < 1e-3
+        tw = check_solid(tname, whole)
+        assert abs(tw.bounds[0][2]) < 1e-9
+        tw.export(os.path.join(HERE, f"{tname}.stl"))
+        log(f"{tname}: watertight, 1 body, colours disjoint, {tw.volume/1000:.2f} cm3")
 
-    # colour-split parts, sharing the tile's origin (for AMS per-part colours)
-    for name, m in [("tile_A_black_base", ta["black"]), ("tile_A_white_H", ta["white"]),
-                    ("tile_B_red_base", tb["red"]), ("tile_B_black_H", tb["black"])]:
-        t = to_trimesh(m)
-        assert t.is_watertight, name
-        t.export(os.path.join(out, "parts", f"{name}.stl"))
+    # --- colour boundaries are pure layer heights (whole-layer changes only)
+    def zr(m):
+        b = m.bounding_box(); return round(b[2], 6), round(b[5], 6)
+    assert zr(ta["white"]) == (0, FLOOR) and zr(ta["red"]) == (FLOOR, FLOOR + STEP) \
+        and zr(ta["black"]) == (FLOOR + STEP, T)
+    assert zr(tb["black"]) == (0, FLOOR) and zr(tb["red"]) == (FLOOR, T)
+    for z in (FLOOR, FLOOR + STEP, T):
+        assert abs(z / LAYER - round(z / LAYER)) < 1e-9, z
+    log("colour changes fall exactly on layer boundaries: "
+        f"A white->red @ {FLOOR}, red->black @ {FLOOR+STEP}; B black->red @ {FLOOR}")
 
-    # colour parts must not overlap (volume of union == sum of volumes)
-    for parts in (ta, tb):
-        a, b = list(parts.values())
-        assert abs((a + b).volume() - a.volume() - b.volume()) < 1e-3
+    # --- thin features: every printed region and every gap >= 0.8 mm (2 lines)
+    for tname, parts in (("tile_A", ta), ("tile_B", tb)):
+        for col, m in parts.items():
+            b = m.bounding_box()
+            cs = m.slice((b[2] + b[5]) / 2)
+            loss = min_feature_loss(cs, 0.4)
+            hole_loss = min_feature_loss(rect2(-S, S, -S, S) - cs, 0.4)
+            assert loss < 0.01 and hole_loss < 0.01, (tname, col, loss, hole_loss)
+            log(f"{tname}/{col}: area lost to <0.8 mm features {loss*100:.2f} %, "
+                f"gaps lost {hole_loss*100:.2f} %")
 
-    # ---------- assembly + fit checks
-    faces = {"-y": "A", "+x": "B", "+y": "A", "-x": "B"}
+    # --- assembly
+    faces = [("-y", "A"), ("+x", "B"), ("+y", "A"), ("-x", "B")]
     asm = {"red": core, "black": None, "white": None}
-    placed = []
-    for face, kind in faces.items():
+    blanks = []
+    for face, kind in faces:
         parts = ta if kind == "A" else tb
-        whole = tile_to_face(tile_a if kind == "A" else tile_b, face)
-        # tile must not intersect the core (clearance really exists)
-        inter = (whole ^ core).volume()
-        assert inter < 1e-3, (face, inter)
-        placed.append(whole)
+        blank = tile_to_face(tile_blank(), face)
+        assert (blank ^ core).volume() < 1e-3, f"tile {face} hits core"
+        blanks.append(blank)
         for col, m in parts.items():
             pm = tile_to_face(m, face)
             asm[col] = pm if asm[col] is None else asm[col] + pm
-    # tiles must not intersect each other
-    for i in range(len(placed)):
-        for j in range(i + 1, len(placed)):
-            assert (placed[i] ^ placed[j]).volume() < 1e-3
-    # installed tile face flush with frame: base top == cube face plane
-    bb = placed[0].bounding_box()   # -y face; H protrudes to -y
-    assert abs(bb[1] - (-S / 2 - RAISE)) < 1e-6, bb
+    for a in range(4):
+        for b in range(a + 1, 4):
+            assert (blanks[a] ^ blanks[b]).volume() < 1e-3, "tiles collide"
+    cube_part = core ^ box(-S, S, -S, S, 0, S)
+    filled = cube_part + blanks[0] + blanks[1] + blanks[2] + blanks[3]
+    cover = filled.volume() / S ** 3
+    assert cover > 0.995, cover
+    bb = filled.bounding_box()
+    assert np.allclose(bb, (-S / 2, -S / 2, 0, S / 2, S / 2, S), atol=1e-6), bb
+    log(f"assembly: no collisions, outer faces flush to a {S} mm cube, "
+        f"cube {cover*100:.2f} % filled (rest = {GAP} mm mitre clearance)")
 
-    # gap check: tile edge to pocket wall = CLEAR on every side
     for col, m in asm.items():
-        to_trimesh(m).export(os.path.join(out, "preview", f"assembled_{col}.stl"))
-
-    full = asm["red"] + asm["black"] + asm["white"]
-    tf = to_trimesh(full)
-    report.append({
-        "name": "assembled",
-        "bbox_mm": [round(v, 2) for v in (tf.bounds[1] - tf.bounds[0])],
-        "volume_cm3": round(tf.volume / 1000, 2),
-        "pla_grams_if_solid": round(tf.volume / 1000 * 1.24, 1),
-    })
-    with open(os.path.join(out, "preview", "report.json"), "w") as f:
+        to_trimesh(m).export(os.path.join(HERE, "preview", f"assembled_{col}.stl"))
+    with open(os.path.join(HERE, "preview", "report.json"), "w") as f:
         json.dump(report, f, indent=2)
-    print(json.dumps(report, indent=2))
+    print("\n".join(report["checks"]))
 
 
 if __name__ == "__main__":

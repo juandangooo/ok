@@ -64,17 +64,17 @@ def render(items, path, elev, azim, size=900, title=None, pad=1.15):
 def main():
     pv = os.path.join(HERE, "preview")
     asm = [(trimesh.load(os.path.join(pv, f"assembled_{c}.stl")), COL[c]) for c in COL]
-    render(asm, os.path.join(pv, "assembled_front.png"), 10, -45, title="Assembled - edge-on, like the logo")
-    render(asm, os.path.join(pv, "assembled_high.png"), 30, -120, title="Assembled - from above")
-    render(asm, os.path.join(pv, "assembled_back.png"), 15, 135, title="Assembled - opposite edge")
+    render(asm, os.path.join(pv, "assembled_front.png"), 8, -45, title="Edge-on, like the logo")
+    for i, az in enumerate((-45, 45, 135, 225)):
+        render(asm, os.path.join(pv, f"turn_{i}.png"), 8, az, size=500)
+    render(asm, os.path.join(pv, "assembled_high.png"), 35, -70, title="From above")
     core = trimesh.load(os.path.join(HERE, "core.stl"))
     render([(core, COL["red"])], os.path.join(pv, "core.png"), 25, -60, title="core.stl - as printed (red)")
     p = os.path.join(HERE, "parts")
-    for name, a, b in [("tile_A", ("tile_A_black_base", "black"), ("tile_A_white_H", "white")),
-                       ("tile_B", ("tile_B_red_base", "red"), ("tile_B_black_H", "black"))]:
-        items = [(trimesh.load(os.path.join(p, f"{a[0]}.stl")), COL[a[1]]),
-                 (trimesh.load(os.path.join(p, f"{b[0]}.stl")), COL[b[1]])]
-        render(items, os.path.join(pv, f"{name}.png"), 50, -70, title=f"{name}.stl - as printed")
+    for name, cols in (("tile_A", ("white", "red", "black")), ("tile_B", ("black", "red"))):
+        items = [(trimesh.load(os.path.join(p, f"{name}_{c}.stl")), COL[c]) for c in cols]
+        render(items, os.path.join(pv, f"{name}.png"), 55, -75, title=f"{name}.stl - as printed (face up)")
+        render(items, os.path.join(pv, f"{name}_back.png"), -60, -75, title=f"{name} - back (bed side)")
 
 
 if __name__ == "__main__":

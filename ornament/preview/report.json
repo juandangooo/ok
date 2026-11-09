@@ -1,57 +1,15 @@
-[
-  {
-    "name": "core",
-    "watertight": true,
-    "winding_consistent": true,
-    "volume_positive": true,
-    "bodies": 1,
-    "volume_cm3": 84.192,
-    "pla_grams_solid": 104.4,
-    "bbox_mm": [
-      45.0,
-      45.0,
-      59.0
-    ],
-    "min_z": 0.0
-  },
-  {
-    "name": "tile_A",
-    "watertight": true,
-    "winding_consistent": true,
-    "volume_positive": true,
-    "bodies": 1,
-    "volume_cm3": 2.287,
-    "pla_grams_solid": 2.8,
-    "bbox_mm": [
-      39.6,
-      39.6,
-      2.2
-    ],
-    "min_z": 0.0
-  },
-  {
-    "name": "tile_B",
-    "watertight": true,
-    "winding_consistent": true,
-    "volume_positive": true,
-    "bodies": 1,
-    "volume_cm3": 2.373,
-    "pla_grams_solid": 2.9,
-    "bbox_mm": [
-      39.6,
-      39.6,
-      2.2
-    ],
-    "min_z": 0.0
-  },
-  {
-    "name": "assembled",
-    "bbox_mm": [
-      47.0,
-      47.0,
-      59.0
-    ],
-    "volume_cm3": 93.51,
-    "pla_grams_if_solid": 116.0
-  }
-]
+{
+  "layer_height": 0.2,
+  "checks": [
+    "core: watertight, 1 body, 75.8 cm3 solid, bbox [45.0, 45.0, 59.0]",
+    "tile_A: watertight, 1 body, colours disjoint, 3.42 cm3",
+    "tile_B: watertight, 1 body, colours disjoint, 3.19 cm3",
+    "colour changes fall exactly on layer boundaries: A white->red @ 1.0, red->black @ 1.6; B black->red @ 1.0",
+    "tile_A/white: area lost to <0.8 mm features 0.01 %, gaps lost 0.00 %",
+    "tile_A/red: area lost to <0.8 mm features 0.02 %, gaps lost 0.01 %",
+    "tile_A/black: area lost to <0.8 mm features 0.02 %, gaps lost 0.00 %",
+    "tile_B/black: area lost to <0.8 mm features 0.01 %, gaps lost 0.00 %",
+    "tile_B/red: area lost to <0.8 mm features 0.05 %, gaps lost 0.02 %",
+    "assembly: no collisions, outer faces flush to a 45.0 mm cube, cube 99.75 % filled (rest = 0.15 mm mitre clearance)"
+  ]
+}

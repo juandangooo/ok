@@ -1,76 +1,92 @@
-# HH Cube Ornament
+# HH Cube Ornament (v2)
 
 ![assembled](preview/assembled_front.png)
+![turnaround](preview/turnaround.png)
 
-The logo as a real 45 mm cube. Seen edge-on, the two front faces read exactly like
-the badge: black face with a white **H** inside a red border on the left, and a red
-face with a black **H** and a black inset line on the right. The back two faces repeat
-this, so it looks right from every side of the tree.
+This is a real 45 mm box. Going around it you see black, red, black, red, with a red top
+and bottom. The colours meet exactly on the cube edges, like the centre line of the logo.
+
+The **H is set into each side**, not raised. The H is the floor of a pocket, and the
+wall of that pocket shows up-and-left of every stroke, which is the logo's 3D look:
+
+| Face | What you see, outer to inner |
+|---|---|
+| A (black) | black face, then a **red** wall step, then a **white** H floor |
+| B (red) | red face, then a **black** line, then a red sliver, then a **black** H floor, plus a black border line |
+
+![faces](preview/faces_headon.png)
 
 ## Parts
 
-| File | Qty | Colour | Notes |
-|---|---|---|---|
-| `core.stl` | 1 | Red | Cube body, 4 face pockets, hanging tab with a 4.5 mm hole |
-| `tile_A.stl` | 2 | Black, then **white** from Z = 1.4 | Black plate, raised bevelled white H |
-| `tile_B.stl` | 2 | Red, then **black** from Z = 1.4 | Red plate, raised black H and border line |
+| File | Qty | Colours, bottom to top (Z) |
+|---|---|---|
+| `core.stl` | 1 | Red |
+| `tile_A.stl` | 2 | **White** 0–1.0, then **red** 1.0–1.6, then **black** 1.6–2.2 |
+| `tile_B.stl` | 2 | **Black** 0–1.0, then **red** 1.0–2.2 |
 
-Finished size: 45 × 45 × 59 mm, including the tab. Expect about 35–40 g of PLA in total.
+Every colour change happens at a whole-layer height. You never need two colours
+in the same layer, so this works **with an AMS or without one** (by doing manual swaps at pauses).
 
-## Why it's split into tiles
+## How it goes together
 
-Colour on a vertical wall would mean a filament swap on every layer: hundreds of
-swaps, hours of purging and a big pile of waste. Printing the faces flat means each
-tile only changes colour **once**, at a single height. That works with an AMS, and it
-also works without one by doing a manual swap at a pause.
+The core is a red block with a red top cap and a red bottom cap, and the caps have 45° bevelled edges.
+The four tiles are walls with all four edges mitred at 45°. Each tile glues flat onto
+one side of the block. Its mitres seat against the caps and against the tiles next to it, so
+every seam lands exactly on a cube edge. There is 0.15 mm of clearance per mitre.
 
 ## Printing on a Bambu Lab P2S (Bambu Studio)
 
-Shared settings: PLA, 0.4 mm nozzle, **0.20 mm layer height** (first layer 0.20), textured PEI or smooth plate.
+Use **0.20 mm layer height with a 0.20 mm first layer.** The colour heights are designed for that
+(the default "0.20mm Standard" profile). Use PLA and a 0.4 mm nozzle.
 
-### 1. `core.stl` (red)
-- Print it as it loads: bottom face on the plate, tab pointing up. Use **no supports**.
-  The hole is teardrop-shaped and the pocket lips are only 1.2 mm deep, so neither needs support.
-- 2 walls, 10–15 % gyroid infill, 4 top and 4 bottom layers.
-- Brim: none needed.
+### `core.stl` (red), 1 copy
+- Print it as it loads, tab up. **No supports.** The top-cap bevel and the teardrop hole are both 45° overhangs.
+- 2 walls, 15 % gyroid infill.
 
-### 2. `tile_A.stl` × 2 (black → white)
-- Load the black filament.
-- Slice the file, then on the layer slider find the layer at **Z = 1.40 mm** (layer 7). Right-click the **+**
-  and choose **Change filament** (with AMS), or **Add pause** (without AMS), then swap in white.
-- Use 100 % infill, or just let 2 walls fill it. The tiles are thin and come out solid either way.
-- Optional: turn on ironing for the top surface to get a glossy H.
+### `tile_A.stl`, 2 copies (plate 1)
+- Start with **white**. Print it as it loads: face up, narrow side on the plate. No supports; the mitres are 45°.
+- After slicing, open the Preview layer slider:
+  - On the layer at **1.20 mm** (layer 6), right-click the **+** and choose **Change filament → red**
+    (or **Add pause** if you have no AMS).
+  - On the layer at **1.80 mm** (layer 9), do the same and choose **Change filament → black**.
+- **Check this in the preview before you print.** Layer 6 should show red only around the H outline,
+  and layers 9–11 should be black everywhere except the H.
 
-### 3. `tile_B.stl` × 2 (red → black)
-- Same as above: red filament, then change to **black at Z = 1.40 mm**.
+### `tile_B.stl`, 2 copies (plate 2)
+- Start with **black**.
+- On the layer at **1.20 mm** (layer 6), choose **Change filament → red**.
+- Check the preview: the top layers are red, with the H, the sliver lines and the border cut
+  through to the black.
 
-> If you'd rather paint the colours per part with an AMS, the colour-split parts are in `parts/`.
-> Select both STLs of a tile together, drag them in, answer **Yes** to "load as a single
-> object with multiple parts", and assign a filament to each part. They share one
-> origin, so they line up exactly.
+Optional: turn on ironing on the tiles' top surfaces for a smooth finish.
 
 ## Assembly
-1. Do a test fit first. Each tile drops into a pocket with 0.2 mm of clearance per side, and its
-   surface sits flush with the red frame. Only the H stands proud, by 1 mm.
-2. Arrange the faces alternately around the cube: **A, B, A, B**.
-   Turn every tile so that the **H crossbar is horizontal** and the tab is up.
-3. Glue each tile with 3–4 small dots of CA (super glue) or a thin layer of E6000 on the
-   back. Press it down for 20 seconds.
-4. Thread a ribbon or an ornament hook through the tab.
+1. Dry-fit all four tiles first. Each one should seat flush with the cap edges and sit
+   tight against its neighbours.
+2. Go around the cube **A, B, A, B**. The back of each tile has a small engraved
+   **arrow, which points to the top** (towards the tab). If a tile goes on upside down, its slivers
+   will point down-right instead of up-left.
+3. Put 4–5 small dots of CA (super glue) on the back of a tile, press it on for 20 s, and repeat for each tile.
+4. Thread a ribbon or an ornament hook through the tab. The hole is 4.5 mm.
 
-## Tweaking
-Everything is parametric and lives in `build.py`: cube size, border width, H proportions, clearance,
-and the tab and hole sizes. Regenerate with:
+Finished size: 45 × 45 × 59 mm. Expect about 40 g.
+
+## If the fit needs adjusting
+All the dimensions are parameters at the top of `build.py`:
+- `GAP`: mitre clearance (0.15). Raise it to 0.2 if the tiles don't seat.
+- `T`, `FLOOR`, `STEP`: wall and colour heights. Keep them multiples of 0.2.
+- `SHIFT`: sliver width.
+- `H_*`: letter proportions.
 
 ```bash
-pip install trimesh manifold3d numpy matplotlib
+pip install trimesh manifold3d numpy matplotlib pillow
 python3 build.py && python3 render.py
 ```
 
-`build.py` checks the geometry on every run and fails if any check fails:
-- every part is watertight and manifold and is a single body sitting at Z = 0
-- the colour parts don't overlap
-- every installed tile clears the core and the other tiles
-- the tile surface is flush with the cube face
+`build.py` refuses to write the files unless every check passes. The results are in `preview/report.json`:
+- every part is watertight and manifold, and every tile prints as one body on the bed
+- the colour regions don't overlap, and each one lies exactly between its layer heights
+- no feature and no gap is narrower than 0.8 mm (two nozzle lines)
+- the assembled tiles don't collide with the core or with each other, and the outer surfaces form a true 45 mm cube
 
-The results are written to `preview/report.json`.
+The colour-split STLs in `parts/` are only needed if you'd rather assign colours per part with the AMS.
