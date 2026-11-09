@@ -1,0 +1,14 @@
+[
+  "scale: 0.0880 mm/px, logo 85.9 x 90.0 mm",
+  "cleaned 0.05 mm2 of tracing slivers",
+  "outer outline widened by 0.3 mm outward (interior artwork untouched)",
+  "removed tracing crumbs: 0.020 mm2 reassigned",
+  "no corner-to-corner pinch points in any colour",
+  "fidelity away from colour edges: 99.907% of pixels match",
+  "fidelity vs. source image: 98.56% of all logo pixels match (rest = 1 px anti-aliased seams); red 96.1%, black 100.0%, white 99.9%",
+  "red: 0.14% of area in features thinner than 0.6 mm",
+  "black: 0.01% of area in features thinner than 0.6 mm",
+  "white: 0.03% of area in features thinner than 0.6 mm",
+  "colour parts: disjoint, every layer 100% covered; plate: 1 body, 1 hole (loop), 86.4 x 99.5 x 3.0 mm incl. loop, 22.0 g PLA (solid)",
+  "every part still watertight after a float32 STL save/reload (what a slicer reads)"
+]
