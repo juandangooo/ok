@@ -1,0 +1,57 @@
+[
+  {
+    "name": "core",
+    "watertight": true,
+    "winding_consistent": true,
+    "volume_positive": true,
+    "bodies": 1,
+    "volume_cm3": 84.192,
+    "pla_grams_solid": 104.4,
+    "bbox_mm": [
+      45.0,
+      45.0,
+      59.0
+    ],
+    "min_z": 0.0
+  },
+  {
+    "name": "tile_A",
+    "watertight": true,
+    "winding_consistent": true,
+    "volume_positive": true,
+    "bodies": 1,
+    "volume_cm3": 2.287,
+    "pla_grams_solid": 2.8,
+    "bbox_mm": [
+      39.6,
+      39.6,
+      2.2
+    ],
+    "min_z": 0.0
+  },
+  {
+    "name": "tile_B",
+    "watertight": true,
+    "winding_consistent": true,
+    "volume_positive": true,
+    "bodies": 1,
+    "volume_cm3": 2.373,
+    "pla_grams_solid": 2.9,
+    "bbox_mm": [
+      39.6,
+      39.6,
+      2.2
+    ],
+    "min_z": 0.0
+  },
+  {
+    "name": "assembled",
+    "bbox_mm": [
+      47.0,
+      47.0,
+      59.0
+    ],
+    "volume_cm3": 93.51,
+    "pla_grams_if_solid": 116.0
+  }
+]
