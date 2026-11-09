@@ -34,6 +34,12 @@ The four tiles are walls with all four edges mitred at 45°. Each tile glues fla
 one side of the block. Its mitres seat against the caps and against the tiles next to it, so
 every seam lands exactly on a cube edge. There is 0.15 mm of clearance per mitre.
 
+## Quickest route: `HH_Cube_Ornament.3mf` (AMS)
+Open it in Bambu Studio. Everything is on one plate, and every colour part already has its filament set:
+**filament 1 = red, 2 = black, 3 = white.** Set those three filament colours in the left panel
+(or sync them from the AMS), slice, and map them to your AMS slots when you send the job.
+It's one print with no manual swaps. Glue the tiles on afterwards, as described below.
+
 ## Printing on a Bambu Lab P2S (Bambu Studio)
 
 Use **0.20 mm layer height with a 0.20 mm first layer.** The colour heights are designed for that
