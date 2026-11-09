@@ -41,8 +41,8 @@ H_STEM = 6.6
 H_BAR = 5.6
 SHIFT = 1.0         # sliver width: extrusion direction is up-left (-x, +y)
 
-FRAME_INSET = 2.6   # tile B: black border line, distance from cube edge
-FRAME_W = 1.0       # tile B: border line width
+FRAME_INSET = 2.6   # border line (red on A, black on B), distance from cube edge
+FRAME_W = 1.0       # border line width
 
 # hanging tab (on the top cap)
 TAB_W = 12.0
@@ -109,6 +109,12 @@ def up_arrow():
     return prism(tri + stem, -1, 0.4)
 
 
+def border_line():
+    """Square outline just inside the face edge (logo's hexagon outline)."""
+    o = S / 2 - FRAME_INSET
+    return rect2(-o, o, -o, o) - rect2(-o + FRAME_W, o - FRAME_W, -o + FRAME_W, o - FRAME_W)
+
+
 # ---------------------------------------------------------------------- tiles
 def make_tile_a():
     blank = tile_blank()
@@ -116,7 +122,8 @@ def make_tile_a():
     H1 = h_extruded(1)
     white = slab(blank, 0, FLOOR) - up_arrow()
     red = slab(blank, FLOOR, FLOOR + STEP) - prism(H0, FLOOR - 1, T + 1)
-    black = slab(blank, FLOOR + STEP, T) - prism(H1, FLOOR - 1, T + 1)
+    # border groove cut through the black face exposes the red layer -> red outline
+    black = slab(blank, FLOOR + STEP, T) - prism(H1 + border_line(), FLOOR - 1, T + 1)
     return {"white": white, "red": red, "black": black}
 
 
@@ -124,9 +131,7 @@ def make_tile_b():
     blank = tile_blank()
     H0, H1, H2 = h_extruded(0), h_extruded(1), h_extruded(2)
     groove = H2 - H1                                      # black line beyond the sliver
-    o = S / 2 - FRAME_INSET
-    frame = rect2(-o, o, -o, o) - rect2(-o + FRAME_W, o - FRAME_W, -o + FRAME_W, o - FRAME_W)
-    cut = H0 + groove + frame
+    cut = H0 + groove + border_line()
     black = slab(blank, 0, FLOOR) - up_arrow()
     red = slab(blank, FLOOR, T) - prism(cut, FLOOR - 1, T + 1)
     return {"black": black, "red": red}

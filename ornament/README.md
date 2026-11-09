@@ -11,7 +11,7 @@ wall of that pocket shows up-and-left of every stroke, which is the logo's 3D lo
 
 | Face | What you see, outer to inner |
 |---|---|
-| A (black) | black face, then a **red** wall step, then a **white** H floor |
+| A (black) | black face with a **red** border line, then a **red** wall step, then a **white** H floor |
 | B (red) | red face, then a **black** line, then a red sliver, then a **black** H floor, plus a black border line |
 
 ![faces](preview/faces_headon.png)
@@ -50,7 +50,7 @@ Use **0.20 mm layer height with a 0.20 mm first layer.** The colour heights are 
     (or **Add pause** if you have no AMS).
   - On the layer at **1.80 mm** (layer 9), do the same and choose **Change filament → black**.
 - **Check this in the preview before you print.** Layer 6 should show red only around the H outline,
-  and layers 9–11 should be black everywhere except the H.
+  and layers 9–11 should be black everywhere except the H and the thin border line.
 
 ### `tile_B.stl`, 2 copies (plate 2)
 - Start with **black**.
