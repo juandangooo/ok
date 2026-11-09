@@ -63,18 +63,46 @@ def render(items, path, elev, azim, size=900, title=None, pad=1.15):
 
 def main():
     pv = os.path.join(HERE, "preview")
-    asm = [(trimesh.load(os.path.join(pv, f"assembled_{c}.stl")), COL[c]) for c in COL]
+    L = lambda p: trimesh.load(os.path.join(HERE, p))
+    asm = [(L(f"preview/assembled_{c}.stl"), COL[c]) for c in COL]
     render(asm, os.path.join(pv, "assembled_front.png"), 8, -45, title="Edge-on, like the logo")
+    ims = []
     for i, az in enumerate((-45, 45, 135, 225)):
-        render(asm, os.path.join(pv, f"turn_{i}.png"), 8, az, size=500)
-    render(asm, os.path.join(pv, "assembled_high.png"), 35, -70, title="From above")
-    core = trimesh.load(os.path.join(HERE, "core.stl"))
-    render([(core, COL["red"])], os.path.join(pv, "core.png"), 25, -60, title="core.stl - as printed (red)")
+        render(asm, os.path.join(pv, f"_t{i}.png"), 8, az, size=500)
+    from PIL import Image
+    ims = [Image.open(os.path.join(pv, f"_t{i}.png")) for i in range(4)]
+    o = Image.new("RGB", (2000, 500), "white")
+    for i, im in enumerate(ims):
+        o.paste(im, (i * 500, 0)); os.remove(os.path.join(pv, f"_t{i}.png"))
+    o.save(os.path.join(pv, "turnaround.png"))
+
+    core, lid = L("core.stl"), L("lid.stl")
+    render([(core, COL["red"])], os.path.join(pv, "core.png"), 20, -60, title="core.stl - rails + tab")
+    # exploded: lid lifted, front tile pulled up its rails
+    import build
+    lid_up = lid.copy(); lid_up.apply_translation([0, 0, build.S - build.T + 22])
+    items = [(core, COL["red"]), (lid_up, COL["red"])]
+    for face, kind in build.FACES:
+        cols = ("white", "red", "black") if kind == "A" else ("black", "red")
+        lift = 30 if face == "-y" else (14 if face == "+x" else 0)
+        for c in cols:
+            m = build.to_trimesh(build.tile_to_face(
+                trimesh_to_manifold(L(f"parts/tile_{kind}_{c}.stl")), face))
+            m.apply_translation([0, 0, lift])
+            items.append((m, COL[c]))
+    render(items, os.path.join(pv, "exploded.png"), 18, -45,
+           title="Tiles slide down the rails, lid presses on over the tab")
     p = os.path.join(HERE, "parts")
     for name, cols in (("tile_A", ("white", "red", "black")), ("tile_B", ("black", "red"))):
         items = [(trimesh.load(os.path.join(p, f"{name}_{c}.stl")), COL[c]) for c in cols]
         render(items, os.path.join(pv, f"{name}.png"), 55, -75, title=f"{name}.stl - as printed (face up)")
-        render(items, os.path.join(pv, f"{name}_back.png"), -60, -75, title=f"{name} - back (bed side)")
+        render(items, os.path.join(pv, f"{name}_back.png"), -55, -75, title=f"{name} - back: dovetail grooves")
+
+
+def trimesh_to_manifold(t):
+    from manifold3d import Manifold, Mesh
+    return Manifold(Mesh(vert_properties=np.asarray(t.vertices, dtype=np.float32),
+                         tri_verts=np.asarray(t.faces, dtype=np.uint32)))
 
 
 if __name__ == "__main__":

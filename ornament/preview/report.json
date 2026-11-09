@@ -1,15 +1,17 @@
 {
   "layer_height": 0.2,
   "checks": [
-    "core: watertight, 1 body, 75.8 cm3 solid, bbox [45.0, 45.0, 59.0]",
-    "tile_A: watertight, 1 body, colours disjoint, 3.32 cm3",
-    "tile_B: watertight, 1 body, colours disjoint, 3.19 cm3",
-    "colour changes fall exactly on layer boundaries: A white->red @ 1.0, red->black @ 1.6; B black->red @ 1.0",
-    "tile_A/white: area lost to <0.8 mm features 0.01 %, gaps lost 0.00 %",
-    "tile_A/red: area lost to <0.8 mm features 0.02 %, gaps lost 0.01 %",
-    "tile_A/black: area lost to <0.8 mm features 0.03 %, gaps lost 0.01 %",
-    "tile_B/black: area lost to <0.8 mm features 0.01 %, gaps lost 0.00 %",
-    "tile_B/red: area lost to <0.8 mm features 0.05 %, gaps lost 0.02 %",
-    "assembly: no collisions, outer faces flush to a 45.0 mm cube, cube 99.75 % filled (rest = 0.15 mm mitre clearance)"
+    "core: watertight, 1 body, bbox [45.0, 45.0, 59.0]",
+    "lid: watertight, 1 body, bbox [45.0, 45.0, 4.2]",
+    "tile_A: watertight, 1 body, colours disjoint",
+    "tile_B: watertight, 1 body, colours disjoint",
+    "colour changes on layer boundaries: A white->red @1.0, red->black @1.6; B black->red @1.0",
+    "every tile layer: no printed feature or gap narrower than 0.8 mm",
+    "no see-through holes: the top floor layer is unbroken under every recess, line and groove",
+    "assembled: tiles, core and lid don't collide (lid crush ribs bite 2.52 mm3 into the tab)",
+    "assembly path: every tile slides down its rails from above with no collision",
+    "locked: tiles can't come off outward (play < 0.30 mm) or slide sideways",
+    "lid presses straight down over the tab and traps all four tiles",
+    "outer surfaces form a true 45.0 mm cube"
   ]
 }

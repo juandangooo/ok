@@ -2,7 +2,7 @@
 Pack the ornament into one Bambu Studio project: HH_Cube_Ornament.3mf
 
 One plate (256 x 256, P2S/X1/P1 bed):
-  core (red) + 2x tile_A (white/red/black parts) + 2x tile_B (black/red parts)
+  core (red) + lid (red) + 2x tile_A (white/red/black parts) + 2x tile_B (black/red parts)
 
 Each tile is ONE object made of colour PARTS, with a filament number per part
 (Metadata/model_settings.config, Bambu's own per-part format):
@@ -23,7 +23,8 @@ FIL = {"red": 1, "black": 2, "white": 3}
 
 # (object name, [(part name, stl path, colour)], bed x, bed y)
 OBJECTS = [
-    ("HH core", [("core", "core.stl", "red")], 128, 140),
+    ("HH core", [("core", "core.stl", "red")], 100, 145),
+    ("HH lid", [("lid", "lid.stl", "red")], 160, 145),
 ]
 for i, x in enumerate((53, 103)):
     OBJECTS.append((f"HH tile A{i+1}", [
