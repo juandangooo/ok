@@ -428,22 +428,11 @@ const INKS = [
   {col: '#00a6d0', w: 1.7, lag: .07, ph: 2.1, amp: 2.4, a: .9},
   {col: '#f13037', w: 1, lag: .13, ph: 4.4, amp: 2.8, a: .8},
 ];
-// Landscape photos fill the screen; portrait and square ones sit whole in front of a soft blur of themselves.
-function softBg(img) {
-  cache.soft = cache.soft || new Map();
-  if (!cache.soft.has(img)) { const k = 36 / img.width, cv = document.createElement('canvas'); cv.width = 36; cv.height = Math.max(8, Math.round(img.height * k)); cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); cache.soft.set(img, cv); }
-  return cache.soft.get(img);
-}
+// Every photo fills the whole screen. Tall and square photos are cropped to a band; img.focus (0 = top,
+// 1 = bottom, set from photos/manifest.js) says which band keeps the faces and signage in frame.
 function photoCover(c, img, x, y, w, h, zoom) {
-  if (img.width / img.height < 1.2) {
-    const bs = Math.max(w / img.width, h / img.height) * 1.05, bw = img.width * bs, bh = img.height * bs, soft = softBg(img);
-    c.save(); c.imageSmoothingQuality = 'high'; c.drawImage(soft, x + (w - bw) / 2, y + (h - bh) / 2, bw, bh); c.fillStyle = 'rgba(255,255,255,.18)'; c.fillRect(x, y, w, h); c.restore();
-    const s = Math.min(w / img.width, h / img.height) * (.92 + .08 * zoom), iw = img.width * s, ih = img.height * s;
-    c.save(); c.shadowColor = 'rgba(0,0,0,.35)'; c.shadowBlur = 14; c.drawImage(img, x + (w - iw) / 2, y + (h - ih) / 2, iw, ih); c.restore();
-    return;
-  }
   const s = Math.max(w / img.width, h / img.height) * zoom, iw = img.width * s, ih = img.height * s;
-  c.drawImage(img, x + (w - iw) / 2, y + (h - ih) * .42, iw, ih);
+  c.drawImage(img, x + (w - iw) / 2, y + (h - ih) * (img.focus === undefined ? .42 : img.focus), iw, ih);
 }
 // Each opening shows its photos in order, evenly spread over the time until the next pin lands.
 const photoSlice = n => { const k = photoCount(n), end = n < 35 ? landT[n + 1] : landT[35] + .8; return k ? (end - landT[n]) / k : 1; };

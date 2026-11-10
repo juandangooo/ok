@@ -29,7 +29,7 @@ input{width:220px;accent-color:#bc6b55}
   await Promise.all(['700 20px "DIN Condensed"', '500 20px "Avenir Next"', '600 20px "Avenir Next"', '700 20px "Avenir Next"', '400 20px "Baskerville"'].map(f => document.fonts.load(f)));
   // Opening photos for the TV: JourneyPhotoFiles[n] lists photos/ files for opening n (see photos/manifest.js).
   window.JourneyPhotos = {};
-  await Promise.all(Object.entries(JourneyPhotoFiles).map(async ([n, files]) => { JourneyPhotos[n] = await Promise.all(files.map(f => { const im = new Image(); im.src = 'photos/' + f; return im.decode().then(() => im); })); }));
+  await Promise.all(Object.entries(JourneyPhotoFiles).map(async ([n, files]) => { JourneyPhotos[n] = await Promise.all(files.map(f => { const im = new Image(); im.src = 'photos/' + f; im.focus = (window.JourneyPhotoFocus || {})[f]; return im.decode().then(() => im); })); }));
   M.warm();
   const ctx = cv.getContext('2d');
   let t = 0, playing = false, last = 0;
