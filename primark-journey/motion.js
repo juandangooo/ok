@@ -26,11 +26,18 @@ const mixColor = (a, b, t) => { const p = h => [1,3,5].map(i => parseInt(h.slice
 /* ---------- Timeline ----------
    0.0 – 2.6   case etches in, lid opens, gear out, map unfolds, layout settles
    2.6 – 3.5   three ink lines draw the truss and TV out of the case in one continuous path
-   3.7 – 25.5  openings 01–35, one every 0.64 s; chapter titles change with the first of each batch
-   26.3 – 30.0 the upcoming 36th, a thank-you wave through every marker, hold */
-const FIRST = 3.7, STEP = .64;
+   3.7 – 26.6  openings 01–35; each opening's time grows with its number of photos, and the TV
+               cuts through them inside that time. Chapter titles change with the first of each batch
+   27.4 – 30.0 the upcoming 36th, a thank-you wave through every marker, hold */
+const FIRST = 3.7, LAST = 26.6;
+const photoCount = n => (window.JourneyPhotoFiles && JourneyPhotoFiles[n]) ? JourneyPhotoFiles[n].length : 0;
 const landT = {}, chapterOf = {}, beats = [0];
-for (let id = 1; id <= 35; id++) landT[id] = FIRST + (id - 1) * STEP;
+{
+  const raw = id => .5 + .26 * (Math.max(1, photoCount(id)) - 1);
+  let sum = 0; for (let id = 1; id <= 34; id++) sum += raw(id);
+  const k = (LAST - FIRST) / sum; let at = FIRST;
+  for (let id = 1; id <= 35; id++) { landT[id] = at; at += raw(id) * k; }
+}
 for (let f = 3; f <= 10; f++) { beats[f] = landT[counts[f - 1] + 1] - .35; for (let id = counts[f - 1] + 1; id <= counts[f]; id++) chapterOf[id] = f; }
 beats[1] = beats[2] = beats[3];
 beats[11] = landT[35] + .8; landT[36] = beats[11] + .5; chapterOf[36] = 11;
@@ -421,19 +428,35 @@ const INKS = [
   {col: '#00a6d0', w: 1.7, lag: .07, ph: 2.1, amp: 2.4, a: .9},
   {col: '#f13037', w: 1, lag: .13, ph: 4.4, amp: 2.8, a: .8},
 ];
+// Landscape photos fill the screen; portrait and square ones sit whole in front of a soft blur of themselves.
+function softBg(img) {
+  cache.soft = cache.soft || new Map();
+  if (!cache.soft.has(img)) { const k = 36 / img.width, cv = document.createElement('canvas'); cv.width = 36; cv.height = Math.max(8, Math.round(img.height * k)); cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); cache.soft.set(img, cv); }
+  return cache.soft.get(img);
+}
 function photoCover(c, img, x, y, w, h, zoom) {
+  if (img.width / img.height < 1.2) {
+    const bs = Math.max(w / img.width, h / img.height) * 1.05, bw = img.width * bs, bh = img.height * bs, soft = softBg(img);
+    c.save(); c.imageSmoothingQuality = 'high'; c.drawImage(soft, x + (w - bw) / 2, y + (h - bh) / 2, bw, bh); c.fillStyle = 'rgba(255,255,255,.18)'; c.fillRect(x, y, w, h); c.restore();
+    const s = Math.min(w / img.width, h / img.height) * (.92 + .08 * zoom), iw = img.width * s, ih = img.height * s;
+    c.save(); c.shadowColor = 'rgba(0,0,0,.35)'; c.shadowBlur = 14; c.drawImage(img, x + (w - iw) / 2, y + (h - ih) / 2, iw, ih); c.restore();
+    return;
+  }
   const s = Math.max(w / img.width, h / img.height) * zoom, iw = img.width * s, ih = img.height * s;
   c.drawImage(img, x + (w - iw) / 2, y + (h - ih) * .42, iw, ih);
 }
-function screenContent(c, n, x, y, w, h, zoom) {
-  const photos = window.JourneyPhotos || {};
+// Each opening shows its photos in order, evenly spread over the time until the next pin lands.
+const photoSlice = n => { const k = photoCount(n), end = n < 35 ? landT[n + 1] : landT[35] + .8; return k ? (end - landT[n]) / k : 1; };
+const photoIndexAt = (t, n) => Math.min(photoCount(n) - 1, Math.max(0, Math.floor((t - landT[n]) / photoSlice(n) + 1e-6)));
+function screenContent(c, n, x, y, w, h, zoom, j) {
+  const photos = (window.JourneyPhotos || {})[n];
   const logoScreen = (bg, fg, sub) => {
     c.fillStyle = bg; c.fillRect(x, y, w, h);
     primarkLogo(c, x + w * .19, y + h * .43, w * .62, fg);
     if (sub) text(c, sub, x + w / 2, y + h * .74, 15, fg, 'Avenir Next', '700', 'center');
   };
   if (n === 0) logoScreen('#e3f4fa', P.blue);
-  else if (photos[n]) photoCover(c, photos[n], x, y, w, h, zoom);
+  else if (photos && photos.length) photoCover(c, photos[j === undefined ? photos.length - 1 : Math.min(j, photos.length - 1)], x, y, w, h, zoom);
   else if (n === 36) logoScreen(P.blue, '#ffffff', 'COMING SOON');
   else logoScreen(n % 2 ? P.blue : '#e3f4fa', n % 2 ? '#ffffff' : P.blue);
 }
@@ -445,13 +468,14 @@ function screenAt(c, t, x, y, w, h) {
   const n = latest(t);
   if (n === 0) screenContent(c, 0, x, y, w, h, 1);
   else {
-    // Previous opening underneath; the new one springs up into place over it.
-    const tau = t - landT[n], sp = spring(tau, 4.2, .6);
-    screenContent(c, n - 1, x, y, w, h, 1 + .05 * sp);
+    // Whatever was on screen stays underneath; the next photo springs up over it.
+    const k = Math.max(1, photoCount(n)), j = photoCount(n) ? photoIndexAt(t, n) : 0, t0 = landT[n] + j * photoSlice(n);
+    const tau = t - t0, sp = spring(tau, 5, .62);
+    if (j > 0) screenContent(c, n, x, y, w, h, 1.0, j - 1); else screenContent(c, n - 1, x, y, w, h, 1.0);
     c.fillStyle = `rgba(255,255,255,${.35 * Math.min(1, sp)})`; c.fillRect(x, y, w, h);
     c.save(); c.beginPath(); c.rect(x, y + h * (1 - Math.min(1, sp * 1.15)), w, h); c.clip();
-    c.translate(0, (1 - sp) * h * .35); screenContent(c, n, x, y, w, h, 1.16 - .16 * sp); c.restore();
-    const bp = spring(tau - .06, 4.5, .5);
+    c.translate(0, (1 - sp) * h * .35); screenContent(c, n, x, y, w, h, 1.16 - .16 * sp, j); c.restore();
+    const bp = spring(t - landT[n] - .06, 4.5, .5);
     if (bp > 0) { c.save(); c.translate(x + 22, y + 20); c.scale(bp, bp); badge(c, n, 13, t, n === 36 ? clamp((t - landT[36]) / .55) : 1); c.restore(); }
   }
   c.restore();

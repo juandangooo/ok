@@ -20,16 +20,16 @@ input{width:220px;accent-color:#bc6b55}
 <header><div><h1>THE PRIMARK JOURNEY</h1><p>30-second Etched Motion · Hellhound Audio · 2022–2026</p></div>
 <nav><button id="play">Play</button><input id="seek" aria-label="Scrub" type="range" min="0" max="30" step="0.01" value="0"><span id="position">0.0 s</span></nav></header>
 <main><canvas id="stage" width="1080" height="1350"></canvas></main>
-<script src="etch.js"></script><script src="hellhound-logo.js"></script><script src="openings.js"></script><script src="drawing-kit.js"></script><script src="map-paths.js"></script><script src="motion.js"></script>
+<script src="etch.js"></script><script src="hellhound-logo.js"></script><script src="openings.js"></script><script src="drawing-kit.js"></script><script src="map-paths.js"></script><script src="photos/manifest.js"></script><script src="motion.js"></script>
 <script>
 (async () => {
   const M = JourneyMotion, cv = document.getElementById('stage'), seek = document.getElementById('seek'), pos = document.getElementById('position'), btn = document.getElementById('play');
   const params = new URLSearchParams(location.search), scale = +(params.get('scale') || 1);
   cv.width = M.W * scale; cv.height = M.H * scale;
   await Promise.all(['700 20px "DIN Condensed"', '500 20px "Avenir Next"', '600 20px "Avenir Next"', '700 20px "Avenir Next"', '400 20px "Baskerville"'].map(f => document.fonts.load(f)));
-  // Opening photos for the TV (photos/NN.jpg); openings without one show the Primark logo.
+  // Opening photos for the TV: JourneyPhotoFiles[n] lists photos/ files for opening n (see photos/manifest.js).
   window.JourneyPhotos = {};
-  await Promise.all(Array.from({length: 35}, (_, i) => { const n = i + 1, im = new Image(); im.src = `photos/${String(n).padStart(2, '0')}.jpg`; return im.decode().then(() => { JourneyPhotos[n] = im; }, () => {}); }));
+  await Promise.all(Object.entries(JourneyPhotoFiles).map(async ([n, files]) => { JourneyPhotos[n] = await Promise.all(files.map(f => { const im = new Image(); im.src = 'photos/' + f; return im.decode().then(() => im); })); }));
   M.warm();
   const ctx = cv.getContext('2d');
   let t = 0, playing = false, last = 0;

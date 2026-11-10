@@ -58,3 +58,9 @@ Timeline (seconds):
 - 26.0–30.0: the dashed Pentagon City marker lands as NEXT, a thank-you pulse runs through every marker, then a hold.
 
 To change the pacing, edit `FIRST` and `STEP` (the opening beat) and the intro times in `caseScene`, `gearAt` and `mapAt` in motion.js. The case finish is the `CASE` palette in drawing-kit.js.
+
+## Opening photos on the TV
+
+- photos/NN.jpg, NN_2.jpg, NN_3.jpg...: every photo shown on the TV, resized to 1280 px. photos/manifest.js lists them per opening (`JourneyPhotoFiles`), in the order they are shown.
+- Sources: the photos supplied in the A, B and post_28 zips, plus the 36 photos in the Primark Hellhound Audio Drive folder. Near-duplicate frames (back-to-back bursts and repeats of a photo already used) were dropped by perceptual hash, leaving 59 photos for 34 of the 35 openings. Castleton Square (31) has no photo yet and shows the Primark logo.
+- Each opening's time on screen grows with its photo count (about 0.5 s for one photo, about 0.3 s per photo for a burst), scaled so the last pin lands at 26.6 s. Portrait and square photos sit whole in front of a soft blur of themselves.
