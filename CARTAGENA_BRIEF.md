@@ -133,5 +133,5 @@ Go in the order of section 6 (A → F), one block at a time: propose with timest
 
 ## Re-anchor message (paste whenever you like)
 ```
-Re-read CARTAGENA_BRIEF.md. Confirm you are following section 0 (rules) and section 3 (look). Tell me which step of section 6 we're on and reply ✅/⏳/⚠️.
+Re-read CARTAGENA_BRIEF.md. Confirm you are following section 0 (rules) and section 3 (look). Tell me which block of section 6 (A–F) we're on and reply ✅/⏳/⚠️.
 ```
