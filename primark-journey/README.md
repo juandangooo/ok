@@ -64,3 +64,15 @@ To change the pacing, edit `FIRST` and `STEP` (the opening beat) and the intro t
 - photos/NN.jpg, NN_2.jpg, NN_3.jpg...: every photo shown on the TV, resized to 1280 px. photos/manifest.js lists them per opening (`JourneyPhotoFiles`), in the order they are shown.
 - Sources: the photos supplied in the A, B and post_28 zips, plus the 36 photos in the Primark Hellhound Audio Drive folder. Near-duplicate frames (back-to-back bursts and repeats of a photo already used) were dropped by perceptual hash, leaving 59 photos for 34 of the 35 openings. Castleton Square (31) has no photo yet and shows the Primark logo.
 - Each opening's time on screen grows with its photo count (about 0.5 s for one photo, about 0.3 s per photo for a burst), scaled so the last pin lands at 26.6 s. Every photo fills the whole screen; tall and square photos are cropped to a band, with a per-photo vertical focus in photos/manifest.js (`JourneyPhotoFocus`) keeping faces and signage in frame.
+
+## 45-second version (primark-journey-45s.mp4)
+
+The 30 s cut (primark-journey-30s.mp4) is kept as it was. The 45 s cut changes only timing, motion and export quality; nothing about the look, copy, logos, map or photos.
+
+- timing.js: every pace, hold and transition length in one place (tempo grid, intro length, beats per opening, final hold, fade lengths in 30 fps frames). The total length is derived from it. Defaults: intro 3.8 s, 35 openings at 1.09 s each (2 beats at 110 bpm), final card held 3.0 s, 45.0 s total.
+- Headlines: the old line fades out and rises 10 px (8 frames, ease-in), then the new one fades in rising from below (8 frames, ease-out), finishing exactly as the chapter's first opening lands. Only when the text changes.
+- Billboard: photos crossfade (7 frames, shortened for very quick bursts) and push in 4% while on screen.
+- Map: a new state fades in over 10 frames; pins pop 0 -> 1.1 -> 1 (ease-out-back).
+- Counter rolls like an odometer (only the changing digits move); new store-list lines fade in; the year and the OPENINGS label crossfade.
+- Ambient motion (ink wobble, current, pulses) slows to a stop over the last 1.8 s so the end eases to rest.
+- Export: 1080x1350, 60 fps, H.264 High, 13 Mbps (max 15), yuv420p, +faststart, drawn at 2x and downscaled. No audio track. `node render-motion.mjs out.mp4` (defaults come from timing.js; `--fps 30` for 30 fps).

@@ -1,11 +1,11 @@
-/* The Primark Journey: continuous 30-second Etched Motion.
+/* The Primark Journey: continuous 45-second Etched Motion.
    Reuses the drawing kit (etch.js, drawing-kit.js, map-paths.js, hellhound-logo.js, openings.js).
    A three-second intro (case opens, SM58 and a JBL VRX ground stack come out, the map unfolds), then
    every opening lands on a steady beat: pin on the map (NYC and DC stores in real-geography close-ups),
    a big "now opening" callout, and a permanent line in the ledger below. */
 (function () {
 'use strict';
-const W = 1080, H = 1350, DURATION = 30, FPS = 30;
+const T = JourneyTiming, W = 1080, H = 1350, DURATION = T.duration, FPS = T.fps;   // all pacing lives in timing.js
 
 /* ---------- Copy ---------- */
 const counts = [0,0,0,3,7,11,17,25,28,32,35,36];
@@ -20,27 +20,25 @@ const lerp = (a, b, t) => a + (b - a) * t;
 const prog = (t, start, dur) => clamp((t - start) / dur);
 const eOut = x => 1 - Math.pow(1 - x, 3);
 const eInOut = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const eIn = x => x * x * x;
+const fade = (t, a, d) => eInOut(prog(t, a, d));
+// Ambient clock: runs with real time, then slows to a stop over the last T.restSeconds, so every looping wobble eases to rest.
+const ambT = t => { const r = T.restSeconds, t0 = DURATION - r, u = clamp((t - t0) / r); return t < t0 ? t : t0 + r * (u - u * u / 2); };
 const eBack = x => { const k = 1.9; return 1 + (k + 1) * Math.pow(x - 1, 3) + k * Math.pow(x - 1, 2); };
 const mixColor = (a, b, t) => { const p = h => [1,3,5].map(i => parseInt(h.slice(i, i + 2), 16)); const A = p(a), B = p(b); return `rgb(${A.map((v, i) => Math.round(lerp(v, B[i], t))).join(',')})`; };
 
-/* ---------- Timeline ----------
-   0.0 – 2.6   case etches in, lid opens, gear out, map unfolds, layout settles
-   2.6 – 3.5   three ink lines draw the truss and TV out of the case in one continuous path
-   3.7 – 26.6  openings 01–35; each opening's time grows with its number of photos, and the TV
-               cuts through them inside that time. Chapter titles change with the first of each batch
-   27.4 – 30.0 the upcoming 36th, a thank-you wave through every marker, hold */
-const FIRST = 3.7, LAST = 26.6;
+/* ---------- Timeline (numbers come from timing.js) ----------
+   0.0 – 3.8   case etches in, lid opens, gear out, map unfolds, three ink lines draw the truss and TV
+   3.8 – 41.7  openings 01–35, one per equal slot; a burst of photos shares its opening's slot
+   42.0        final card: "A journey built on trust." + Primark, held, ambient motion easing to rest
+   42.5 – 45   the upcoming 36th lands, a thank-you wave runs through every marker */
 const photoCount = n => (window.JourneyPhotoFiles && JourneyPhotoFiles[n]) ? JourneyPhotoFiles[n].length : 0;
 const landT = {}, chapterOf = {}, beats = [0];
-{
-  const raw = id => .5 + .26 * (Math.max(1, photoCount(id)) - 1);
-  let sum = 0; for (let id = 1; id <= 34; id++) sum += raw(id);
-  const k = (LAST - FIRST) / sum; let at = FIRST;
-  for (let id = 1; id <= 35; id++) { landT[id] = at; at += raw(id) * k; }
-}
-for (let f = 3; f <= 10; f++) { beats[f] = landT[counts[f - 1] + 1] - .35; for (let id = counts[f - 1] + 1; id <= counts[f]; id++) chapterOf[id] = f; }
+for (let id = 1; id <= T.openings; id++) landT[id] = T.firstAt + (id - 1) * T.slot;
+const CARD = T.cardAt, HEAD_LEAD = T.swapOut + T.swapIn;     // a headline change finishes exactly as its first opening lands
+for (let f = 3; f <= 10; f++) { beats[f] = landT[counts[f - 1] + 1] - HEAD_LEAD; for (let id = counts[f - 1] + 1; id <= counts[f]; id++) chapterOf[id] = f; }
 beats[1] = beats[2] = beats[3];
-beats[11] = landT[35] + .8; landT[36] = beats[11] + .5; chapterOf[36] = 11;
+beats[11] = CARD - HEAD_LEAD; landT[36] = CARD + T.beat; chapterOf[36] = 11;
 const beatAt = t => { let i = 0; while (i < 11 && t >= beats[i + 1]) i++; return i; };
 const prevShown = i => shown[shown.indexOf(i) - 1];
 const pinP = (t, id) => clamp((t - landT[id]) / .55);
@@ -233,7 +231,7 @@ function badge(c, id, r, t, p) {
 }
 function stampAt(c, t, id, x, y, r = 13) {
   const p = pinP(t, id); if (p <= 0) return;
-  const wave = Math.sin(Math.PI * prog(t, beats[11] + 1.1 + (id - 1) * .03, .42));
+  const wave = Math.sin(Math.PI * prog(t, CARD + 2 * T.beat + (id - 1) * .03, .42));
   const k = eBack(clamp(p / .8)) * (1 + .22 * wave), drop = -16 * (1 - eOut(p));
   const q = prog(t, landT[id] + .12, .85);
   if (q > 0 && q < 1) { c.save(); c.globalAlpha *= .55 * (1 - q); c.strokeStyle = P.red; c.lineWidth = 1.6; c.beginPath(); c.arc(x, y, r + 3 + 26 * eOut(q), 0, Math.PI * 2); c.stroke(); c.restore(); }
@@ -252,27 +250,31 @@ function pinAt(c, t, id, x, y, dx, dy, r = 13) {
 }
 
 /* ---------- Header, title, map ---------- */
+// Swap one string for another: the old one fades out and rises (ease-in), then the new one fades in rising
+// from below (ease-out). It only animates when the text really changes, and is static otherwise.
+function swapText(c, t, t0, oldS, newS, rise, draw) {
+  if (oldS === null || oldS === newS || t >= t0 + T.swapOut + T.swapIn) { draw(newS, 0, 1); return; }
+  const po = eIn(prog(t, t0, T.swapOut)), pi = eOut(prog(t, t0 + T.swapOut, T.swapIn));
+  if (po < 1) draw(oldS, -rise * po, 1 - po);
+  if (pi > 0) draw(newS, rise * (1 - pi), pi);
+}
+const yearOf = n => n === 36 ? 'NEXT →' : n ? byId[n].date.slice(0, 4) : '2022';
 function headerAt(c, t) {
   text(c, 'HELLHOUND AUDIO  /  THE PRIMARK JOURNEY', 54, 52, 16, P.ink, 'Avenir Next', '700');
-  const n = latest(t), year = n === 36 ? 'NEXT →' : n ? byId[n].date.slice(0, 4) : '2022';
-  text(c, year, 1026, 52, 16, P.muted, 'Avenir Next', '700', 'right');
+  const n = latest(t);
+  swapText(c, t, landT[n] || 0, n ? yearOf(n - 1) : null, yearOf(n), 6, (s, dy, a) => { c.save(); c.globalAlpha *= a; text(c, s, 1026, 52 + dy, 16, P.muted, 'Avenir Next', '700', 'right'); c.restore(); });
   rule(c, 54, 73, 972);
-  c.save(); c.strokeStyle = P.red; c.lineWidth = 2; c.lineCap = 'round'; c.beginPath(); c.moveTo(54, 73); c.lineTo(54 + 972 * clamp(t / DURATION), 73.4); c.stroke(); c.restore();
+  c.save(); c.strokeStyle = P.red; c.lineWidth = 2; c.lineCap = 'round'; c.beginPath(); c.moveTo(54, 73); c.lineTo(54 + 972 * eInOut(clamp(t / DURATION)), 73.4); c.stroke(); c.restore();
 }
-function titleLine(c, s, y, size, color, box, off) {
+function titleLine(c, s, y, size, color) {
   c.font = `700 ${size}px "DIN Condensed"`; const w = c.measureText(s).width; if (w > 505) size *= 505 / w;
-  c.save(); c.beginPath(); c.rect(0, box[0], 575, box[1] - box[0]); c.clip(); text(c, s, 52, y + off, size, color, 'DIN Condensed', '700'); c.restore();
+  text(c, s, 52, y, size, color, 'DIN Condensed', '700');
 }
 function titlesAt(c, t) {
-  const i = beatAt(t), prev = prevShown(i);
-  for (const [n, y, size, color, box, delay] of [[0, 134, 52, P.ink, [86, 142], 0], [1, 192, 58, P.red, [142, 200], .08]]) {
-    const q = eInOut(prog(t, beats[i] + delay + (i === 0 ? -.6 : 0), .6));
-    if (prev !== undefined && q < 1) titleLine(c, titles[prev][n], y, size, color, box, -q * 62);
-    if (q > 0) titleLine(c, titles[i][n], y, size, color, box, (1 - q) * 62);
-  }
-  const s = prog(t, beats[i] + (i === 0 ? -.5 : .15), .5);
-  c.save(); if (prev !== undefined && s < 1) { c.globalAlpha = 1 - s; text(c, spans[prev], 54, 232 - 6 * s, 16, P.muted, 'Avenir Next', '700'); }
-  c.globalAlpha = s; text(c, spans[i], 54, 232 + 6 * (1 - s), 16, P.muted, 'Avenir Next', '700'); c.restore();
+  const i = beatAt(t), prev = prevShown(i), t0 = beats[i];
+  for (const [n, y, size, color] of [[0, 134, 52, P.ink], [1, 192, 58, P.red]])
+    swapText(c, t, t0, prev === undefined ? null : titles[prev][n], titles[i][n], T.swapRise, (s, dy, a) => { c.save(); c.globalAlpha *= a; titleLine(c, s, y + dy, size, color); c.restore(); });
+  swapText(c, t, t0, prev === undefined ? null : spans[prev], spans[i], T.swapRise, (s, dy, a) => { c.save(); c.globalAlpha *= a; text(c, s, 54, 232 + dy, 16, P.muted, 'Avenir Next', '700'); c.restore(); });
 }
 function mapAt(c, t) {
   const u = prog(t, 1.25, 1.15); if (u <= 0) return;
@@ -282,11 +284,10 @@ function mapAt(c, t) {
   c.save(); c.globalAlpha = rise; c.translate(cx, cy); c.rotate(rot); c.scale(sx, sy); c.translate(-940.5, -672);
   c.drawImage(u < 1 ? foldedMap(u) : mapBase(), 0, 0);
   for (const st in stateT) {
-    const p = eInOut(prog(t, stateT[st] + .05, .9)); if (p <= 0) continue;
-    const L = stateLayer(st), [ox, oy] = stateFirst[st].map_point;
-    const R = Math.max(...[[L.x0, L.y0], [L.x0 + L.w, L.y0], [L.x0, L.y0 + L.h], [L.x0 + L.w, L.y0 + L.h]].map(([a, b]) => Math.hypot(a - ox, b - oy)));
-    c.save(); c.beginPath(); c.arc(ox, oy, 8 + R * p, 0, Math.PI * 2); c.clip(); c.globalAlpha *= clamp(p * 2.5); c.drawImage(L.cv, L.x0, L.y0); c.restore();
-    const la = prog(t, stateT[st] + .55, .5); if (la > 0) { c.save(); c.globalAlpha *= la; const [lx, ly] = labelAt[st]; text(c, st, lx, ly, 34, '#063a4d', 'DIN Condensed', '700', 'center'); c.restore(); }
+    const p = fade(t, stateT[st] + .05, T.mapFade); if (p <= 0) continue;
+    const L = stateLayer(st);
+    c.save(); c.globalAlpha *= p; c.drawImage(L.cv, L.x0, L.y0); c.restore();
+    const la = fade(t, stateT[st] + .15, T.mapFade); if (la > 0) { c.save(); c.globalAlpha *= la; const [lx, ly] = labelAt[st]; text(c, st, lx, ly, 34, '#063a4d', 'DIN Condensed', '700', 'center'); c.restore(); }
   }
   c.restore();
 }
@@ -305,9 +306,8 @@ function insetsAt(c, t) {
     c.save(); c.beginPath(); c.rect(rx, ry, rw, rh); c.clip();
     for (const s of f.data.shapes) {
       const st = s.state; if (stateT[st] === undefined || !INSETS[key].ids.some(id => byId[id].state === st)) continue;
-      const p = eInOut(prog(t, stateT[st] + .05, .9)); if (p <= 0) continue;
-      const first = byId[INSETS[key].ids.filter(id => byId[id].state === st).sort((x, y) => landT[x] - landT[y])[0]], [px, py] = f.pt(first.lon, first.lat);
-      c.save(); c.beginPath(); c.arc(px, py, 6 + 420 * p, 0, Math.PI * 2); c.clip(); c.globalAlpha *= clamp(p * 2.5); c.drawImage(insetLayer(key, st), rx, ry, rw, rh); c.restore();
+      const p = fade(t, stateT[st] + .05, T.mapFade); if (p <= 0) continue;
+      c.save(); c.globalAlpha *= p; c.drawImage(insetLayer(key, st), rx, ry, rw, rh); c.restore();
     }
     for (const [label, lon, lat] of ins.labels) { const [lx, ly] = f.pt(lon, lat); text(c, label, lx, ly, 8.5, '#063a4d', 'Avenir Next', '700', 'center'); }
     c.restore();
@@ -353,7 +353,7 @@ function caseScene(c, t) {
   c.restore();
   const [fx, fy, fs] = casePoses[2];
   tvSketchAt(c, t, [fx + 120 * fs, fy + 24 * fs]);
-  const cap = prog(t, 3, .6); if (cap > 0) { c.save(); c.globalAlpha = cap; text(c, 'Every pin, a proud moment.', 94, 804, 20, P.ink, 'Baskerville'); c.restore(); }
+  const cap = fade(t, 3, .6); if (cap > 0) { c.save(); c.globalAlpha = cap; text(c, 'Every pin, a proud moment.', 94, 804, 20, P.ink, 'Baskerville'); c.restore(); }
 }
 
 /* ---------- Case roll-out ---------- */
@@ -434,43 +434,38 @@ function photoCover(c, img, x, y, w, h, zoom) {
   const s = Math.max(w / img.width, h / img.height) * zoom, iw = img.width * s, ih = img.height * s;
   c.drawImage(img, x + (w - iw) / 2, y + (h - ih) * (img.focus === undefined ? .42 : img.focus), iw, ih);
 }
-// Each opening shows its photos in order, evenly spread over the time until the next pin lands.
-const photoSlice = n => { const k = photoCount(n), end = n < 35 ? landT[n + 1] : landT[35] + .8; return k ? (end - landT[n]) / k : 1; };
-const photoIndexAt = (t, n) => Math.min(photoCount(n) - 1, Math.max(0, Math.floor((t - landT[n]) / photoSlice(n) + 1e-6)));
-function screenContent(c, n, x, y, w, h, zoom, j) {
-  const photos = (window.JourneyPhotos || {})[n];
-  const logoScreen = (bg, fg, sub) => {
-    c.fillStyle = bg; c.fillRect(x, y, w, h);
-    primarkLogo(c, x + w * .19, y + h * .43, w * .62, fg);
-    if (sub) text(c, sub, x + w / 2, y + h * .74, 15, fg, 'Avenir Next', '700', 'center');
-  };
-  if (n === 0) logoScreen('#e3f4fa', P.blue);
-  else if (photos && photos.length) photoCover(c, photos[j === undefined ? photos.length - 1 : Math.min(j, photos.length - 1)], x, y, w, h, zoom);
-  else if (n === 36) logoScreen(P.blue, '#ffffff', 'COMING SOON');
-  else logoScreen(n % 2 ? P.blue : '#e3f4fa', n % 2 ? '#ffffff' : P.blue);
+// The billboard plays a list of slots: the Primark logo first, then each opening's photos in order. An opening's
+// photos share its equal slot; the final slot is the upcoming opening. Photos crossfade and push in slowly.
+const slots = [{n: 0, j: 0, t0: -9, dur: 9}];
+for (let n = 1; n <= T.openings; n++) { const k = Math.max(1, photoCount(n)); for (let j = 0; j < k; j++) slots.push({n, j, t0: landT[n] + j * T.slot / k, dur: T.slot / k}); }
+slots.push({n: 36, j: 0, t0: landT[36], dur: DURATION - landT[36]});
+const slotAt = t => { let i = 0; while (i + 1 < slots.length && t >= slots[i + 1].t0) i++; return i; };
+function drawSlot(c, sl, t, x, y, w, h) {
+  const photos = (window.JourneyPhotos || {})[sl.n], k = T.kenBurns * eInOut(clamp((t - sl.t0) / (sl.dur + T.photoFade)));
+  const logo = (bg, fg, sub) => { c.fillStyle = bg; c.fillRect(x, y, w, h); primarkLogo(c, x + w * .19, y + h * .43, w * .62, fg); if (sub) text(c, sub, x + w / 2, y + h * .74, 15, fg, 'Avenir Next', '700', 'center'); };
+  if (sl.n === 0) logo('#e3f4fa', P.blue);
+  else if (photos && photos.length) photoCover(c, photos[Math.min(sl.j, photos.length - 1)], x, y, w, h, 1 + k);
+  else if (sl.n === 36) logo(P.blue, '#ffffff', 'COMING SOON');
+  else logo(sl.n % 2 ? P.blue : '#e3f4fa', sl.n % 2 ? '#ffffff' : P.blue);
 }
 function screenAt(c, t, x, y, w, h) {
   // The screen opens from the centre on a spring once the frame is drawn.
   const open = spring(t - TV_ON, 2.2, .55); if (open <= 0) return;
   const ow = w * Math.min(1, open), oh = h * Math.min(1, open);
   c.save(); c.beginPath(); c.rect(x + (w - ow) / 2, y + (h - oh) / 2, ow, oh); c.clip();
-  const n = latest(t);
-  if (n === 0) screenContent(c, 0, x, y, w, h, 1);
-  else {
-    // Whatever was on screen stays underneath; the next photo springs up over it.
-    const k = Math.max(1, photoCount(n)), j = photoCount(n) ? photoIndexAt(t, n) : 0, t0 = landT[n] + j * photoSlice(n);
-    const tau = t - t0, sp = spring(tau, 5, .62);
-    if (j > 0) screenContent(c, n, x, y, w, h, 1.0, j - 1); else screenContent(c, n - 1, x, y, w, h, 1.0);
-    c.fillStyle = `rgba(255,255,255,${.35 * Math.min(1, sp)})`; c.fillRect(x, y, w, h);
-    c.save(); c.beginPath(); c.rect(x, y + h * (1 - Math.min(1, sp * 1.15)), w, h); c.clip();
-    c.translate(0, (1 - sp) * h * .35); screenContent(c, n, x, y, w, h, 1.16 - .16 * sp, j); c.restore();
-    const bp = spring(t - landT[n] - .06, 4.5, .5);
-    if (bp > 0) { c.save(); c.translate(x + 22, y + 20); c.scale(bp, bp); badge(c, n, 13, t, n === 36 ? clamp((t - landT[36]) / .55) : 1); c.restore(); }
-  }
+  const i = slotAt(t), sl = slots[i], prev = slots[i - 1];
+  const xf = i === 0 ? 1 : Math.min(T.photoFade, sl.dur * .6), a = i === 0 ? 1 : eInOut(prog(t, sl.t0, xf));
+  if (prev && a < 1) drawSlot(c, prev, t, x, y, w, h);
+  c.save(); c.globalAlpha *= a; drawSlot(c, sl, t, x, y, w, h); c.restore();
+  // The opening's number badge crossfades when the opening changes.
+  const badgeAt = (n, al) => { if (!n || al <= 0) return; c.save(); c.globalAlpha *= al; c.translate(x + 22, y + 20); const sc = n === sl.n && prev && prev.n !== n ? lerp(.8, 1, eBack(a)) : 1; c.scale(sc, sc); badge(c, n, 13, t, n === 36 ? clamp((t - landT[36]) / .55) : 1); c.restore(); };
+  if (prev && prev.n !== sl.n && a < 1) badgeAt(prev.n, 1 - a);
+  badgeAt(sl.n, prev && prev.n !== sl.n ? a : 1);
   c.restore();
 }
 function tvSketchAt(c, t, mouth) {
   if (t < SKETCH_T0) return;
+  const ta = ambT(t);
   cache.caseDX = caseRoll(t).dx;
   const [mx, my] = mouth, key = Math.round(mx) + ':' + Math.round(my);
   if (!cache.sketch || cache.sketch.key !== key) cache.sketch = {key, path: sketchPath(mx, my)};
@@ -482,18 +477,18 @@ function tvSketchAt(c, t, mouth) {
   c.save(); c.translate(tvCx, TV.y + TV.h + dip); c.scale(k, k); c.translate(-tvCx, -(TV.y + TV.h));
   screenAt(c, t, x + b, y + b, w - 2 * b, h - 2 * b);
   // Ballpoint scratches running like current: round the frame, and up the truss out of the case.
-  const hs = prog(t, SKETCH_T1 - .25, .35), flick = .78 + .22 * Math.sin(t * 13) * Math.sin(t * 7.3);
+  const hs = fade(t, SKETCH_T1 - .25, .35), flick = .78 + .22 * Math.sin(ta * 13) * Math.sin(ta * 7.3);
   if (hs > 0) {
     const band = new Path2D(); band.rect(x, y, w, h); band.rect(x + b, y + b, w - 2 * b, h - 2 * b);
     const navy = currentTile('navy', 300, 120, {seed: 640, angle: -.8, spacing: 3.6, length: 16, width: .8, color: 'rgba(37,71,181,.55)'});
     const cyan = currentTile('cyan', 260, 140, {seed: 641, angle: .7, spacing: 6.5, length: 12, width: .7, color: 'rgba(0,166,208,.6)'});
     c.save(); c.globalAlpha = hs; c.clip(band, 'evenodd');
-    flowFill(c, navy, t * 70, Math.sin(t * 2) * 3, flick); flowFill(c, cyan, -t * 48, t * 9, 1 - (flick - .78));
+    flowFill(c, navy, ta * 70, Math.sin(ta * 2) * 3, flick); flowFill(c, cyan, -ta * 48, ta * 9, 1 - (flick - .78));
     c.restore();
     const shaft = new Path2D(); shaft.rect(tvCx - 13, y + h, 26, CASE_FLOOR - y - h);
     c.save(); c.globalAlpha = hs * .9; c.clip(shaft); c.clip(caseBodyInverse(), 'evenodd');
-    flowFill(c, currentTile('up', 40, 200, {seed: 642, angle: -1.25, spacing: 3.2, length: 10, width: .8, color: 'rgba(37,71,181,.6)'}), 0, -t * 120, flick);
-    flowFill(c, currentTile('up2', 40, 160, {seed: 643, angle: 1.2, spacing: 5, length: 8, width: .7, color: 'rgba(0,166,208,.65)'}), 3, -t * 75, 1);
+    flowFill(c, currentTile('up', 40, 200, {seed: 642, angle: -1.25, spacing: 3.2, length: 10, width: .8, color: 'rgba(37,71,181,.6)'}), 0, -ta * 120, flick);
+    flowFill(c, currentTile('up2', 40, 160, {seed: 643, angle: 1.2, spacing: 5, length: 8, width: .7, color: 'rgba(0,166,208,.65)'}), 3, -ta * 75, 1);
     c.restore();
   }
   // Three inks race along the same path, each with its own living wobble.
@@ -508,8 +503,8 @@ function tvSketchAt(c, t, mouth) {
     let hx = 0, hy = 0;
     for (let i = 0; i < path.length; i++) {
       const [px, py, s] = path[i]; if (s > drawn) break;
-      hx = px + amp * (Math.sin(s * .045 + ink.ph + t * 2.3) * .8 + Math.sin(s * .13 + ink.ph * 1.7 - t * 3.4) * .35);
-      hy = py + amp * (Math.cos(s * .05 + ink.ph * 1.3 + t * 2.0) * .8 + Math.sin(s * .17 + ink.ph - t * 2.9) * .35);
+      hx = px + amp * (Math.sin(s * .045 + ink.ph + ta * 2.3) * .8 + Math.sin(s * .13 + ink.ph * 1.7 - ta * 3.4) * .35);
+      hy = py + amp * (Math.cos(s * .05 + ink.ph * 1.3 + ta * 2.0) * .8 + Math.sin(s * .17 + ink.ph - ta * 2.9) * .35);
       i ? c.lineTo(hx, hy) : c.moveTo(hx, hy);
     }
     c.stroke();
@@ -522,18 +517,18 @@ function tvSketchAt(c, t, mouth) {
     INKS.forEach((ink, j) => {
       const q = eInOut(clamp((bp - j * .12) / .7)); if (q <= 0) return;
       c.save(); c.globalAlpha = ink.a; c.strokeStyle = ink.col; c.lineWidth = ink.w; c.beginPath();
-      for (const [[ax, ay], [bx2, by2]] of segs) { const wob = Math.sin(t * 2.4 + j * 2) * ink.amp * .6; c.moveTo(ax + wob, ay - wob * .5); c.lineTo(lerp(ax, bx2, q) + wob, lerp(ay, by2, q) + wob * .5); }
+      for (const [[ax, ay], [bx2, by2]] of segs) { const wob = Math.sin(ta * 2.4 + j * 2) * ink.amp * .6; c.moveTo(ax + wob, ay - wob * .5); c.lineTo(lerp(ax, bx2, q) + wob, lerp(ay, by2, q) + wob * .5); }
       c.stroke(); c.restore();
     });
   }
   // Once drawn, pulses of ink keep running along the line like current.
-  const live = prog(t, SKETCH_T1, .3);
+  const live = fade(t, SKETCH_T1, .3);
   if (live > 0) for (const off of [0, .5]) {
-    const head = (((t - SKETCH_T1) * 420) / total + off) % 1 * total, ink = INKS[0];
+    const head = (((ta - SKETCH_T1) * 420) / total + off) % 1 * total, ink = INKS[0];
     c.save(); c.globalAlpha = .9 * live; c.strokeStyle = P.blue; c.lineWidth = 3; c.beginPath(); let started = false;
     for (const [px, py, s2] of path) {
       if (s2 < head - 80 || s2 > head) continue;
-      const hx = px + ink.amp * .65 * (Math.sin(s2 * .045 + t * 2.3) * .8 + Math.sin(s2 * .13 - t * 3.4) * .35), hy = py + ink.amp * .65 * (Math.cos(s2 * .05 + t * 2.0) * .8 + Math.sin(s2 * .17 - t * 2.9) * .35);
+      const hx = px + ink.amp * .65 * (Math.sin(s2 * .045 + ta * 2.3) * .8 + Math.sin(s2 * .13 - ta * 3.4) * .35), hy = py + ink.amp * .65 * (Math.cos(s2 * .05 + ta * 2.0) * .8 + Math.sin(s2 * .17 - ta * 2.9) * .35);
       started ? c.lineTo(hx, hy) : (c.moveTo(hx, hy), started = true);
     }
     c.stroke(); c.restore();
@@ -562,36 +557,50 @@ function calloutAt(c, t) {
   c.save(); c.beginPath(); c.rect(0, 852, 880, 90); c.clip();
   const n = latest(t);
   if (n === 0) {
-    const a = prog(t, -.2, .4) * (1 - prog(t, 2.9, .4));
+    const a = fade(t, -.5, .4) * (1 - fade(t, 2.9, .4));
     if (a > 0) { c.globalAlpha = a; text(c, 'Every opening starts with a crew.', 54, 906, 32, P.ink, 'Baskerville'); }
   } else {
-    const q = eInOut(prog(t, landT[n], .32));
+    const q = eInOut(prog(t, landT[n], T.counterRoll));
     if (q < 1 && n > 1) calloutRow(c, t, n - 1, -q * 90);
     if (q < 1 && n === 1) { c.save(); c.globalAlpha = 1 - q; text(c, 'Every opening starts with a crew.', 54, 906 - q * 90, 32, P.ink, 'Baskerville'); c.restore(); }
     calloutRow(c, t, n, (1 - q) * 90);
   }
   c.restore();
-  let done = 0, lastT = -1; for (let id = 1; id <= 35; id++) if (t >= landT[id]) { done = id; lastT = landT[id]; }
-  const ca = prog(t, 2.7, .5), bump = 1 + .12 * Math.sin(Math.PI * prog(t, lastT, .3));
-  c.save(); c.globalAlpha = ca;
-  text(c, t >= landT[36] ? 'OPENINGS  +1 NEXT' : 'OPENINGS', 1026, 872, 17, t >= landT[36] ? P.red : P.ink, 'DIN Condensed', '700', 'right');
-  c.translate(1026, 934); c.scale(bump, bump); text(c, num(done), 0, 0, 72, P.red, 'DIN Condensed', '700', 'right');
+  counterAt(c, t);
+}
+// The counter rolls like an odometer: only the digits that change slide up out of their cell and the next ones rise in.
+function counterAt(c, t) {
+  let done = 0, lastT = -9; for (let id = 1; id <= T.openings; id++) if (t >= landT[id]) { done = id; lastT = landT[id]; }
+  const roll = eInOut(prog(t, lastT, T.counterRoll)), cur = num(done), old = num(Math.max(0, done - 1));
+  c.save(); c.globalAlpha = fade(t, 2.7, .5);
+  const lab = fade(t, landT[36], T.swapOut + T.swapIn);
+  c.save(); c.globalAlpha *= 1 - lab; text(c, 'OPENINGS', 1026, 872, 17, P.ink, 'DIN Condensed', '700', 'right'); c.restore();
+  if (lab > 0) { c.save(); c.globalAlpha *= lab; text(c, 'OPENINGS  +1 NEXT', 1026, 872, 17, P.red, 'DIN Condensed', '700', 'right'); c.restore(); }
+  c.font = '700 72px "DIN Condensed", sans-serif';
+  const ws = [...cur].map(ch => c.measureText(ch).width); let x = 1026 - ws.reduce((a, b) => a + b, 0);
+  [...cur].forEach((ch, i) => {
+    if (done > 0 && roll < 1 && old[i] !== ch) {
+      c.save(); c.beginPath(); c.rect(x - 3, 934 - 62, ws[i] + 6, 76); c.clip();
+      text(c, old[i], x, 934 - 66 * roll, 72, P.red, 'DIN Condensed', '700'); text(c, ch, x, 934 + 66 * (1 - roll), 72, P.red, 'DIN Condensed', '700'); c.restore();
+    } else text(c, ch, x, 934, 72, P.red, 'DIN Condensed', '700');
+    x += ws[i];
+  });
   c.restore();
 }
 function ledgerAt(c, t) {
   rule(c, 54, 948, 972);
-  const a0 = prog(t, 2.6, .6); if (a0 <= 0) return;
+  const a0 = fade(t, 2.6, .6); if (a0 <= 0) return;
   const n = latest(t);
   for (let id = 1; id <= 36; id++) {
     const d = byId[id], col = Math.floor((id - 1) / 12), row = (id - 1) % 12, x = 54 + col * 330, y = 978 + row * 21.5;
-    const a = prog(t, landT[id] - .05, .35);
+    const a = fade(t, landT[id] - .05, T.listFade);
     c.save(); c.globalAlpha = a0;
     if (a < 1) {
       c.save(); c.globalAlpha *= .4 * clamp(1 - a * 3); text(c, num(id), x, y, 14, P.line, 'Avenir Next', '700');
       c.strokeStyle = P.line; c.lineWidth = 1; c.setLineDash([1.5, 4]); c.beginPath(); c.moveTo(x + 28, y - 4); c.lineTo(x + 310, y - 4); c.stroke(); c.restore();
     }
     if (a > 0) {
-      const hl = id === n ? 1 - prog(t, landT[id + 1] ?? 99, .5) : (id === n - 1 ? 1 - prog(t, landT[n], .5) : 0);
+      const hl = id === n ? 1 - fade(t, landT[id + 1] ?? CARD, .5) : (id === n - 1 ? 1 - fade(t, landT[n], .5) : 0);
       if (hl > 0) { c.save(); c.globalAlpha *= hl * a; c.fillStyle = 'rgba(241,48,55,.10)'; c.fillRect(x - 6, y - 15, 322, 20); c.restore(); }
       c.globalAlpha *= a; const dx = 12 * (1 - eOut(a));
       text(c, num(id), x + dx, y, 14, P.red, 'Avenir Next', '700');
@@ -623,5 +632,5 @@ function render(t, scale = 1, canvas) {
 }
 function warm() { mapBase(); for (const st in stateT) stateLayer(st); }
 
-window.JourneyMotion = {W, H, DURATION, FPS, beats, landT, render, renderInto, warm};
+window.JourneyMotion = {W, H, DURATION, FPS, beats, landT, slots, render, renderInto, warm};
 })();

@@ -1,7 +1,9 @@
-// Export motion.html to an H.264 MP4.
-//   node render-motion.mjs [out.mp4] [--fps 30] [--supersample 2] [--subframes 8] [--shutter .5] [--from 0 --to 30] [--stills 1.5,9,29]
-// Motion blur: each output frame averages N subframes spread over the shutter (a fraction of the frame).
-// Needs Playwright (Chromium) and ffmpeg (on PATH, or FFMPEG=/path/to/ffmpeg).
+// Export motion.html to an H.264 MP4 (no audio track).
+//   node render-motion.mjs [out.mp4] [--fps 60] [--supersample 2] [--bitrate 13] [--maxrate 15]
+//                          [--subframes 1] [--shutter .5] [--from 0 --to 45] [--stills 1.5,9,29]
+// Length and frame rate default to timing.js (DURATION, fps). Every frame is drawn at supersample x the
+// output size and downscaled for crisp text. --subframes N averages N sub-frames per frame (motion blur;
+// off by default, 60 fps stays clean without it). Needs Playwright (Chromium) and ffmpeg (on PATH, or FFMPEG=/path/to/ffmpeg).
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -15,8 +17,9 @@ try { ({chromium} = require('playwright')); } catch { ({chromium} = require(path
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; };
-const out = path.resolve(args[0] && !args[0].startsWith('--') ? args[0] : path.join(dir, 'primark-journey-30s.mp4'));
-const fps = +opt('fps', 30), ss = +opt('supersample', 2), sub = +opt('subframes', 8), shutter = +opt('shutter', .5), from = +opt('from', 0), to = +opt('to', 30), stills = opt('stills');
+const out = path.resolve(args[0] && !args[0].startsWith('--') ? args[0] : path.join(dir, 'primark-journey-45s.mp4'));
+const ss = +opt('supersample', 2), sub = +opt('subframes', 1), shutter = +opt('shutter', .5), stills = opt('stills');
+const bitrate = +opt('bitrate', 13), maxrate = +opt('maxrate', 15);
 
 const types = {'.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff2': 'font/woff2'};
 const server = http.createServer((req, res) => {
@@ -31,6 +34,8 @@ const page = await browser.newPage({viewport: {width: 800, height: 900}});
 page.on('pageerror', e => { console.error(e); process.exit(1); });
 await page.goto(`http://127.0.0.1:${port}/motion.html?scale=${ss}`);
 await page.waitForFunction('window.ready === true');
+const info = await page.evaluate(() => ({fps: JourneyMotion.FPS, duration: JourneyMotion.DURATION}));
+const fps = +opt('fps', info.fps), from = +opt('from', 0), to = +opt('to', info.duration);
 // Downsample the supersampled canvas so fine hatching does not shimmer in motion.
 const grab = (t, n = 1) => page.evaluate(([t, n, span]) => {
   const src = document.getElementById('stage'), o = window._out || (window._out = document.createElement('canvas'));
@@ -44,8 +49,9 @@ const grab = (t, n = 1) => page.evaluate(([t, n, span]) => {
 if (stills) {
   for (const s of stills.split(',')) { const f = path.join(path.dirname(out), `still-${(+s).toFixed(2)}s.png`); fs.writeFileSync(f, Buffer.from(await grab(+s), 'base64')); console.log(f); }
 } else {
-  const ffmpeg = spawn(process.env.FFMPEG || 'ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-',
-    '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-tune', 'animation', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', out], {stdio: ['pipe', 'inherit', 'inherit']});
+  const ffmpeg = spawn(process.env.FFMPEG || 'ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-i', '-', '-an',
+    '-c:v', 'libx264', '-profile:v', 'high', '-preset', 'slow', '-tune', 'animation', '-b:v', `${bitrate}M`, '-maxrate', `${maxrate}M`, '-bufsize', `${maxrate * 2}M`,
+    '-pix_fmt', 'yuv420p', '-r', String(fps), '-movflags', '+faststart', out], {stdio: ['pipe', 'inherit', 'inherit']});
   const total = Math.round((to - from) * fps);
   for (let i = 0; i < total; i++) {
     const png = Buffer.from(await grab(from + i / fps, sub), 'base64');

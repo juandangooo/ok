@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>The Primark Journey | 30s Etched Motion</title>
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>The Primark Journey | 45s Etched Motion</title>
 <style>
 /* System fonts first (as in the stills); open-licence look-alikes when they are missing. */
 @font-face{font-family:'DIN Condensed';font-weight:700;src:local('DIN Condensed Bold'),local('DINCondensed-Bold'),url(fonts/BarlowCondensed.woff2) format('woff2')}
@@ -17,10 +17,10 @@ input{width:220px;accent-color:#bc6b55}
 #position{font-variant-numeric:tabular-nums;min-width:4.5em}
 @media(max-width:750px){header{display:block}nav{margin-top:15px}input{width:150px}}
 </style>
-<header><div><h1>THE PRIMARK JOURNEY</h1><p>30-second Etched Motion · Hellhound Audio · 2022–2026</p></div>
-<nav><button id="play">Play</button><input id="seek" aria-label="Scrub" type="range" min="0" max="30" step="0.01" value="0"><span id="position">0.0 s</span></nav></header>
+<header><div><h1>THE PRIMARK JOURNEY</h1><p>45-second Etched Motion · Hellhound Audio · 2022–2026</p></div>
+<nav><button id="play">Play</button><input id="seek" aria-label="Scrub" type="range" min="0" max="45" step="0.01" value="0"><span id="position">0.0 s</span></nav></header>
 <main><canvas id="stage" width="1080" height="1350"></canvas></main>
-<script src="etch.js"></script><script src="hellhound-logo.js"></script><script src="openings.js"></script><script src="drawing-kit.js"></script><script src="map-paths.js"></script><script src="photos/manifest.js"></script><script src="motion.js"></script>
+<script src="timing.js"></script><script src="etch.js"></script><script src="hellhound-logo.js"></script><script src="openings.js"></script><script src="drawing-kit.js"></script><script src="map-paths.js"></script><script src="photos/manifest.js"></script><script src="motion.js"></script>
 <script>
 (async () => {
   const M = JourneyMotion, cv = document.getElementById('stage'), seek = document.getElementById('seek'), pos = document.getElementById('position'), btn = document.getElementById('play');
