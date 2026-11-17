@@ -2,16 +2,16 @@
   "layer_height": 0.2,
   "checks": [
     "core: watertight, 1 body, bbox [45.0, 45.0, 59.0]",
-    "lid: watertight, 1 body, bbox [45.0, 45.0, 4.2]",
     "tile_A: watertight, 1 body, colours disjoint",
     "tile_B: watertight, 1 body, colours disjoint",
     "colour changes on layer boundaries: A white->red @1.0, red->black @1.6; B black->red @1.0",
     "every tile layer: no printed feature or gap narrower than 0.8 mm",
-    "no see-through holes: the top floor layer is unbroken under every recess, line and groove",
-    "assembled: tiles, core and lid don't collide (lid crush ribs bite 2.52 mm3 into the tab)",
-    "assembly path: every tile slides down its rails from above with no collision",
-    "locked: tiles can't come off outward (play < 0.30 mm) or slide sideways",
-    "lid presses straight down over the tab and traps all four tiles",
+    "core: arms >= 0.8 mm, slot gaps >= 0.6 mm, slots of neighbouring faces stay apart",
+    "no see-through holes; 1.0 mm of solid tile over every snap pocket",
+    "seated: tiles, core and hooks don't collide",
+    "click: tiles push straight on while the arms bend 0.6 mm, the relaxed hooks block the path (so they must snap), and a seated tile is locked (pull-off play 0.16 mm)",
+    "keyed: a tile turned upside down will not seat",
+    "arm: bending strain 0.76 % (PLA safe limit ~1.5 % even across layers), about 2.2 N to bend each arm the full 0.6 mm",
     "outer surfaces form a true 45.0 mm cube"
   ]
 }

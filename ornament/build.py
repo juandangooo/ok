@@ -1,20 +1,20 @@
 """
-HH Cube Ornament - parametric generator (v3, glue-free).
+HH Cube Ornament - parametric generator (v4, snap-fit, zero glue).
 
 A real box: four full-colour side walls (black, red, black, red), red top and
 bottom, every seam exactly on a cube edge (45-degree mitres). The H is recessed
 into each side like the logo.
 
-No glue:
-  * each side tile has two dovetail grooves on its back and SLIDES DOWN onto
-    matching dovetail rails on the core - it cannot come off outward;
-  * the red lid PRESSES ON over the hanging tab (crush ribs) and stops the
-    tiles sliding back up;
-  * the ornament hangs from the tab, which is part of the core - the lid and
-    tiles carry no load.
+The side tiles CLICK on:
+  * the core has two spring arms per side (vertical cantilevers in slots, each
+    with a hook on top that sticks 1 mm out of the face);
+  * each tile has two matching pockets in its back - a narrow mouth (the first
+    two printed layers form a lip) with a wider cavity behind it;
+  * push a tile straight on: the pocket edge rides up the hook's ramp, bends
+    the arm sideways 0.6 mm, the hook passes the lip and springs back - click.
+  * both snaps sit above centre, so a tile only fits the right way up.
 
-  core.stl     red: bottom cap + block + rails + hanging tab
-  lid.stl      red: top cap
+  core.stl     red: block + top and bottom caps + spring arms + hanging tab
   tile_A.stl   x2  white floor / red step / black face (layer colour changes)
   tile_B.stl   x2  black floor / red face
 
@@ -25,7 +25,7 @@ import os
 
 import numpy as np
 import trimesh
-from manifold3d import CrossSection, JoinType, Manifold
+from manifold3d import CrossSection, Manifold
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -47,21 +47,29 @@ SHIFT = 1.0         # sliver width: extrusion direction is up-left (-x, +y)
 FRAME_INSET = 2.6   # border line (red on A, black on B), distance from cube edge
 FRAME_W = 1.0       # border line width
 
-# dovetail rails (core) / grooves (tile back)
-RAIL_U = 16.0       # rails at +-16 mm from the face centre (clear of the H recess)
-RAIL_NECK = 2.0     # rail width at the block face
-RAIL_HEAD = 3.2     # rail width at its top (45-degree flanks)
-RAIL_H = 0.6        # rail height; groove depth 0.8 leaves one full floor layer
-RAIL_CLR = 0.20     # clearance rail <-> groove (covers 0.2 mm layer stair-stepping)
+# snap-fit catches (tile coordinates: u = x across the face, v = y up, d = z out
+# of the block face; the tile's back sits on d = 0)
+SNAP_U = 15.0       # arm centre, +- from the face centre (clear of the H and border)
+SNAP_V = 4.0        # hook centre height - above centre, so tiles only fit one way up
+BEAM_T = 1.6        # arm thickness in its bending direction (u)
+BEAM_D = 2.6        # arm depth into the core (d) - keeps 0.8 mm between corner slots
+BEAM_L = 16.0       # arm length, root to tip (v)
+HOOK = 0.6          # hook overhang = how far the arm bends while clicking on
+BARB_H = 4.5        # hook height (v)
+BARB_TOP = 1.05     # hook tip, distance out of the face
+LIP = 0.4           # tile: lip thickness = first 2 printed layers
+CAV_TOP = 1.2       # tile: pocket depth (1.0 mm of tile stays above it)
+SNAP_CLR = 0.15     # clearance hook <-> pocket
+DEFL_GAP = 0.9      # slot gap on the side the arm bends into (HOOK + 0.3)
+SIDE_GAP = 0.6      # other slot gaps
+PLA_E = 3500.0      # MPa, for the strain/force estimate
 
-# hanging tab (part of the core, passes through the lid)
+# hanging tab (part of the core)
 TAB_W = 12.0
 TAB_T = 5.5
 TAB_RISE = 8.0      # cube top -> hole centre
 HOLE_R = 2.25
-COLLAR = ((17.0, 10.0), (14.5, 8.5), 2.0)   # lid collar: bottom, top, height
-SLOT_CLR = 0.10     # lid slot clearance around the tab
-RIB_W, RIB_H = 1.0, 0.25   # crush ribs in the lid slot (0.15 mm interference)
+PLINTH = (17.0, 10.0, 2.0)
 
 SEG = 96
 EPS = 1e-3
@@ -125,41 +133,83 @@ def up_arrow():
     return prism(tri + stem, -1, 0.4)
 
 
-def dovetail_2d(clr):
-    """Dovetail profile in (u, d): u along the face, d out of the block face.
-    clr = 0: the rail. clr > 0: the groove = rail grown by clr on every flank,
-    continued straight through the tile's back face (d < 0)."""
-    n, h = RAIL_NECK / 2, RAIL_HEAD / 2
-    slope = (h - n) / RAIL_H
-    rail = CrossSection([[(-n, 0), (n, 0), (h, RAIL_H), (-h, RAIL_H)]])
-    if clr == 0:
-        return rail
-    ext = CrossSection([[(-(n - slope), -1), (n - slope, -1), (h, RAIL_H), (-h, RAIL_H)]])
-    return ext.offset(clr, JoinType.Miter)
-
-
 def along_y(cs, y0, y1):
     """Extrude a profile drawn in (x, z) along +y from y0 to y1."""
     return cs.extrude(y1 - y0).translate([0, 0, -y1]).rotate([90, 0, 0])
 
 
-def rails_or_grooves(clr, y0, y1):
-    out = None
-    for u in (-RAIL_U, RAIL_U):
-        m = along_y(dovetail_2d(clr).translate([u, 0]), y0, y1)
-        out = m if out is None else out + m
-    return out
+def _v_range():
+    return SNAP_V - BARB_H / 2, SNAP_V + BARB_H / 2
+
+
+def _right_and_left(m):
+    """The +u snap as built, plus its mirror image for the -u side."""
+    return m + m.mirror([1, 0, 0])
+
+
+def barb(deflect=0.0):
+    """Hook on the arm tip (right-hand snap, hook pointing +u = away from the
+    centre). Profile in (u, d), extruded along v; its underside is cut at 45
+    degrees so it prints on the vertical face without support.
+    deflect > 0 = the arm bent toward the centre by that much (while clicking)."""
+    u0, u1 = SNAP_U - BEAM_T / 2, SNAP_U + BEAM_T / 2
+    catch = LIP + SNAP_CLR                       # hook's catch face (faces the lip)
+    n0, n1 = u0 + 0.05, u1 - 0.05                # neck sits 0.05 inside the arm: no flush faces
+    prof = CrossSection([[(n0, -1.0), (n1, -1.0), (n1, catch), (u1 + HOOK, catch),
+                          (u1 + HOOK, catch + 0.1), (n0 + 0.3, BARB_TOP), (n0, BARB_TOP)]])
+    v0, v1 = _v_range()
+    v1 -= 0.03                                     # hook top just under the arm top
+    solid = along_y(prof, v0, v1)
+    wedge = Manifold.batch_hull([box(u0 - 1, u1 + HOOK + 1, v0, v0 + EPS, -1.5, 0),
+                                 box(u0 - 1, u1 + HOOK + 1, v1 - EPS, v1, -1.5, v1 - v0)])
+    return (solid ^ wedge).translate([-deflect, 0, 0])
+
+
+def beam():
+    u0, u1 = SNAP_U - BEAM_T / 2, SNAP_U + BEAM_T / 2
+    v1 = _v_range()[1]
+    return box(u0, u1, v1 - BEAM_L - 0.5, v1, -BEAM_D, -0.02)   # 0.02 below the face: no flush faces
+
+
+def beam_slot():
+    u0, u1 = SNAP_U - BEAM_T / 2, SNAP_U + BEAM_T / 2
+    v1 = _v_range()[1]
+    return box(u0 - DEFL_GAP, u1 + SIDE_GAP, v1 - BEAM_L, v1 + SIDE_GAP,
+               -BEAM_D - SIDE_GAP, 1)
+
+
+def pocket():
+    """Pocket in the tile back (right-hand snap): narrow mouth through the
+    lip layers, wider cavity behind it for the hook."""
+    u0, u1 = SNAP_U - BEAM_T / 2, SNAP_U + BEAM_T / 2
+    v0, v1 = _v_range()
+    lo = u0 - HOOK - SNAP_CLR                      # room for the arm to bend in
+    m_hi, c_hi = u1 + SNAP_CLR, u1 + HOOK + SNAP_CLR
+    # one L-shaped profile (mouth + cavity) so there is no internal seam
+    prof = CrossSection([[(lo, -1), (m_hi, -1), (m_hi, LIP), (c_hi, LIP),
+                          (c_hi, CAV_TOP), (lo, CAV_TOP)]])
+    return along_y(prof, v0 - SNAP_CLR, v1 + SNAP_CLR)
+
+
+def snaps_core(deflect=0.0):
+    """Arms + hooks for one face (tile frame)."""
+    right = beam() + barb(deflect)
+    return right + right.mirror([1, 0, 0])
+
+
+def slots_core():
+    return _right_and_left(beam_slot())
+
+
+def pockets_tile():
+    return _right_and_left(pocket())
 
 
 # ---------------------------------------------------------------------- tiles
-def tile_grooves():
-    return rails_or_grooves(RAIL_CLR, -S, S) ^ box(-S, S, -S, S, -1, FLOOR - LAYER)
-
-
 def make_tile_a():
     blank = tile_blank()
-    white = slab(blank, 0, FLOOR) - up_arrow() - tile_grooves()
-    red = slab(blank, FLOOR, FLOOR + STEP) - prism(h_extruded(0), FLOOR - 1, T + 1)
+    white = slab(blank, 0, FLOOR) - up_arrow() - pockets_tile()
+    red = slab(blank, FLOOR, FLOOR + STEP) - prism(h_extruded(0), FLOOR - 1, T + 1) - pockets_tile()
     black = slab(blank, FLOOR + STEP, T) - prism(h_extruded(1) + border_line(), FLOOR - 1, T + 1)
     return {"white": white, "red": red, "black": black}
 
@@ -168,12 +218,12 @@ def make_tile_b():
     blank = tile_blank()
     groove = h_extruded(2) - h_extruded(1)
     cut = h_extruded(0) + groove + border_line()
-    black = slab(blank, 0, FLOOR) - up_arrow() - tile_grooves()
-    red = slab(blank, FLOOR, T) - prism(cut, FLOOR - 1, T + 1)
+    black = slab(blank, 0, FLOOR) - up_arrow() - pockets_tile()
+    red = slab(blank, FLOOR, T) - prism(cut, FLOOR - 1, T + 1) - pockets_tile()
     return {"black": black, "red": red}
 
 
-# ------------------------------------------------------------------ core, lid
+# ----------------------------------------------------------------------- core
 def tile_to_face(m, face):
     """Tile frame (back z=0, front z=T, H up = +y) -> cube side wall."""
     m = m.rotate([90, 0, 0])                       # +z -> -y, +y -> +z
@@ -185,11 +235,16 @@ def tile_to_face(m, face):
 FACES = [("-y", "A"), ("+x", "B"), ("+y", "A"), ("-x", "B")]
 
 
-def tab_profile_solid(z_from):
+def make_tab():
+    px, py, ph = PLINTH
+    plinth = Manifold.batch_hull([
+        box(-px / 2, px / 2, -py / 2, py / 2, S - 0.5, S),
+        box(-TAB_W / 2, TAB_W / 2, -TAB_T / 2, TAB_T / 2, S + ph - EPS, S + ph),
+    ])
     zc = S + TAB_RISE
     profile = CrossSection.batch_hull([
         CrossSection.circle(TAB_W / 2, SEG).translate([0, zc]),
-        rect2(-TAB_W / 2, TAB_W / 2, z_from, zc),
+        rect2(-TAB_W / 2, TAB_W / 2, S - 0.5, zc),
     ])
     tab = profile.extrude(TAB_T).translate([0, 0, -TAB_T / 2]).rotate([90, 0, 0])
     tip = HOLE_R * 1.2
@@ -198,51 +253,44 @@ def tab_profile_solid(z_from):
         rect2(-0.45, 0.45, tip - 0.01, tip),
     ]).translate([0, zc])
     hole = tear.extrude(TAB_T + 4).translate([0, 0, -TAB_T / 2 - 2]).rotate([90, 0, 0])
-    return tab - hole
+    return (plinth + tab) - hole
 
 
-def make_core():
+def make_core(deflect=0.0, with_snaps=True):
     i = S / 2 - T
-    block = box(-i, i, -i, i, 0, S - T)
+    block = box(-i, i, -i, i, 0, S)
     bottom = Manifold.batch_hull([box(-S / 2, S / 2, -S / 2, S / 2, 0, EPS),
                                   box(-i, i, -i, i, T - EPS, T)])
-    core = block + bottom
-    # rails: tile-frame y from bottom-cap top (z=T) to block top (z=S-T)
-    rail = rails_or_grooves(0, -(S / 2 - T), S / 2 - T)
-    for face, _ in FACES:
-        core = core + tile_to_face(rail, face)
-    return core + tab_profile_solid(S - T - 0.5)
-
-
-def make_lid(ribs=True):
-    i = S / 2 - T
-    cap = Manifold.batch_hull([box(-i, i, -i, i, S - T, S - T + EPS),
+    top = Manifold.batch_hull([box(-i, i, -i, i, S - T, S - T + EPS),
                                box(-S / 2, S / 2, -S / 2, S / 2, S - EPS, S)])
-    (bx, by), (tx, ty), ch = COLLAR
-    collar = Manifold.batch_hull([box(-bx / 2, bx / 2, -by / 2, by / 2, S - 0.5, S),
-                                  box(-tx / 2, tx / 2, -ty / 2, ty / 2, S + ch - EPS, S + ch)])
-    sx, sy = TAB_W / 2 + SLOT_CLR, TAB_T / 2 + SLOT_CLR
-    lid = (cap + collar) - box(-sx, sx, -sy, sy, S - T - 1, S + ch + 1)
-    if ribs:
-        for x in (-3.5, 3.5):
-            for sgn in (-1, 1):
-                y_out = sgn * sy
-                y_in = sgn * (sy - RIB_H)
-                lid = lid + box(x - RIB_W / 2, x + RIB_W / 2, min(y_in, y_out), max(y_in, y_out),
-                                S - T, S + ch)
-    return lid
+    core = block + bottom + top
+    for face, _ in FACES:
+        core = core - tile_to_face(slots_core(), face)
+    if with_snaps:
+        for face, _ in FACES:
+            core = core + tile_to_face(snaps_core(deflect), face)
+    return core + make_tab()
 
 
 # ----------------------------------------------------------- export / checks
 def to_trimesh(m):
     mesh = m.to_mesh()
     return trimesh.Trimesh(vertices=np.asarray(mesh.vert_properties)[:, :3],
-                           faces=np.asarray(mesh.tri_verts), process=True)
+                           faces=np.asarray(mesh.tri_verts), process=False)
+
+
+def roundtrip_ok(m):
+    """Save as STL (32-bit floats, what a slicer reads), reload, still watertight?"""
+    import io
+    buf = io.BytesIO(); to_trimesh(m).export(buf, file_type="stl"); buf.seek(0)
+    r = trimesh.load(buf, file_type="stl")
+    return r.is_watertight and r.is_winding_consistent and abs(r.volume - m.volume()) < 1e-2
 
 
 def check_solid(name, m, bodies=1):
     t = to_trimesh(m)
     assert t.is_watertight and t.is_winding_consistent and t.volume > 0, name
+    assert roundtrip_ok(m), f"{name}: breaks at slicer (float32) precision"
     n = len(m.decompose())
     assert n == bodies, (name, n)
     return t
@@ -263,20 +311,20 @@ def hits(a, b):
 def main():
     os.makedirs(os.path.join(HERE, "parts"), exist_ok=True)
     os.makedirs(os.path.join(HERE, "preview"), exist_ok=True)
+    for old in ("lid.stl",):
+        if os.path.exists(os.path.join(HERE, old)):
+            os.remove(os.path.join(HERE, old))
     report = {"layer_height": LAYER, "checks": []}
     log = report["checks"].append
 
-    core, lid = make_core(), make_lid()
-    lid_noribs = make_lid(ribs=False)
+    core = make_core()
+    core_bent = make_core(deflect=HOOK)          # every arm bent in by the full hook depth
     ta, tb = make_tile_a(), make_tile_b()
 
     # --- parts: manifold, one body, flat on the bed
     t = check_solid("core", core); t.export(os.path.join(HERE, "core.stl"))
+    assert core.genus() == 1, ("core should have exactly one through-hole (the tab)", core.genus())
     log(f"core: watertight, 1 body, bbox {np.round(t.extents, 2).tolist()}")
-    lid_print = lid.translate([0, 0, -(S - T)])
-    t = check_solid("lid", lid_print); t.export(os.path.join(HERE, "lid.stl"))
-    assert abs(t.bounds[0][2]) < 1e-9
-    log(f"lid: watertight, 1 body, bbox {np.round(t.extents, 2).tolist()}")
     for tname, parts in (("tile_A", ta), ("tile_B", tb)):
         whole = None
         for col, m in parts.items():
@@ -295,11 +343,11 @@ def main():
     assert zr(ta["white"]) == (0, FLOOR) and zr(ta["red"]) == (FLOOR, FLOOR + STEP) \
         and zr(ta["black"]) == (FLOOR + STEP, T)
     assert zr(tb["black"]) == (0, FLOOR) and zr(tb["red"]) == (FLOOR, T)
-    for z in (FLOOR, FLOOR + STEP, T):
+    for z in (FLOOR, FLOOR + STEP, T, LIP, CAV_TOP):
         assert abs(z / LAYER - round(z / LAYER)) < 1e-9, z
     log("colour changes on layer boundaries: A white->red @1.0, red->black @1.6; B black->red @1.0")
 
-    # --- thin features (>= 0.8 mm = 2 nozzle lines), every colour slab
+    # --- thin features (>= 0.8 mm = 2 nozzle lines), every tile layer
     for tname, parts in (("tile_A", ta), ("tile_B", tb)):
         for col, m in parts.items():
             b = m.bounding_box()
@@ -310,67 +358,87 @@ def main():
                 assert loss < 0.01 and hole_loss < 0.01, (tname, col, z, loss, hole_loss)
     log("every tile layer: no printed feature or gap narrower than 0.8 mm")
 
-    # --- no see-through holes: seen from the front, every tile is fully solid
+    # --- core around the arms: arm >= 0.8 mm thick, every slot gap >= 0.6 mm
+    zs = S / 2 + SNAP_V - BARB_H / 2 - 4          # through the arms, below the hooks
+    cs = core.slice(zs)
+    assert min_feature_loss(cs, 0.4) < 0.01
+    assert min_feature_loss(rect2(-S, S, -S, S) - cs, 0.299) < 0.01
+    slots = [tile_to_face(slots_core(), f) for f, _ in FACES]
+    for a_ in range(4):
+        for b_ in range(a_ + 1, 4):
+            assert not hits(slots[a_], slots[b_]), "arm slots of two faces run into each other"
+    log("core: arms >= 0.8 mm, slot gaps >= 0.6 mm, slots of neighbouring faces stay apart")
+
+    # --- no see-through holes and enough material over every pocket
+    pk = pockets_tile()
+    pocket_shadow = (pk ^ box(-S, S, -S, S, 0, T)).project()
     for tname, parts in (("tile_A", ta), ("tile_B", tb)):
         whole = sum(list(parts.values())[1:], list(parts.values())[0])
         assert abs(whole.project().area() - tile_blank().project().area()) < 1e-3, tname
-        # and every column through the tile has at least one full floor layer
-        floor_layer = slab(whole, FLOOR - LAYER, FLOOR)
-        assert abs(floor_layer.project().area() - slab(tile_blank(), FLOOR - LAYER, FLOOR).project().area()) < 1e-3, tname
-    log("no see-through holes: the top floor layer is unbroken under every recess, line and groove")
+        floor_layer = slab(whole, FLOOR - LAYER, FLOOR).project()
+        full = slab(tile_blank(), FLOOR - LAYER, FLOOR).project()
+        assert (full - floor_layer - pocket_shadow).area() < 1e-3, tname
+        cover = slab(whole, CAV_TOP, T).project()
+        assert (pocket_shadow - cover).area() < 1e-3, tname
+        assert slab(whole, CAV_TOP, T).volume() > 0
+    log(f"no see-through holes; {T - CAV_TOP:.1f} mm of solid tile over every snap pocket")
 
-    # --- assembled position: nothing collides
+    # --- assembled, arms relaxed: nothing collides, hooks sit inside the pockets
     placed = {}
     for face, kind in FACES:
         parts = ta if kind == "A" else tb
         placed[face] = {col: tile_to_face(m, face) for col, m in parts.items()}
     whole_tiles = {f: sum(list(p.values())[1:], list(p.values())[0]) for f, p in placed.items()}
     for f, w in whole_tiles.items():
-        assert not hits(w, core), f"tile {f} hits core"
-        assert not hits(w, lid), f"tile {f} hits lid"
+        assert not hits(w, core), f"tile {f} hits core when seated"
     fl = list(whole_tiles.values())
-    for a in range(4):
-        for b in range(a + 1, 4):
-            assert not hits(fl[a], fl[b]), "tiles collide"
-    assert not hits(lid_noribs, core), "lid hits core"
-    rib_bite = (lid ^ core).volume()
-    expect = 4 * RIB_W * (RIB_H - SLOT_CLR) * (T + COLLAR[2])
-    assert abs(rib_bite - expect) < 0.01, (rib_bite, expect)
-    log(f"assembled: tiles, core and lid don't collide (lid crush ribs bite {rib_bite:.2f} mm3 into the tab)")
+    for a_ in range(4):
+        for b_ in range(a_ + 1, 4):
+            assert not hits(fl[a_], fl[b_]), "tiles collide"
+    log("seated: tiles, core and hooks don't collide")
 
-    # --- assembly path: tiles slide straight down onto the rails (lid off)
-    for f, w in whole_tiles.items():
-        for k in np.arange(0.25, S, 0.25):
-            assert not hits(w.translate([0, 0, k]), core), (f, k)
-    log("assembly path: every tile slides down its rails from above with no collision")
-    # --- tiles locked: cannot move outward or sideways once on the rails
     out = {"-y": (0, -1, 0), "+x": (1, 0, 0), "+y": (0, 1, 0), "-x": (-1, 0, 0)}
-    side = {"-y": (1, 0, 0), "+x": (0, 1, 0), "+y": (1, 0, 0), "-x": (0, 1, 0)}
+    mv = lambda m, f, k: m.translate([c * k for c in out[f]])
     for f, w in whole_tiles.items():
-        play = None
-        for k in np.arange(0.05, 1.5, 0.05):
-            if hits(w.translate([v * k for v in out[f]]), core):
-                play = k; break
-        assert play is not None and play <= 0.35, (f, play)
-        for sgn in (1, -1):
-            assert hits(w.translate([sgn * v * 0.5 for v in side[f]]), core), (f, "side")
-    log(f"locked: tiles can't come off outward (play < {play:.2f} mm) or slide sideways")
-    # --- lid goes on straight down; while seated it blocks every tile from rising
-    for k in np.arange(0.25, 25, 0.25):
-        assert not hits(lid_noribs.translate([0, 0, k]), core), k
-    for f, w in whole_tiles.items():
-        assert hits(w.translate([0, 0, 0.5]), lid), f"lid doesn't trap tile {f}"
-    log("lid presses straight down over the tab and traps all four tiles")
+        others = [o for g, o in whole_tiles.items() if g != f]
+        # 1. pushing straight on works while the arms bend in (no collision anywhere)
+        for k in np.arange(0.05, 3.0, 0.05):
+            assert not hits(mv(w, f, k), core_bent), (f, "push-on path blocked", k)
+            for o in others:
+                assert not hits(mv(w, f, k), o), (f, "hits neighbour on the way in", k)
+        # 2. ...and the arms MUST bend: with them relaxed the path is blocked -> it clicks
+        blocked = [k for k in np.arange(0.05, 1.2, 0.05) if hits(mv(w, f, k), core)]
+        assert blocked, (f, "hooks never engage")
+        # 3. seated + relaxed: pulling it off is blocked within 0.25 mm -> locked
+        play = next((k for k in np.arange(0.02, 1.0, 0.02) if hits(mv(w, f, k), core)), None)
+        assert play is not None and play <= 0.25, (f, play)
+    log(f"click: tiles push straight on while the arms bend {HOOK} mm, the relaxed hooks block "
+        f"the path (so they must snap), and a seated tile is locked (pull-off play {play:.2f} mm)")
+
+    # 4. an upside-down tile cannot seat, even with the arms bent
+    for face, kind in FACES:
+        parts = ta if kind == "A" else tb
+        w = sum(list(parts.values())[1:], list(parts.values())[0]).rotate([0, 0, 180])
+        assert hits(tile_to_face(w, face), core_bent), (face, "upside-down tile seats")
+    log("keyed: a tile turned upside down will not seat")
+
+    # --- arm mechanics (cantilever beam): strain and click force
+    L = BEAM_L - BARB_H / 2
+    strain = 3 * HOOK * BEAM_T / (2 * L ** 2)
+    k_arm = PLA_E * BEAM_D * BEAM_T ** 3 / (4 * L ** 3)
+    assert strain < 0.012, strain
+    log(f"arm: bending strain {strain*100:.2f} % (PLA safe limit ~1.5 % even across layers), "
+        f"about {k_arm*HOOK:.1f} N to bend each arm the full {HOOK} mm")
 
     # --- closed cube
-    filled = (core ^ box(-S, S, -S, S, 0, S)) + (lid_noribs ^ box(-S, S, -S, S, 0, S))
+    filled = core ^ box(-S, S, -S, S, 0, S)
     for w in fl:
         filled = filled + w
     bb = filled.bounding_box()
     assert np.allclose(bb, (-S / 2, -S / 2, 0, S / 2, S / 2, S), atol=1e-6), bb
     log(f"outer surfaces form a true {S} mm cube")
 
-    asm = {"red": core + lid, "black": None, "white": None}
+    asm = {"red": core, "black": None, "white": None}
     for face, kind in FACES:
         for col, m in placed[face].items():
             asm[col] = m if asm[col] is None else asm[col] + m

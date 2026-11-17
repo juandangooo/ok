@@ -76,27 +76,37 @@ def main():
         o.paste(im, (i * 500, 0)); os.remove(os.path.join(pv, f"_t{i}.png"))
     o.save(os.path.join(pv, "turnaround.png"))
 
-    core, lid = L("core.stl"), L("lid.stl")
-    render([(core, COL["red"])], os.path.join(pv, "core.png"), 20, -60, title="core.stl - rails + tab")
-    # exploded: lid lifted, front tile pulled up its rails
+    core = L("core.stl")
+    render([(core, COL["red"])], os.path.join(pv, "core.png"), 15, -60,
+           title="core.stl - two spring arms with hooks on each side")
     import build
-    lid_up = lid.copy(); lid_up.apply_translation([0, 0, build.S - build.T + 22])
-    items = [(core, COL["red"]), (lid_up, COL["red"])]
+    # exploded: the two front tiles pulled straight out
+    items = [(core, COL["red"])]
+    out = {"-y": (0, -1, 0), "+x": (1, 0, 0), "+y": (0, 1, 0), "-x": (-1, 0, 0)}
     for face, kind in build.FACES:
         cols = ("white", "red", "black") if kind == "A" else ("black", "red")
-        lift = 30 if face == "-y" else (14 if face == "+x" else 0)
+        k = 16 if face in ("-y", "+x") else 0
         for c in cols:
             m = build.to_trimesh(build.tile_to_face(
                 trimesh_to_manifold(L(f"parts/tile_{kind}_{c}.stl")), face))
-            m.apply_translation([0, 0, lift])
+            m.apply_translation([v * k for v in out[face]])
             items.append((m, COL[c]))
-    render(items, os.path.join(pv, "exploded.png"), 18, -45,
-           title="Tiles slide down the rails, lid presses on over the tab")
+    render(items, os.path.join(pv, "exploded.png"), 15, -45,
+           title="Push each tile straight on - the hooks click into its back")
+    # close-up of one arm: cut the core around the -y face's right-hand snap
+    from manifold3d import Manifold
+    cm = trimesh_to_manifold(core)
+    u = build.SNAP_U
+    z0 = build.S / 2 + build.SNAP_V
+    win = build.box(u - 4, u + 4, -build.S / 2 - 3, -build.S / 2 + 6, z0 - 14, z0 + 5)
+    close = build.to_trimesh(cm ^ win)
+    render([(close, COL["red"])], os.path.join(pv, "snap_closeup.png"), 25, -70, size=700,
+           title="Spring arm: hook on top, slot gives it room to bend")
     p = os.path.join(HERE, "parts")
     for name, cols in (("tile_A", ("white", "red", "black")), ("tile_B", ("black", "red"))):
         items = [(trimesh.load(os.path.join(p, f"{name}_{c}.stl")), COL[c]) for c in cols]
         render(items, os.path.join(pv, f"{name}.png"), 55, -75, title=f"{name}.stl - as printed (face up)")
-        render(items, os.path.join(pv, f"{name}_back.png"), -55, -75, title=f"{name} - back: dovetail grooves")
+        render(items, os.path.join(pv, f"{name}_back.png"), -55, -75, title=f"{name} - back: the two snap pockets")
 
 
 def trimesh_to_manifold(t):
