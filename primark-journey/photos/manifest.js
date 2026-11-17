@@ -1,0 +1,4 @@
+/* The photo shown on the TV for each opening (one per opening, so every crop is consistent). Alternates live in photos/alternates/. */
+globalThis.JourneyPhotoFiles={"1":["01.jpg"],"2":["02.jpg"],"3":["03.jpg"],"4":["04.jpg"],"5":["05.jpg"],"6":["06.jpg"],"7":["07.jpg"],"8":["08.jpg"],"9":["09.jpg"],"10":["10.jpg"],"11":["11.jpg"],"12":["12.jpg"],"13":["13.jpg"],"14":["14.jpg"],"15":["15.jpg"],"16":["16.jpg"],"17":["17.jpg"],"18":["18.jpg"],"19":["19.jpg"],"20":["20.jpg"],"21":["21.jpg"],"22":["22.jpg"],"23":["23.jpg"],"24":["24.jpg"],"25":["25.jpg"],"26":["26.jpg"],"27":["27.jpg"],"28":["28.jpg"],"29":["29.jpg"],"30":["30.jpg"],"31":["31.jpg"],"32":["32.jpg"],"33":["33.jpg"],"34":["34.jpg"],"35":["35.jpg"]};
+/* Vertical crop focus (0 = top, 1 = bottom) for any photo that is cropped hard; others default to 0.42. */
+globalThis.JourneyPhotoFocus={"07.jpg":.35};
