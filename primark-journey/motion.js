@@ -161,6 +161,23 @@ function cabinet(c, w, h, d, taper, seed, sideHandle) {
   jblBadge(c, 8, -16);
   return side;
 }
+function cabinetOutline(c, w, h, d, taper) {
+  const [dx, dy] = d;
+  for (const p of [`M0 ${-h} H${w} V0 H0 Z`, `M${w} ${-h} L${w + dx} ${-h + dy + taper} L${w + dx} ${dy - taper} L${w} 0 Z`, `M0 ${-h} L${dx} ${-h + dy + taper} L${w + dx} ${-h + dy + taper} L${w} ${-h} Z`]) c.stroke(new Path2D(p));
+}
+// The same stack drawn as three loose ink outlines (navy, Primark blue, Hellhound red), ready to peel off as ink.
+function vrxStackOutline(c, x, y, s, t, alpha) {
+  const ta = ambT(t);
+  c.save(); c.translate(x, y); c.scale(s, s); c.lineJoin = c.lineCap = 'round';
+  INKS.forEach(ink => {
+    c.save(); c.globalAlpha = alpha * ink.a; c.strokeStyle = ink.col; c.lineWidth = ink.w * 1.2 / s;
+    c.translate(Math.sin(ta * 2.3 + ink.ph) * ink.amp * .6 / s, Math.cos(ta * 2 + ink.ph) * ink.amp * .6 / s);
+    cabinetOutline(c, 150, 128, [96 * .885, -96 * .466], 0);
+    for (let k = 0; k < 3; k++) { c.save(); c.translate(0, -128 - k * 86); cabinetOutline(c, 150, 86, [48 * .885, -48 * .466], 16); c.restore(); }
+    c.restore();
+  });
+  c.restore();
+}
 function vrxStack(c, x, y, s, t, t0, alpha = 1) {
   c.save(); c.translate(x, y); c.scale(s, s); c.globalAlpha *= alpha;
   // VRX918S sub: 508 x 597 x 749 mm.
@@ -322,24 +339,47 @@ function pinsAt(c, t) {
   if (t < 2.6) return;
   for (const d of PrimarkOpenings) if (d.panel === 'national') { const [dx, dy] = pinOffset[d.id] || [0, -24]; const [x, y] = mapPt(...d.map_point); pinAt(c, t, d.id, x, y, dx, dy); }
 }
-function gearAt(c, t, pose) {
-  const [x, y, s] = pose, mouth = [x + 120 * s, y + 20 * s];
-  const back = eInOut(prog(t, 2.25, .5));
-  // JBL VRX918S + three VRX932LA-1 set down piece by piece beside it.
-  if (t > .8 && back < 1) {
-    const sx = 752, sy = 772, sc = .93;
-    vrxStack(c, sx, sy + 40 * back, sc, t, .8, 1 - back);
-  }
+// The line array does not disappear: its fills fade to ink outlines, and the outlines peel off its top corner as three
+// ink streams that flow across the map and pour into the case mouth, where they come back up as the truss and TV.
+const STACK = {x: 752, y: 772, s: .93}, STREAM_T0 = 2.0;
+function gearAt(c, t) {
+  if (t < .8 || t > 2.8) return;
+  const fillA = 1 - fade(t, 1.85, .5);
+  if (fillA > 0) vrxStack(c, STACK.x, STACK.y, STACK.s, t, .8, fillA);
+  const outA = fade(t, 1.75, .3) * (1 - fade(t, 2.2, .4));
+  if (outA > 0) vrxStackOutline(c, STACK.x, STACK.y, STACK.s, t, outA);
+}
+function streamAt(c, t, mouth) {
+  if (t < STREAM_T0 || t > STREAM_T0 + 1.2) return;
+  cache.caseDX = caseRoll(t).dx;
+  const [, my] = mouth, L = tvCx - 12, S0 = [STACK.x, STACK.y - 386 * STACK.s], C1 = [735, 230], C2 = [L, 290], pts = [];
+  for (let i = 0; i <= 90; i++) { const u = i / 90, v = 1 - u, b = [v * v * v, 3 * v * v * u, 3 * v * u * u, u * u * u]; pts.push([b[0] * S0[0] + b[1] * C1[0] + b[2] * C2[0] + b[3] * L, b[0] * S0[1] + b[1] * C1[1] + b[2] * C2[1] + b[3] * my]); }
+  for (let y = my + 4; y < CASE_FLOOR; y += 4) pts.push([L, y]);          // on down into the case, out of sight
+  const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  const total = cum[cum.length - 1], ta = ambT(t);
+  c.save(); c.lineCap = c.lineJoin = 'round'; c.clip(caseBodyInverse(), 'evenodd');
+  INKS.forEach(ink => {
+    const w = eInOut(prog(t, STREAM_T0 + ink.lag * .6, .8)) * 1.6, head = Math.min(1, w) * total, tail = clamp(w - .55) * total;
+    if (head <= tail) return;
+    c.save(); c.globalAlpha = ink.a; c.strokeStyle = ink.col; c.lineWidth = ink.w * 1.25; c.beginPath(); let started = false;
+    for (let i = 0; i < pts.length; i++) {
+      if (cum[i] < tail || cum[i] > head) continue;
+      const wob = ink.amp * .5 * Math.sin(cum[i] * .05 + ink.ph + ta * 3), x = pts[i][0] + wob, yy = pts[i][1] + wob * .6;
+      started ? c.lineTo(x, yy) : (c.moveTo(x, yy), started = true);
+    }
+    c.stroke(); c.restore();
+  });
+  c.restore();
 }
 function caseScene(c, t) {
-  const toField = eInOut(prog(t, 2.2, .65));
+  const toField = eInOut(prog(t, 1.95, .6));
   let pose = mixPose(casePoses[0], casePoses[1], eInOut(prog(t, .1, .9)));
   pose = mixPose(pose, casePoses[2], toField);
   const lid = eBack(prog(t, .45, .6)), hop = -8 * Math.sin(Math.PI * prog(t, .45, .3));
   const [x, y0, s] = pose, y = y0 + hop + 24 * (1 - eOut(prog(t, -.45, .5)));
   const sh = (1 - toField) * prog(t, -.4, .4);
   if (sh > 0) { c.save(); c.globalAlpha = sh; const e = Etch.ellipse(x + 121 * s, y - hop + 229 * s, 137 * s, 20 * s); Etch.hatch(c, e, [x - 40 * s, y + 200 * s, 330 * s, 60 * s], {seed: 900, angle: .06, spacing: 3, length: 30, color: 'rgba(40,44,50,.22)'}); c.restore(); }
-  gearAt(c, t, [x, y, s]);
+  gearAt(c, t);
   const wipe = eInOut(prog(t, -.45, .55));
   // Once the truss is drawn the case nudges back, then rolls out from under it, off to the left.
   const roll = caseRoll(t);
@@ -352,6 +392,7 @@ function caseScene(c, t) {
   }
   c.restore();
   const [fx, fy, fs] = casePoses[2];
+  streamAt(c, t, [fx + 120 * fs, fy + 24 * fs]);
   tvSketchAt(c, t, [fx + 120 * fs, fy + 24 * fs]);
   const cap = fade(t, 3, .6); if (cap > 0) { c.save(); c.globalAlpha = cap; text(c, 'Every pin, a proud moment.', 94, 804, 20, P.ink, 'Baskerville'); c.restore(); }
 }
@@ -373,7 +414,7 @@ function caseRoll(t) {
    pin lands, or the Primark logo where there is no photo. */
 const TV = {x: 54, y: 270, w: 440, h: 248, bezel: 12};
 const CASE_FLOOR = casePoses[2][1] + 214 * casePoses[2][2];
-const SKETCH_T0 = 2.62, SKETCH_T1 = 3.5, TV_ON = 3.5;
+const SKETCH_T0 = 2.5, SKETCH_T1 = 3.5, TV_ON = 3.5;
 const tvCx = TV.x + TV.w / 2, tvCy = TV.y + TV.h / 2;
 // Closed-form damped spring 0 → 1 (pure function of time, so any frame renders on its own).
 function spring(tau, f = 3, z = .6) {

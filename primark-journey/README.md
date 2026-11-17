@@ -71,7 +71,8 @@ The 30 s cut (primark-journey-30s.mp4) is kept as it was. The 45 s cut changes o
 
 - timing.js: every pace, hold and transition length in one place (tempo grid, intro length, beats per opening, final hold, fade lengths in 30 fps frames). The total length is derived from it. Defaults: intro 3.8 s, 35 openings at 1.09 s each (2 beats at 110 bpm), final card held 3.0 s, 45.0 s total.
 - Headlines: the old line fades out and rises 10 px (8 frames, ease-in), then the new one fades in rising from below (8 frames, ease-out), finishing exactly as the chapter's first opening lands. Only when the text changes.
-- Billboard: photos crossfade (7 frames, shortened for very quick bursts) and push in 4% while on screen.
+- Billboard: one photo per opening (the widest, best-framed shot; the others are in photos/alternates/), crossfading (7 frames) with a 4% push-in while on screen. Only Crossgates (07) is a portrait photo, so it is cropped.
+- Intro: the JBL line array does not vanish. Its fills fade to ink outlines, the outlines peel off as three ink streams that flow across the map and pour into the case, and the same ink rises out of the case as the truss and TV.
 - Map: a new state fades in over 10 frames; pins pop 0 -> 1.1 -> 1 (ease-out-back).
 - Counter rolls like an odometer (only the changing digits move); new store-list lines fade in; the year and the OPENINGS label crossfade.
 - Ambient motion (ink wobble, current, pulses) slows to a stop over the last 1.8 s so the end eases to rest.
