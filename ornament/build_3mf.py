@@ -1,8 +1,8 @@
 """
-Pack the ornament into one Bambu Studio project: HH_Cube_Ornament.3mf
-
-One plate (256 x 256, P2S/X1/P1 bed):
-  core (red) + 2x tile_A (white/red/black parts) + 2x tile_B (black/red parts)
+Pack the Bambu Studio projects:
+  fit_test.3mf          print this FIRST: rib block (1-5 dots) + test plate, all red
+  HH_Cube_fit1..5.3mf   the ornament with the core for that fit level:
+                        core (red) + 2x tile_A (white/red/black) + 2x tile_B (black/red)
 
 Each tile is ONE object made of colour PARTS, with a filament number per part
 (Metadata/model_settings.config, Bambu's own per-part format):
@@ -18,22 +18,26 @@ import numpy as np
 import trimesh
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, "HH_Cube_Ornament.3mf")
 FIL = {"red": 1, "black": 2, "white": 3}
 
-# (object name, [(part name, stl path, colour)], bed x, bed y)
-OBJECTS = [
-    ("HH core", [("core", "core.stl", "red")], 128, 150),
-]
-for i, x in enumerate((53, 103)):
-    OBJECTS.append((f"HH tile A{i+1}", [
-        ("white floor", "parts/tile_A_white.stl", "white"),
-        ("red step", "parts/tile_A_red.stl", "red"),
-        ("black face", "parts/tile_A_black.stl", "black")], x, 70))
-for i, x in enumerate((153, 203)):
-    OBJECTS.append((f"HH tile B{i+1}", [
-        ("black floor", "parts/tile_B_black.stl", "black"),
-        ("red face", "parts/tile_B_red.stl", "red")], x, 70))
+
+def cube_objects(fit):
+    # (object name, [(part name, stl path, colour)], bed x, bed y)
+    objs = [(f"HH core fit {fit}", [("core", f"core_fit{fit}.stl", "red")], 128, 150)]
+    for i, x in enumerate((53, 103)):
+        objs.append((f"HH tile A{i+1}", [
+            ("white floor", "parts/tile_A_white.stl", "white"),
+            ("red step", "parts/tile_A_red.stl", "red"),
+            ("black face", "parts/tile_A_black.stl", "black")], x, 70))
+    for i, x in enumerate((153, 203)):
+        objs.append((f"HH tile B{i+1}", [
+            ("black floor", "parts/tile_B_black.stl", "black"),
+            ("red face", "parts/tile_B_red.stl", "red")], x, 70))
+    return objs
+
+
+FIT_TEST = [("fit test block (ribs 1-5)", [("block", "fit_test.stl", "red")], 128, 150),
+            ("fit test plate", [("plate", "fit_test_plate.stl", "red")], 128, 90)]
 
 
 def mesh_xml(oid, name, mesh):
@@ -43,10 +47,10 @@ def mesh_xml(oid, name, mesh):
             f'<vertices>{v}</vertices><triangles>{t}</triangles></mesh></object>\n')
 
 
-def main():
+def write_3mf(out_path, objects, title):
     objs, comps, builds, cfg = [], [], [], []
     oid = 1
-    for name, parts, bx, by in OBJECTS:
+    for name, parts, bx, by in objects:
         part_ids, part_cfg = [], []
         for pname, path, col in parts:
             m = trimesh.load(os.path.join(HERE, path))
@@ -74,7 +78,7 @@ def main():
     model = ('<?xml version="1.0" encoding="UTF-8"?>\n'
              '<model unit="millimeter" xml:lang="en-US" '
              'xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02">\n'
-             '<metadata name="Title">HH Cube Ornament</metadata>\n'
+             f'<metadata name="Title">{escape(title)}</metadata>\n'
              '<resources>\n' + "".join(objs) + "".join(comps) + '</resources>\n'
              '<build>' + "".join(builds) + '</build>\n</model>\n')
     content_types = ('<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -90,12 +94,21 @@ def main():
             '</Relationships>\n')
     settings = '<?xml version="1.0" encoding="UTF-8"?>\n<config>\n' + "".join(cfg) + '</config>\n'
 
-    with zipfile.ZipFile(OUT, "w", zipfile.ZIP_DEFLATED) as z:
+    with zipfile.ZipFile(out_path, "w", zipfile.ZIP_DEFLATED) as z:
         z.writestr("[Content_Types].xml", content_types)
         z.writestr("_rels/.rels", rels)
         z.writestr("3D/3dmodel.model", model)
         z.writestr("Metadata/model_settings.config", settings)
-    print(OUT, os.path.getsize(OUT) // 1024, "KB")
+    print(os.path.basename(out_path), os.path.getsize(out_path) // 1024, "KB")
+
+
+def main():
+    old = os.path.join(HERE, "HH_Cube_Ornament.3mf")
+    if os.path.exists(old):
+        os.remove(old)
+    write_3mf(os.path.join(HERE, "fit_test.3mf"), FIT_TEST, "HH fit test")
+    for fit in range(1, 6):
+        write_3mf(os.path.join(HERE, f"HH_Cube_fit{fit}.3mf"), cube_objects(fit), f"HH Cube Ornament fit {fit}")
 
 
 if __name__ == "__main__":

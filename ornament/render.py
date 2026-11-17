@@ -76,11 +76,10 @@ def main():
         o.paste(im, (i * 500, 0)); os.remove(os.path.join(pv, f"_t{i}.png"))
     o.save(os.path.join(pv, "turnaround.png"))
 
-    core = L("core.stl")
+    core = L("core_fit3.stl")
     render([(core, COL["red"])], os.path.join(pv, "core.png"), 15, -60,
-           title="core.stl - two spring arms with hooks on each side")
+           title="core - two ribs with crush bumps on each side")
     import build
-    # exploded: the two front tiles pulled straight out
     items = [(core, COL["red"])]
     out = {"-y": (0, -1, 0), "+x": (1, 0, 0), "+y": (0, 1, 0), "-x": (-1, 0, 0)}
     for face, kind in build.FACES:
@@ -92,21 +91,22 @@ def main():
             m.apply_translation([v * k for v in out[face]])
             items.append((m, COL[c]))
     render(items, os.path.join(pv, "exploded.png"), 15, -45,
-           title="Push each tile straight on - the hooks click into its back")
-    # close-up of one arm: cut the core around the -y face's right-hand snap
-    from manifold3d import Manifold
+           title="Press each tile straight on - grooves grip the ribs like LEGO")
+    # close-up of one rib with its crush bumps
     cm = trimesh_to_manifold(core)
-    u = build.SNAP_U
-    z0 = build.S / 2 + build.SNAP_V
-    win = build.box(u - 4, u + 4, -build.S / 2 - 3, -build.S / 2 + 6, z0 - 14, z0 + 5)
-    close = build.to_trimesh(cm ^ win)
-    render([(close, COL["red"])], os.path.join(pv, "snap_closeup.png"), 25, -70, size=700,
-           title="Spring arm: hook on top, slot gives it room to bend")
+    u = build.RIB_U[1]
+    win = build.box(u - 4, u + 4, -build.S / 2 - 2, -build.S / 2 + 4, build.S / 2 - 6, build.S / 2 + 12)
+    render([(build.to_trimesh(cm ^ win), COL["red"])], os.path.join(pv, "rib_closeup.png"), 20, -60,
+           size=700, title="Rib with crush bumps (they squash a little as the tile goes on)")
+    ft, fp = L("fit_test.stl"), L("fit_test_plate.stl")
+    fp2 = fp.copy(); fp2.apply_translation([0, -30, 0])
+    render([(ft, COL["red"]), (fp2, np.array(COL["black"]))], os.path.join(pv, "fit_test.png"), 30, -60,
+           size=800, title="Fit test: block with ribs 1-5 (dots on top) + plate")
     p = os.path.join(HERE, "parts")
     for name, cols in (("tile_A", ("white", "red", "black")), ("tile_B", ("black", "red"))):
         items = [(trimesh.load(os.path.join(p, f"{name}_{c}.stl")), COL[c]) for c in cols]
         render(items, os.path.join(pv, f"{name}.png"), 55, -75, title=f"{name}.stl - as printed (face up)")
-        render(items, os.path.join(pv, f"{name}_back.png"), -55, -75, title=f"{name} - back: the two snap pockets")
+        render(items, os.path.join(pv, f"{name}_back.png"), -55, -75, title=f"{name} - back: the two grooves")
 
 
 def trimesh_to_manifold(t):
