@@ -77,3 +77,4 @@ The 30 s cut (primark-journey-30s.mp4) is kept as it was. The 45 s cut changes o
 - Counter rolls like an odometer (only the changing digits move); new store-list lines fade in; the year and the OPENINGS label crossfade.
 - Ambient motion (ink wobble, current, pulses) slows to a stop over the last 1.8 s so the end eases to rest.
 - Export: 1080x1350, 60 fps, H.264 High, 13 Mbps (max 15), yuv420p, +faststart, drawn at 2x and downscaled. No audio track. `node render-motion.mjs out.mp4` (defaults come from timing.js; `--fps 30` for 30 fps).
+- primark-journey-45s-share.mp4: phone/text copy of the 45 s video (same picture, 30 fps, about 12 MB, no audio). Use this one for iMessage, WhatsApp and email.
