@@ -1,0 +1,310 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Slack Pitch</title>
+<style>
+@page{size:11in 8.5in;margin:0}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--aub:#4A154B;--aub2:#3F0E40;--blue:#36C5F0;--green:#2EB67D;--yellow:#ECB22E;--red:#E01E5A;--ink:#1D1C1D;--mute:#616061;--bg:#FFF8F0}
+body{font-family:Inter,Lato,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+.page{width:11in;height:8.5in;position:relative;overflow:hidden;page-break-after:always;padding:.55in .6in;background:var(--bg)}
+.blob{position:absolute;border-radius:50%;opacity:.18;z-index:0}
+.page>*{position:relative;z-index:1}.page>.blob{position:absolute;z-index:0}
+.kicker{display:inline-block;background:var(--aub);color:#fff;font-weight:800;font-size:13px;letter-spacing:.08em;text-transform:uppercase;padding:7px 16px;border-radius:99px}
+h1{font-size:76px;line-height:.95;font-weight:900;letter-spacing:-.03em}
+h2{font-size:46px;line-height:1;font-weight:900;letter-spacing:-.02em;margin:14px 0 6px}
+.sub{font-size:20px;color:var(--mute);font-weight:500;max-width:7.5in}
+.pg{position:absolute;bottom:.3in;right:.6in;font-size:12px;color:#aaa;font-weight:700}
+/* slack chrome */
+.win{background:#fff;border-radius:14px;box-shadow:0 18px 50px rgba(74,21,75,.22),0 0 0 1px rgba(0,0,0,.06);overflow:hidden;display:flex;font-size:13px}
+.side{background:var(--aub2);color:#cfc3cf;width:220px;padding:12px 0;flex-shrink:0}
+.ws{color:#fff;font-weight:900;font-size:16px;padding:2px 16px 12px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:8px;display:flex;justify-content:space-between}
+.sec{font-size:12px;font-weight:700;padding:8px 16px 3px;color:#bcabbc}
+.ch{padding:4px 16px 4px 26px;display:flex;gap:6px}
+.ch.on{background:#1164A3;color:#fff;font-weight:700}
+.ch.b{color:#fff;font-weight:800}
+.nav{padding:4px 16px;display:flex;gap:8px;color:#d8cdd8}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.top{padding:12px 18px;border-bottom:1px solid #e8e8e8;font-weight:900;font-size:16px;display:flex;justify-content:space-between;align-items:center}
+.tabs{display:flex;gap:16px;font-size:12px;color:var(--mute);font-weight:600;padding:0 18px;border-bottom:1px solid #e8e8e8}
+.tabs span{padding:8px 0}.tabs .a{color:var(--ink);border-bottom:2px solid var(--ink)}
+.msg{display:flex;gap:10px;padding:8px 18px}
+.av{width:34px;height:34px;border-radius:8px;flex-shrink:0;color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:14px}
+.nm{font-weight:900}.tm{color:#888;font-size:11px;margin-left:6px;font-weight:400}
+.rep{color:#1264A3;font-weight:700;font-size:12px;margin-top:4px;display:flex;gap:6px;align-items:center}
+.mini{width:18px;height:18px;border-radius:4px;display:inline-block}
+.tag{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:800}
+.t-g{background:#DDF4EA;color:#107A4E}.t-y{background:#FDF1D6;color:#8A6100}.t-r{background:#FBE0E8;color:#A3123F}.t-b{background:#DDF3FC;color:#0B6A8C}.t-p{background:#EEE3EE;color:var(--aub)}
+.ment{background:#E8F5FA;color:#1264A3;padding:0 2px;border-radius:3px;font-weight:600}
+/* callouts */
+.bub{position:absolute;z-index:5;width:44px;height:44px;border-radius:50%;color:#fff;font-weight:900;font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,0,0,.25);border:3px solid #fff}
+.ring{position:absolute;z-index:4;border:4px solid var(--red);border-radius:12px;box-shadow:0 0 0 6px rgba(224,30,90,.15)}
+.steps{display:flex;flex-direction:column;gap:14px}
+.step{display:flex;gap:14px;align-items:center;background:#fff;border-radius:22px;padding:14px 18px;box-shadow:0 6px 18px rgba(74,21,75,.10)}
+.step .n{width:42px;height:42px;border-radius:50%;color:#fff;font-weight:900;font-size:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step b{font-size:19px;display:block;line-height:1.15}.step small{font-size:13px;color:var(--mute)}
+.btn{display:inline-block;background:#007A5A;color:#fff;font-weight:800;padding:2px 9px;border-radius:6px;font-size:13px}
+.key{display:inline-block;border:1.5px solid #bbb;border-bottom-width:3px;border-radius:6px;padding:0 6px;font-size:12px;font-weight:800;background:#fff}
+table.list{width:100%;border-collapse:collapse;font-size:12.5px}
+table.list th{text-align:left;color:var(--mute);font-weight:700;font-size:11px;padding:8px 10px;border-bottom:1px solid #e5e5e5;background:#fafafa}
+table.list td{padding:8px 10px;border-bottom:1px solid #f0f0f0}
+.grp td{background:#F6F1F6;font-weight:900;color:var(--aub);font-size:12px;padding:6px 10px}
+.chk{width:15px;height:15px;border:2px solid #bbb;border-radius:4px;display:inline-block;vertical-align:middle}
+.chk.d{background:var(--green);border-color:var(--green)}
+.who{display:inline-flex;align-items:center;gap:5px}.who i{width:18px;height:18px;border-radius:5px;display:inline-block}
+.pill{border-radius:30px;padding:22px 26px;color:#fff}
+.big{font-size:64px;font-weight:900;line-height:1}
+</style></head><body>
+
+<!-- ============ 1 COVER ============ -->
+<section class="page" style="background:var(--aub);color:#fff">
+  <div class="blob" style="width:520px;height:520px;background:var(--blue);right:-140px;top:-160px;opacity:.35"></div>
+  <div class="blob" style="width:360px;height:360px;background:var(--yellow);right:180px;bottom:-200px;opacity:.35"></div>
+  <div class="blob" style="width:240px;height:240px;background:var(--red);left:-80px;bottom:-60px;opacity:.4"></div>
+  <div class="blob" style="width:180px;height:180px;background:var(--green);left:46%;top:40px;opacity:.4"></div>
+  <span class="kicker" style="background:#fff;color:var(--aub)">Hellhound Audio · Admin team</span>
+  <h1 style="margin-top:40px;font-size:96px">One hub.<br>Every task.<br><span style="color:var(--yellow)">Zero chasing.</span></h1>
+  <p style="font-size:26px;margin-top:28px;font-weight:600;opacity:.9;max-width:6.5in">Payments, RMS quotes, to-dos, scheduling and a record of what got done, all inside Slack.</p>
+  <div style="position:absolute;bottom:.6in;left:.6in;display:flex;gap:12px">
+    <span class="tag" style="background:var(--blue);color:#062b3a;font-size:15px;padding:8px 16px">Channels</span>
+    <span class="tag" style="background:var(--green);color:#063b25;font-size:15px;padding:8px 16px">Lists</span>
+    <span class="tag" style="background:var(--yellow);color:#3d2c00;font-size:15px;padding:8px 16px">Calendar</span>
+    <span class="tag" style="background:var(--red);color:#fff;font-size:15px;padding:8px 16px">Done log</span>
+  </div>
+  <div style="position:absolute;bottom:.6in;right:.6in;font-size:18px;font-weight:800">5 pages · 2 minutes →</div>
+</section>
+
+<!-- ============ 2 BEFORE / AFTER ============ -->
+<section class="page">
+  <div class="blob" style="width:300px;height:300px;background:var(--red);left:-120px;top:-100px"></div>
+  <span class="kicker">The problem</span>
+  <h2>Right now everything lives in <span style="color:var(--red)">one long chat.</span></h2>
+  <div style="display:flex;gap:34px;margin-top:22px;align-items:stretch">
+    <div style="flex:1">
+      <div style="font-size:22px;font-weight:900;color:var(--red);margin-bottom:10px">😩 Today</div>
+      <div style="background:#ECE5DD;border-radius:22px;padding:16px;height:4.6in;display:flex;flex-direction:column;gap:8px;font-size:14px">
+        <div style="background:#fff;border-radius:12px;padding:8px 12px;align-self:flex-start;max-width:80%">did anyone pay the PA rental invoice?</div>
+        <div style="background:#fff;border-radius:12px;padding:8px 12px;align-self:flex-start;max-width:80%">also need the quote for Friday's gig in RMS</div>
+        <div style="background:#DCF8C6;border-radius:12px;padding:8px 12px;align-self:flex-end;max-width:80%">which invoice? 🤔</div>
+        <div style="background:#fff;border-radius:12px;padding:8px 12px;align-self:flex-start;max-width:80%">🎤 voice note 0:47</div>
+        <div style="background:#fff;border-radius:12px;padding:8px 12px;align-self:flex-start;max-width:80%">can someone book the van for the 28th</div>
+        <div style="background:#DCF8C6;border-radius:12px;padding:8px 12px;align-self:flex-end;max-width:80%">👍</div>
+        <div style="background:#fff;border-radius:12px;padding:8px 12px;align-self:flex-start;max-width:80%">👍 means done or seen??</div>
+        <div style="background:#fff;border-radius:12px;padding:8px 12px;align-self:flex-start;max-width:80%">scrolling up to find that quote again…</div>
+      </div>
+    </div>
+    <div style="flex:1.25">
+      <div style="font-size:22px;font-weight:900;color:var(--green);margin-bottom:10px">😎 With Slack</div>
+      <div class="win" style="height:4.6in">
+        <div class="side" style="width:190px">
+          <div class="ws">Hellhound Admin</div>
+          <div class="sec">▾ 💰 Money</div>
+          <div class="ch b"># payments-due</div>
+          <div class="ch"># invoices-paid</div>
+          <div class="sec">▾ 📋 Work</div>
+          <div class="ch on"># quotes-rms</div>
+          <div class="ch"># scheduling</div>
+          <div class="ch b"># todo-important</div>
+          <div class="sec">▾ ✅ Records</div>
+          <div class="ch"># done-log</div>
+          <div class="ch"># decisions</div>
+        </div>
+        <div class="main">
+          <div class="top"># quotes-rms</div>
+          <div class="msg"><div class="av" style="background:var(--blue)">M</div><div><span class="nm">Maria</span><span class="tm">9:02 AM</span><br>Quote for Friday's gig → <span class="ment">@Juan</span>, due Wed<div class="rep"><span class="mini" style="background:var(--green)"></span>3 replies · <span class="tag t-g">✅ Done</span></div></div></div>
+          <div class="msg"><div class="av" style="background:var(--red)">J</div><div><span class="nm">Juan</span><span class="tm">10:15 AM</span><br>Wedding package quote → <span class="ment">@Maria</span>, due Fri<div class="rep"><span class="mini" style="background:var(--blue)"></span>1 reply · <span class="tag t-y">⏳ Waiting</span></div></div></div>
+          <div class="msg"><div class="av" style="background:var(--yellow)">B</div><div><span class="nm">Boss</span><span class="tm">11:40 AM</span><br>Corporate AV rental quote → <span class="ment">@Juan</span><div class="rep"><span class="tag t-b">🔨 Working</span></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pg">2</div>
+</section>
+
+<!-- ============ 3 CHANNELS: WHERE THINGS LIVE ============ -->
+<section class="page">
+  <div class="blob" style="width:340px;height:340px;background:var(--blue);right:-120px;top:-120px"></div>
+  <span class="kicker" style="background:var(--blue);color:#062b3a">Step 1 · Organize</span>
+  <h2>A room for every job.</h2>
+  <p class="sub">Channels = topics. Sections = folders that group them.</p>
+  <div style="display:flex;gap:40px;margin-top:22px">
+    <div style="position:relative;width:4.4in">
+      <div class="win" style="height:5.2in">
+        <div class="side" style="width:100%;font-size:15px">
+          <div class="ws" style="font-size:19px">Hellhound Admin <span>✏️</span></div>
+          <div class="nav">🏠 Home</div>
+          <div class="nav">💬 DMs</div>
+          <div class="nav">📋 Lists</div>
+          <div class="sec" style="font-size:14px;margin-top:6px">▾ 💰 Money</div>
+          <div class="ch b"># payments-due <span class="tag" style="background:var(--red);color:#fff;margin-left:auto">3</span></div>
+          <div class="ch"># invoices-paid</div>
+          <div class="sec" style="font-size:14px">▾ 📋 Work</div>
+          <div class="ch"># quotes-rms</div>
+          <div class="ch"># scheduling</div>
+          <div class="ch b"># todo-important</div>
+          <div class="sec" style="font-size:14px">▾ ✅ Records</div>
+          <div class="ch"># done-log</div>
+          <div class="ch"># decisions</div>
+          <div class="nav" style="margin-top:8px;color:#fff;font-weight:700">＋ Add channels</div>
+        </div>
+      </div>
+      <div class="ring" style="left:6px;top:4.42in;width:200px;height:36px"></div>
+      <div class="bub" style="background:var(--red);left:212px;top:4.37in">1</div>
+      <div class="ring" style="left:6px;top:1.72in;width:190px;height:30px;border-color:var(--blue)"></div>
+      <div class="bub" style="background:var(--blue);left:204px;top:1.62in">2</div>
+      <div class="ring" style="left:6px;top:1.2in;width:120px;height:30px;border-color:var(--green)"></div>
+      <div class="bub" style="background:var(--green);left:136px;top:1.1in">3</div>
+    </div>
+    <div class="steps" style="flex:1;margin-top:20px">
+      <div class="step"><div class="n" style="background:var(--red)">1</div><div><b>Click “＋ Add channels” → Create</b><small>Name it: <b style="display:inline;font-size:13px">#payments-due</b>, <b style="display:inline;font-size:13px">#quotes-rms</b>…</small></div></div>
+      <div class="step"><div class="n" style="background:var(--blue)">2</div><div><b>Right-click a channel → Move to → New section</b><small>Group them: 💰 Money · 📋 Work · ✅ Records</small></div></div>
+      <div class="step"><div class="n" style="background:var(--green)">3</div><div><b>Open “Lists” for the to-do boards</b><small>Next page 👉</small></div></div>
+      <div class="step" style="background:var(--aub);color:#fff"><div class="n" style="background:var(--yellow);color:var(--ink)">★</div><div><b>Bold = something new.</b><small style="color:#e6d6e6">Red number = it's waiting on you. No scrolling, no guessing.</small></div></div>
+    </div>
+  </div>
+  <div class="pg">3</div>
+</section>
+
+<!-- ============ 4 LISTS ============ -->
+<section class="page">
+  <div class="blob" style="width:320px;height:320px;background:var(--green);left:-120px;bottom:-120px"></div>
+  <span class="kicker" style="background:var(--green)">Step 2 · Track</span>
+  <h2>Every to-do. One list. Grouped.</h2>
+  <p class="sub">Owner, due date, status. Check it off and everyone sees it.</p>
+  <div style="position:relative;margin-top:18px">
+    <div class="win" style="height:5.05in">
+      <div class="side" style="width:170px">
+        <div class="ws">Hellhound Admin</div>
+        <div class="nav">🏠 Home</div><div class="nav">💬 DMs</div>
+        <div class="nav" style="background:#1164A3;color:#fff;font-weight:700">📋 Lists</div>
+        <div class="sec">Your lists</div>
+        <div class="ch on" style="padding-left:20px">✅ Admin Board</div>
+        <div class="ch" style="padding-left:20px">📅 Gig Schedule</div>
+      </div>
+      <div class="main">
+        <div class="top">✅ Admin Board <span style="display:flex;gap:8px"><span class="btn" style="background:#fff;color:var(--ink);border:1px solid #ccc">Group by: Category ▾</span><span class="btn">＋ New item</span></span></div>
+        <div class="tabs"><span class="a">▤ Table</span><span>▦ Board</span></div>
+        <table class="list">
+          <tr><th style="width:26px"></th><th>Task</th><th>Owner</th><th>Due</th><th>Status</th></tr>
+          <tr class="grp"><td colspan="5">💰 Upcoming payments · 3</td></tr>
+          <tr><td><span class="chk"></span></td><td>PA rental invoice – SoundCo</td><td><span class="who"><i style="background:var(--blue)"></i>Maria</span></td><td><b style="color:var(--red)">Today</b></td><td><span class="tag t-r">Overdue soon</span></td></tr>
+          <tr><td><span class="chk"></span></td><td>Van hire deposit</td><td><span class="who"><i style="background:var(--red)"></i>Juan</span></td><td>Nov 24</td><td><span class="tag t-y">Waiting</span></td></tr>
+          <tr class="grp"><td colspan="5">🧾 Quotes to prep in RMS · 2</td></tr>
+          <tr><td><span class="chk d"></span></td><td><s style="color:#999">Friday gig – full rig quote</s></td><td><span class="who"><i style="background:var(--red)"></i>Juan</span></td><td>Nov 19</td><td><span class="tag t-g">Done</span></td></tr>
+          <tr><td><span class="chk"></span></td><td>Wedding package – Dec 6</td><td><span class="who"><i style="background:var(--blue)"></i>Maria</span></td><td>Nov 22</td><td><span class="tag t-b">Working</span></td></tr>
+          <tr class="grp"><td colspan="5">🔥 Important to-dos · 2</td></tr>
+          <tr><td><span class="chk"></span></td><td>Renew equipment insurance</td><td><span class="who"><i style="background:var(--yellow)"></i>Boss</span></td><td>Nov 30</td><td><span class="tag t-p">Not started</span></td></tr>
+          <tr class="grp"><td colspan="5">📅 Scheduling · 1</td></tr>
+          <tr><td><span class="chk"></span></td><td>Crew call times – NYE show</td><td><span class="who"><i style="background:var(--blue)"></i>Maria</span></td><td>Dec 1</td><td><span class="tag t-b">Working</span></td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="bub" style="background:var(--red);left:1.25in;top:1.15in">1</div>
+    <div class="bub" style="background:var(--blue);right:.1in;top:-.12in">2</div>
+    <div class="bub" style="background:var(--yellow);color:var(--ink);right:2.35in;top:-.12in">3</div>
+    <div class="bub" style="background:var(--green);left:-.2in;top:3.05in">4</div>
+  </div>
+  <div style="display:flex;gap:12px;margin-top:14px;font-size:15px;font-weight:700">
+    <div><span class="tag" style="background:var(--red);color:#fff">1</span> Click <b>Lists</b></div>
+    <div><span class="tag" style="background:var(--blue);color:#fff">2</span> <b>＋ New item</b></div>
+    <div><span class="tag" style="background:var(--yellow)">3</span> <b>Group by Category</b></div>
+    <div><span class="tag" style="background:var(--green);color:#fff">4</span> Tick the box = <b>done</b></div>
+    <div style="margin-left:auto;color:var(--mute);font-weight:600">Switch to ▦ Board for drag-and-drop cards</div>
+  </div>
+  <div class="pg">4</div>
+</section>
+
+<!-- ============ 5 CALENDAR / DONE LOG ============ -->
+<section class="page">
+  <div class="blob" style="width:340px;height:340px;background:var(--yellow);right:-120px;bottom:-140px;opacity:.3"></div>
+  <span class="kicker" style="background:var(--yellow);color:var(--ink)">Step 3 · Prove it</span>
+  <h2>See <u style="text-decoration-color:var(--yellow);text-decoration-thickness:8px">when</u> things got done.</h2>
+  <p class="sub">Every “Done” is time-stamped. Your calendar talks to Slack.</p>
+  <div style="display:flex;gap:26px;margin-top:20px">
+    <div class="win" style="flex:1.1;height:4.9in;flex-direction:column">
+      <div class="top"># done-log <span style="font-size:12px;color:var(--mute);font-weight:600">🔍 in:#done-log after:Nov 1</span></div>
+      <div style="text-align:center;margin:10px 0 2px"><span class="tag" style="border:1px solid #ddd;background:#fff">Tuesday, Nov 18</span></div>
+      <div class="msg"><div class="av" style="background:var(--blue)">M</div><div><span class="nm">Maria</span><span class="tm">2:14 PM</span><br>✅ <b>Paid</b> SoundCo invoice #4471 · $1,240 📎</div></div>
+      <div style="text-align:center;margin:6px 0 2px"><span class="tag" style="border:1px solid #ddd;background:#fff">Wednesday, Nov 19</span></div>
+      <div class="msg"><div class="av" style="background:var(--red)">J</div><div><span class="nm">Juan</span><span class="tm">10:05 AM</span><br>✅ <b>Sent</b> Friday gig quote from RMS to client 📎</div></div>
+      <div class="msg"><div class="av" style="background:var(--yellow)">B</div><div><span class="nm">Boss</span><span class="tm">4:30 PM</span><br>✅ <b>Approved</b> NYE crew budget</div></div>
+      <div style="text-align:center;margin:6px 0 2px"><span class="tag" style="border:1px solid #ddd;background:#fff">Today</span></div>
+      <div class="msg"><div class="av" style="background:var(--blue)">M</div><div><span class="nm">Maria</span><span class="tm">9:12 AM</span><br>✅ <b>Booked</b> van for Nov 28 · conf #VX-552</div></div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:16px">
+      <div class="win" style="flex-direction:column;padding-bottom:6px">
+        <div class="top" style="font-size:14px">📅 Google Calendar <span class="tag t-p">APP</span></div>
+        <div class="msg"><div class="av" style="background:#1A73E8">31</div><div><span class="nm">Today's schedule</span><span class="tm">8:00 AM</span>
+          <div style="margin-top:6px;display:flex;flex-direction:column;gap:5px;font-size:12.5px">
+            <div style="border-left:4px solid var(--green);padding-left:8px"><b>10:00</b> Load-in · Grand Hall</div>
+            <div style="border-left:4px solid var(--blue);padding-left:8px"><b>13:00</b> Call with SoundCo re: invoice</div>
+            <div style="border-left:4px solid var(--red);padding-left:8px"><b>16:00</b> Wedding quote due</div>
+          </div></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;background:#fff;padding:14px;border-radius:18px;box-shadow:0 6px 18px rgba(74,21,75,.10);font-size:11px;font-weight:800;text-align:center">
+        <div style="grid-column:1/8;text-align:left;font-size:14px;margin-bottom:4px">November · tasks done ✅</div>
+        <div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div><div>S</div>
+        <div style="background:#DDF4EA;border-radius:8px;padding:6px 0">10<br>●●</div><div style="background:#DDF4EA;border-radius:8px;padding:6px 0">11<br>●</div><div style="background:#DDF4EA;border-radius:8px;padding:6px 0">12<br>●●●</div><div style="background:#f3f3f3;border-radius:8px;padding:6px 0">13<br>&nbsp;</div><div style="background:#DDF4EA;border-radius:8px;padding:6px 0">14<br>●</div><div style="background:#f3f3f3;border-radius:8px;padding:6px 0;color:#bbb">15</div><div style="background:#f3f3f3;border-radius:8px;padding:6px 0;color:#bbb">16</div>
+        <div style="background:#DDF4EA;border-radius:8px;padding:6px 0">17<br>●●</div><div style="background:#DDF4EA;border-radius:8px;padding:6px 0">18<br>●</div><div style="background:#DDF4EA;border-radius:8px;padding:6px 0">19<br>●●</div><div style="background:var(--green);color:#fff;border-radius:8px;padding:6px 0">20<br>●</div><div style="border-radius:8px;padding:6px 0;border:2px dashed #ddd;color:#bbb">21</div><div style="color:#ccc;padding:6px 0">22</div><div style="color:#ccc;padding:6px 0">23</div>
+      </div>
+      <div style="font-size:15px;font-weight:700;line-height:1.5">
+        <span class="tag" style="background:var(--red);color:#fff">1</span> Post <b>✅ Done + date + link</b> in #done-log<br>
+        <span class="tag" style="background:var(--blue);color:#fff">2</span> Add the <b>Google Calendar app</b> → daily agenda<br>
+        <span class="tag" style="background:var(--green);color:#fff">3</span> Search by <b>date or person</b> anytime
+      </div>
+    </div>
+  </div>
+  <div class="pg">5</div>
+</section>
+
+<!-- ============ 6 HOW A TASK FLOWS ============ -->
+<section class="page">
+  <div class="blob" style="width:300px;height:300px;background:var(--aub);left:-100px;top:-100px;opacity:.12"></div>
+  <span class="kicker">The routine</span>
+  <h2>One task. Three words. No chasing.</h2>
+  <div style="display:flex;gap:18px;margin-top:26px;align-items:center">
+    <div class="pill" style="background:var(--aub);flex:1"><div style="font-size:15px;opacity:.8;font-weight:700">POST</div><div style="font-size:24px;font-weight:900;margin-top:4px">What · Who · When</div><div style="font-size:14px;margin-top:8px;opacity:.85">“Pay SoundCo invoice → @Maria, due Fri”</div></div>
+    <div style="font-size:40px;font-weight:900;color:var(--aub)">→</div>
+    <div class="pill" style="background:var(--blue);flex:1;color:#062b3a"><div style="font-size:15px;opacity:.8;font-weight:700">REPLY IN THREAD</div><div style="font-size:24px;font-weight:900;margin-top:4px">🔨 Working<br>⏳ Waiting</div></div>
+    <div style="font-size:40px;font-weight:900;color:var(--aub)">→</div>
+    <div class="pill" style="background:var(--green);flex:1"><div style="font-size:15px;opacity:.85;font-weight:700">CLOSE IT</div><div style="font-size:24px;font-weight:900;margin-top:4px">✅ Done</div><div style="font-size:14px;margin-top:8px">+ time + link. Never just 👍</div></div>
+  </div>
+  <div class="win" style="margin-top:26px;height:3.1in">
+    <div class="main" style="border-right:1px solid #eee">
+      <div class="top"># payments-due</div>
+      <div class="msg"><div class="av" style="background:var(--yellow)">B</div><div><span class="nm">Boss</span><span class="tm">Mon 9:00 AM</span><br>Pay SoundCo PA invoice → <span class="ment">@Maria</span>, due <b>Fri</b><div class="rep"><span class="mini" style="background:var(--blue)"></span><span class="mini" style="background:var(--yellow)"></span> 3 replies · Last reply today</div></div></div>
+    </div>
+    <div class="main" style="flex:1.2;background:#fcfcfc">
+      <div class="top" style="font-size:14px">Thread <span style="color:var(--mute);font-weight:500;font-size:12px"># payments-due</span></div>
+      <div class="msg"><div class="av" style="background:var(--blue)">M</div><div><span class="nm">Maria</span><span class="tm">Mon 11:20</span><br><span class="tag t-b">🔨 Working</span> asked SoundCo for updated invoice</div></div>
+      <div class="msg"><div class="av" style="background:var(--blue)">M</div><div><span class="nm">Maria</span><span class="tm">Tue 3:05</span><br><span class="tag t-y">⏳ Waiting</span> they're resending Thursday</div></div>
+      <div class="msg"><div class="av" style="background:var(--blue)">M</div><div><span class="nm">Maria</span><span class="tm">Thu 1:10</span><br><span class="tag t-g">✅ Done</span> Paid $1,240 · receipt 📎 <span class="ment">#4471.pdf</span></div></div>
+    </div>
+  </div>
+  <div class="pg">6</div>
+</section>
+
+<!-- ============ 7 THE ASK ============ -->
+<section class="page" style="background:var(--aub);color:#fff">
+  <div class="blob" style="width:420px;height:420px;background:var(--green);right:-140px;top:-140px;opacity:.35"></div>
+  <div class="blob" style="width:260px;height:260px;background:var(--blue);left:-90px;bottom:-90px;opacity:.35"></div>
+  <span class="kicker" style="background:var(--yellow);color:var(--ink)">The ask</span>
+  <h1 style="margin-top:22px;font-size:84px">Give it<br><span style="color:var(--yellow)">2 weeks.</span></h1>
+  <div style="display:flex;gap:20px;margin-top:34px">
+    <div class="pill" style="background:#fff;color:var(--ink);flex:1">
+      <div style="font-size:15px;font-weight:800;color:var(--mute)">TRY IT</div>
+      <div class="big" style="color:var(--green)">$0</div>
+      <div style="font-size:16px;font-weight:700;margin-top:8px">Free plan: channels, threads, search, Google Calendar &amp; Drive apps</div>
+    </div>
+    <div class="pill" style="background:#fff;color:var(--ink);flex:1">
+      <div style="font-size:15px;font-weight:800;color:var(--mute)">ALL-IN (LISTS + FULL HISTORY)</div>
+      <div class="big" style="color:var(--aub)">$26<span style="font-size:30px">/mo</span></div>
+      <div style="font-size:16px;font-weight:700;margin-top:8px">Pro for 3 people · $261/yr if billed annually</div>
+    </div>
+    <div class="pill" style="background:var(--yellow);color:var(--ink);flex:1">
+      <div style="font-size:15px;font-weight:800">WE MEASURE</div>
+      <div style="font-size:21px;font-weight:900;line-height:1.35;margin-top:6px">“Did you…?” messages<br>Tasks with owner + date<br>Time hunting for stuff</div>
+    </div>
+  </div>
+  <p style="margin-top:26px;font-size:20px;font-weight:700;opacity:.9">Day 14: we sit down for 15 minutes. If it's not better, we go back. Simple.</p>
+  <p style="position:absolute;bottom:.3in;left:.6in;font-size:11px;opacity:.6;max-width:9in">Pricing: Slack Pro US$8.75/user/mo monthly, $7.25 annual (checked Nov 2026). Lists &amp; Workflow Builder need a paid plan. Free keeps 90 days of history. Screens are illustrative mock-ups of the Slack interface; names and amounts are examples.</p>
+</section>
+</body></html>
