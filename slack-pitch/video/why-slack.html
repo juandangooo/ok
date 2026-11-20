@@ -1,0 +1,153 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Why Slack</title>
+<link rel="stylesheet" href="base.css">
+<style>
+html,body{width:1280px;height:720px;overflow:hidden;background:var(--bg)}
+#st{position:relative;width:1280px;height:720px;overflow:hidden}
+.sc{position:absolute;inset:0;padding:56px 70px}
+[data-a]{will-change:transform,opacity}
+.cap{font-size:62px;font-weight:900;letter-spacing:-.03em;line-height:1}
+.bl{position:absolute;border-radius:50%}
+.chat{background:#fff;border-radius:16px;padding:12px 18px;font-size:22px;box-shadow:0 4px 12px rgba(0,0,0,.08);position:absolute}
+.me{background:#DCF8C6}
+.progress{position:absolute;left:0;bottom:0;height:8px;background:linear-gradient(90deg,var(--blue),var(--green),var(--yellow),var(--red))}
+</style></head><body><div id="st">
+
+<!-- S1 chaos 0-6 -->
+<div class="sc" data-a="0,6.2,fade" style="background:#ECE5DD">
+  <div class="cap" data-a="0.1,,up" style="color:var(--ink)">Our admin chat today…</div>
+  <div class="chat" data-a="0.6,,pop" style="left:70px;top:150px">did anyone pay the PA rental invoice?</div>
+  <div class="chat" data-a="1.1,,pop" style="left:160px;top:225px">need the quote for Friday's gig in RMS</div>
+  <div class="chat me" data-a="1.6,,pop" style="right:90px;top:180px">which invoice? 🤔</div>
+  <div class="chat" data-a="2.0,,pop" style="left:90px;top:305px">🎤 voice note 0:47</div>
+  <div class="chat" data-a="2.4,,pop" style="left:420px;top:360px">can someone book the van for the 28th</div>
+  <div class="chat me" data-a="2.8,,pop" style="right:140px;top:290px;font-size:40px">👍</div>
+  <div class="chat" data-a="3.2,,pop" style="left:130px;top:450px">scrolling up to find that quote again…</div>
+  <div class="chat" data-a="3.6,,pop" style="right:110px;top:430px">was this done yet??</div>
+  <div class="chat" data-a="4.0,,pop" style="left:520px;top:540px;font-size:30px;font-weight:900;background:var(--red);color:#fff">👍 = done… or just seen??</div>
+</div>
+
+<!-- S2 better way 6-10 -->
+<div class="sc" data-a="6,10.2,fade" style="background:var(--aub);color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center">
+  <div class="bl" data-a="6,,pop" style="width:420px;height:420px;background:var(--blue);opacity:.35;right:-120px;top:-140px"></div>
+  <div class="bl" data-a="6.2,,pop" style="width:300px;height:300px;background:var(--yellow);opacity:.35;left:-80px;bottom:-120px"></div>
+  <div class="cap" data-a="6.2,,up" style="font-size:96px">Sound familiar?</div>
+  <div class="cap" data-a="7.6,,pop" style="font-size:96px;color:var(--yellow);margin-top:18px">There's a better way.</div>
+</div>
+
+<!-- S3 channels 10-18 -->
+<div class="sc" data-a="10,18.2,fade">
+  <div class="bl" style="width:380px;height:380px;background:var(--blue);opacity:.18;right:-120px;top:-120px"></div>
+  <span class="kicker" data-a="10.2,,left" style="background:var(--blue);color:#062b3a;font-size:18px">1 · Organize</span>
+  <div class="cap" data-a="10.4,,up" style="margin-top:16px">A room for every job.</div>
+  <div style="display:flex;gap:50px;margin-top:30px">
+    <div class="win" data-a="10.8,,left" style="width:380px;height:440px">
+      <div class="side" style="width:100%;font-size:19px">
+        <div class="ws" style="font-size:22px">Hellhound Admin</div>
+        <div class="sec" data-a="11.4,,left" style="font-size:16px">▾ 💰 Money</div>
+        <div class="ch b" data-a="11.6,,left"># payments-due <span class="tag" style="background:var(--red);color:#fff;margin-left:auto">3</span></div>
+        <div class="ch" data-a="11.8,,left"># invoices-paid</div>
+        <div class="sec" data-a="12.3,,left" style="font-size:16px">▾ 📋 Work</div>
+        <div class="ch" data-a="12.5,,left"># quotes-rms</div>
+        <div class="ch" data-a="12.7,,left"># scheduling</div>
+        <div class="ch b" data-a="12.9,,left"># todo-important</div>
+        <div class="sec" data-a="13.4,,left" style="font-size:16px">▾ ✅ Records</div>
+        <div class="ch" data-a="13.6,,left"># done-log</div>
+        <div class="ch" data-a="13.8,,left"># decisions</div>
+      </div>
+    </div>
+    <div class="steps" style="flex:1;margin-top:30px">
+      <div class="step" data-a="14.4,,pop"><div class="n" style="background:var(--red)">1</div><div><b style="font-size:26px">＋ Add channels → Create</b></div></div>
+      <div class="step" data-a="15.3,,pop"><div class="n" style="background:var(--blue)">2</div><div><b style="font-size:26px">Group into sections</b><small style="font-size:17px">💰 Money · 📋 Work · ✅ Records</small></div></div>
+      <div class="step" data-a="16.2,,pop" style="background:var(--aub);color:#fff"><div class="n" style="background:var(--yellow);color:var(--ink)">★</div><div><b style="font-size:26px">Bold = new. Red = waiting on you.</b></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- S4 lists 18-27 -->
+<div class="sc" data-a="18,27.2,fade">
+  <div class="bl" style="width:360px;height:360px;background:var(--green);opacity:.18;left:-140px;bottom:-140px"></div>
+  <span class="kicker" data-a="18.2,,left" style="background:var(--green);font-size:18px">2 · Track</span>
+  <div class="cap" data-a="18.4,,up" style="margin-top:16px">Every to-do. One list.</div>
+  <div class="win" data-a="18.9,,up" style="margin-top:26px;height:470px;font-size:16px">
+    <div class="main">
+      <div class="top" style="font-size:20px">✅ Admin Board <span class="btn" style="font-size:16px">＋ New item</span></div>
+      <table class="list" style="font-size:17px">
+        <tr><th></th><th>Task</th><th>Owner</th><th>Due</th><th>Status</th></tr>
+        <tr class="grp" data-a="19.6,,left"><td colspan="5">💰 Upcoming payments</td></tr>
+        <tr data-a="19.9,,left"><td><span class="chk" data-k="24.2"></span></td><td>PA rental invoice – SoundCo</td><td><span class="who"><i style="background:var(--blue)"></i>Maria</span></td><td><b style="color:var(--red)">Today</b></td><td><span class="tag t-r" data-s="24.2" data-t="Done">Due today</span></td></tr>
+        <tr data-a="20.2,,left"><td><span class="chk"></span></td><td>Van hire deposit</td><td><span class="who"><i style="background:var(--red)"></i>Juan</span></td><td>Nov 24</td><td><span class="tag t-y">Waiting</span></td></tr>
+        <tr class="grp" data-a="20.7,,left"><td colspan="5">🧾 Quotes to prep in RMS</td></tr>
+        <tr data-a="21.0,,left"><td><span class="chk" data-k="25.0"></span></td><td>Wedding package – Dec 6</td><td><span class="who"><i style="background:var(--blue)"></i>Maria</span></td><td>Nov 22</td><td><span class="tag t-b" data-s="25.0" data-t="Done">Working</span></td></tr>
+        <tr class="grp" data-a="21.5,,left"><td colspan="5">🔥 Important to-dos</td></tr>
+        <tr data-a="21.8,,left"><td><span class="chk"></span></td><td>Renew equipment insurance</td><td><span class="who"><i style="background:var(--yellow)"></i>Boss</span></td><td>Nov 30</td><td><span class="tag t-p">Not started</span></td></tr>
+        <tr class="grp" data-a="22.3,,left"><td colspan="5">📅 Scheduling</td></tr>
+        <tr data-a="22.6,,left"><td><span class="chk"></span></td><td>Crew call times – NYE show</td><td><span class="who"><i style="background:var(--blue)"></i>Maria</span></td><td>Dec 1</td><td><span class="tag t-b">Working</span></td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- S5 thread 27-34 -->
+<div class="sc" data-a="27,34.2,fade">
+  <span class="kicker" data-a="27.2,,left" style="font-size:18px">3 · Close the loop</span>
+  <div class="cap" data-a="27.4,,up" style="margin-top:16px">No more “is it done?”</div>
+  <div class="win" data-a="27.9,,up" style="margin-top:30px;height:420px;font-size:19px">
+    <div class="main" style="border-right:1px solid #eee">
+      <div class="top" style="font-size:20px"># payments-due</div>
+      <div class="msg"><div class="av" style="background:var(--yellow);width:46px;height:46px">B</div><div><span class="nm">Boss</span><span class="tm">Mon 9:00 AM</span><br>Pay SoundCo invoice → <span class="ment">@Maria</span>, due <b>Fri</b></div></div>
+    </div>
+    <div class="main" style="flex:1.3;background:#fcfcfc">
+      <div class="top" style="font-size:18px">Thread</div>
+      <div class="msg" data-a="29.0,,pop"><div class="av" style="background:var(--blue);width:46px;height:46px">M</div><div><span class="nm">Maria</span><span class="tm">Mon 11:20</span><br><span class="tag t-b" style="font-size:16px">🔨 Working</span> asked for updated invoice</div></div>
+      <div class="msg" data-a="30.4,,pop"><div class="av" style="background:var(--blue);width:46px;height:46px">M</div><div><span class="nm">Maria</span><span class="tm">Tue 3:05</span><br><span class="tag t-y" style="font-size:16px">⏳ Waiting</span> resending Thursday</div></div>
+      <div class="msg" data-a="31.8,,pop"><div class="av" style="background:var(--blue);width:46px;height:46px">M</div><div><span class="nm">Maria</span><span class="tm">Thu 1:10</span><br><span class="tag t-g" style="font-size:20px">✅ Done</span> Paid $1,240 · receipt 📎</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- S6 calendar 34-39.5 -->
+<div class="sc" data-a="34,39.7,fade">
+  <div class="bl" style="width:380px;height:380px;background:var(--yellow);opacity:.25;right:-120px;bottom:-140px"></div>
+  <span class="kicker" data-a="34.2,,left" style="background:var(--yellow);color:var(--ink);font-size:18px">4 · Prove it</span>
+  <div class="cap" data-a="34.4,,up" style="margin-top:16px">See <u style="text-decoration-color:var(--yellow);text-decoration-thickness:10px">when</u> it got done.</div>
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-top:36px;font-size:22px;font-weight:900;text-align:center">
+    <div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div><div>S</div>
+  </div>
+  <div id="cal" style="display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-top:10px;font-size:22px;font-weight:900;text-align:center"></div>
+</div>
+
+<!-- S7 ask 39.5-45 -->
+<div class="sc" data-a="39.5,,fade" style="background:var(--aub);color:#fff;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center">
+  <div class="bl" data-a="39.6,,pop" style="width:460px;height:460px;background:var(--green);opacity:.35;right:-140px;top:-160px"></div>
+  <div class="bl" data-a="39.8,,pop" style="width:300px;height:300px;background:var(--blue);opacity:.35;left:-90px;bottom:-110px"></div>
+  <div class="bl" data-a="40.0,,pop" style="width:160px;height:160px;background:var(--red);opacity:.45;left:200px;top:40px"></div>
+  <div class="cap" data-a="39.9,,up" style="font-size:72px">One hub. Every task.</div>
+  <div class="cap" data-a="40.8,,pop" style="font-size:120px;color:var(--yellow);margin-top:10px">Give it 2 weeks.</div>
+  <div data-a="42.0,,up" style="display:flex;gap:18px;margin-top:34px">
+    <span class="tag" style="background:#fff;color:var(--green);font-size:32px;padding:12px 28px">$0 to try</span>
+    <span class="tag" style="background:#fff;color:var(--aub);font-size:32px;padding:12px 28px">15-min review on day 14</span>
+  </div>
+</div>
+
+<div class="progress" id="pb"></div>
+</div>
+<script>
+const cal=document.getElementById('cal');
+const days=[[10,2],[11,1],[12,3],[13,0],[14,1],[15,-1],[16,-1],[17,2],[18,1],[19,2],[20,1],[21,-1],[22,-1],[23,-1]];
+days.forEach(([d,n],i)=>{const e=document.createElement('div');e.style.cssText='border-radius:18px;padding:16px 0;background:#f1ecec;color:#bbb';e.innerHTML=d+'<br>'+(n>0?'●'.repeat(n):'&nbsp;');if(n>0){e.dataset.g=35.2+i*.22;}cal.appendChild(e)});
+const els=[...document.querySelectorAll('[data-a]')].map(e=>{const[a,b,k]=e.dataset.a.split(',');return{e,a:+a,b:b?+b:null,k}});
+const ease=p=>{const c=1.7;p=p-1;return 1+p*p*((c+1)*p+c)};
+const cl=x=>Math.max(0,Math.min(1,x));
+window.render=t=>{
+ for(const o of els){let p=cl((t-o.a)/0.45),q=ease(p),op=cl((t-o.a)/0.25);
+  if(o.b!=null&&t>o.b-0.35){op*=cl((o.b-t)/0.35)}
+  if(o.b!=null&&t>=o.b){o.e.style.display='none';continue}o.e.style.display=o.e.dataset.d??(o.e.dataset.d=o.e.style.display);o.e.style.display=o.e.dataset.d;
+  let tr='';if(o.k==='pop')tr=`scale(${0.3+0.7*q})`;else if(o.k==='up')tr=`translateY(${(1-q)*50}px)`;else if(o.k==='left')tr=`translateX(${(1-q)*-60}px)`;
+  o.e.style.opacity=t<o.a?0:op;o.e.style.transform=tr}
+ document.querySelectorAll('[data-k]').forEach(c=>c.classList.toggle('d',t>=+c.dataset.k));
+ document.querySelectorAll('[data-s]').forEach(s=>{if(!s.dataset.o)s.dataset.o=s.textContent+'|'+s.className;const[tx,cn]=s.dataset.o.split('|');if(t>=+s.dataset.s){s.textContent='✅ Done';s.className='tag t-g'}else{s.textContent=tx;s.className=cn}});
+ cal.querySelectorAll('[data-g]').forEach(c=>{const on=t>=+c.dataset.g;c.style.background=on?'var(--green)':'#f1ecec';c.style.color=on?'#fff':'#bbb';c.style.transform=on?`scale(${0.9+0.1*ease(cl((t-c.dataset.g)/.3))})`:''});
+ document.getElementById('pb').style.width=(t/45*100)+'%';
+};
+render(0);
+</script></body></html>
