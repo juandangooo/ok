@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Split-Flap Board</title>
+<style>
+  :root {
+    --bg: #111; --cell: #1c1c1c; --cell-hi: #262626; --ink: #f2efe6;
+    --gap: 0.6vmin; --rows: 6; --cols: 22;
+  }
+  html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden; }
+  body { display: grid; place-items: center; font-family: "Helvetica Neue", Arial, sans-serif; }
+  #board {
+    display: grid; gap: var(--gap);
+    grid-template-columns: repeat(var(--cols), 1fr);
+    width: 96vw; max-height: 96vh;
+    aspect-ratio: calc(var(--cols) * 0.72) / var(--rows);
+  }
+  .cell { position: relative; perspective: 400px; container-type: size; }
+  .half {
+    position: absolute; left: 0; right: 0; height: 50%; overflow: hidden;
+    background: var(--cell); color: var(--ink);
+    font-size: 80cqh; font-weight: 700; text-align: center; line-height: 100cqh;
+    backface-visibility: hidden;
+  }
+  .top    { top: 0; border-radius: 6% 6% 0 0; background: var(--cell-hi); }
+  .bottom { bottom: 0; border-radius: 0 0 6% 6%; }
+  .bottom span { display: block; transform: translateY(-50cqh); }
+  .top span { display: block; }
+  /* hinge line */
+  .cell::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+    background: #000; z-index: 5; }
+  .flap { z-index: 3; transform-origin: bottom; }
+  .flap.bottom { transform-origin: top; }
+  .flipping .flap.top    { animation: down-top var(--speed) ease-in forwards; }
+  .flipping .flap.bottom { animation: down-bot var(--speed) ease-out forwards; }
+  @keyframes down-top { from { transform: rotateX(0) } to { transform: rotateX(-90deg) } }
+  @keyframes down-bot { 0%,50% { transform: rotateX(90deg) } to { transform: rotateX(0) } }
+</style>
+</head>
+<body>
+<div id="board"></div>
+<script>
+/*
+ * Split-flap board. Configure via URL params:
+ *   ?rows=6&cols=22
+ *   &msg=HELLO WORLD|LINE TWO~SECOND PAGE|...   ("|" = new row, "~" = new page)
+ *   &interval=20   seconds per page
+ *   &clock=1       add a page with live time/date
+ *   &feed=URL      JSON {"pages":[["row","row"],...]} polled each cycle
+ *   &speed=60      ms per flap step
+ */
+const P = new URLSearchParams(location.search);
+const ROWS = +P.get('rows') || 6, COLS = +P.get('cols') || 22;
+const SPEED = +P.get('speed') || 60, INTERVAL = (+P.get('interval') || 20) * 1000;
+const CHARS = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,:!?'-/&@#%°$()";
+document.documentElement.style.setProperty('--rows', ROWS);
+document.documentElement.style.setProperty('--cols', COLS);
+document.documentElement.style.setProperty('--speed', SPEED + 'ms');
+
+const board = document.getElementById('board');
+const cells = [];
+for (let i = 0; i < ROWS * COLS; i++) {
+  const el = document.createElement('div');
+  el.className = 'cell';
+  el.innerHTML = '<div class="half top"><span></span></div><div class="half bottom"><span></span></div>' +
+                 '<div class="half top flap"><span></span></div><div class="half bottom flap"><span></span></div>';
+  board.appendChild(el);
+  const [top, bot, ftop, fbot] = el.querySelectorAll('span');
+  cells.push({ el, top, bot, ftop, fbot, cur: 0, target: 0, busy: false });
+}
+
+// One mechanical step: advance to the next character on the drum.
+function step(c) {
+  const from = CHARS[c.cur], next = (c.cur + 1) % CHARS.length, to = CHARS[next];
+  c.top.textContent = to;   // static top reveals new char behind falling flap
+  c.bot.textContent = from; // static bottom keeps old until flap lands
+  c.ftop.textContent = from;
+  c.fbot.textContent = to;
+  c.el.classList.remove('flipping'); void c.el.offsetWidth; c.el.classList.add('flipping');
+  c.cur = next;
+  setTimeout(() => {
+    c.bot.textContent = c.ftop.textContent = to;
+    if (c.cur !== c.target) step(c); else { c.busy = false; c.el.classList.remove('flipping'); }
+  }, SPEED);
+}
+
+function setCell(c, ch, delay) {
+  let idx = CHARS.indexOf(ch.toUpperCase()); if (idx < 0) idx = 0;
+  c.target = idx;
+  if (c.cur === idx || c.busy) return;
+  c.busy = true;
+  setTimeout(() => step(c), delay);
+}
+
+function show(lines) {
+  for (let r = 0; r < ROWS; r++) {
+    const line = (lines[r] || '').toUpperCase().slice(0, COLS);
+    const pad = Math.floor((COLS - line.length) / 2); // centre each row
+    const row = ' '.repeat(pad) + line;
+    for (let col = 0; col < COLS; col++)
+      setCell(cells[r * COLS + col], row[col] || ' ', col * 25 + Math.random() * 80);
+  }
+}
+
+function clockPage() {
+  const d = new Date();
+  return ['', d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }),
+          d.toLocaleDateString([], { weekday: 'long' }),
+          d.toLocaleDateString([], { month: 'long', day: 'numeric' })];
+}
+
+let pages = (P.get('msg') || 'GOOD MORNING|HAVE A GREAT DAY~SPLIT FLAP|ON DAKBOARD')
+  .split('~').map(p => p.split('|'));
+let i = 0;
+
+async function tick() {
+  if (P.get('feed')) {
+    try { const j = await (await fetch(P.get('feed'), { cache: 'no-store' })).json(); if (j.pages?.length) pages = j.pages; }
+    catch (e) { /* keep last pages */ }
+  }
+  const all = P.get('clock') ? [...pages, null] : pages;
+  const page = all[i++ % all.length];
+  show(page === null ? clockPage() : page);
+}
+tick();
+setInterval(tick, INTERVAL);
+</script>
+</body>
+</html>
