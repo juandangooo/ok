@@ -184,6 +184,12 @@ split = gap[len(gap) // 2] if gap else len(rows) // 2
 hell_m = word_dark[:split]; audio_m = word_dark[split:]; bolt_m = word_red[:, :]
 ys, xs = np.where(bolt_m > 0)
 bolt_m = bolt_m[ys.min() - 2:ys.max() + 3, xs.min() - 2:xs.max() + 3]
+# Rebuild the bolt as a clean vector polygon (traced from the logo's 46x163px bolt), drawn at 24x
+BOLT_PTS = [(41, 0), (28, 70), (43, 72), (9, 163), (18, 110), (0, 104)]
+_S = 24
+_bim = Image.new("L", (44 * _S, 164 * _S), 0)
+ImageDraw.Draw(_bim).polygon([(x * _S, y * _S) for x, y in BOLT_PTS], fill=255)
+bolt_m = to_mask(_bim)
 def trim(m):
     ys, xs = np.where(m > 0); return m[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
 hell_m = trim(hell_m); audio_full = trim(np.maximum(word_dark, word_red)[split - 40:])
@@ -315,6 +321,9 @@ def build_plate(name, canvas, outline, rnd, rim, field_inset, art_fn, gem_pts, g
 HIDDEN = {"Strap preview (HIDE before upload)", "GUIDE - cut line (hidden)", "GUIDE - safe area (hidden)"}
 SCREEN = {"Jewel sparkle (screen)", "Specular sweep (screen)"}
 
+def grow(m, r):
+    return np.clip((blur(m, r) - 0.06) * 14, 0, 1)
+
 def raised(mask, r=6, stops=GOLD, sh=True, spec=1.0):
     parts = []
     if sh: parts.append(shadow(mask, r * .8, r * .5, r * .9, .75))
@@ -339,7 +348,7 @@ def main_art(canvas, field_m):
         m = bolt_m[:, ::-1] if flip else bolt_m
         bm = np.maximum(bm, paste_mask(m, canvas, (x, cy + 40), height=1050))
     out["Lightning bolts - ruby enamel in gold"] = over(
-        raised(np.clip(blur(bm, 6) * 3, 0, 1), 8), shade(bm, 10, RUBY, spec=1.0, tex=0, wave=.05))
+        raised(grow(bm, 9), 8), shade(bm, 10, RUBY, spec=1.0, tex=0, wave=.05))
     # emblem
     eh = 940
     sil = paste_mask(cube_sil, canvas, (cx, cy - 80), height=eh)
@@ -398,8 +407,8 @@ def side1_art(canvas, field_m):
     bm = paste_mask(bolt_m, canvas, (W / 2 + 8, H / 2 - 70), height=700)
     nm = text_mask("NEW JERSEY", CINZEL, 62, canvas, (W / 2, H / 2 + 370), tracking=14)
     return {"Sound rings - engraved": flat((120, 92, 40), rings(canvas, (W/2, H/2), 250, 900, 52, 4) * field_m * .45),
-            "TEXT - NJ (raised gold)": raised(tm * (1 - np.clip(blur(bm, 5) * 4, 0, 1)), 8, spec=1.2),
-            "Lightning bolt - ruby enamel": over(raised(np.clip(blur(bm, 5) * 3, 0, 1), 7), shade(bm, 8, RUBY, spec=1, tex=0, wave=.05)),
+            "TEXT - NJ (raised gold)": raised(tm * (1 - grow(bm, 8)), 8, spec=1.2),
+            "Lightning bolt - ruby enamel": over(raised(grow(bm, 8), 7), shade(bm, 8, RUBY, spec=1, tex=0, wave=.05)),
             "TEXT - NEW JERSEY (engraved, editable copy)": flat((214, 168, 70), nm * field_m)}
 
 def side2_art(canvas, field_m):
@@ -432,7 +441,7 @@ def end_art_factory(flip):
         W, H = canvas
         m = bolt_m[:, ::-1] if flip else bolt_m
         bm = paste_mask(m, canvas, (W / 2, H / 2), height=560)
-        return {"Lightning bolt - ruby enamel in gold": over(raised(np.clip(blur(bm, 6) * 3, 0, 1), 8),
+        return {"Lightning bolt - ruby enamel in gold": over(raised(grow(bm, 9), 8),
                                                               shade(bm, 9, RUBY, spec=1, tex=0, wave=.05))}
     return fn
 
