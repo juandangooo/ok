@@ -1,4 +1,4 @@
-import type { Register, ThemeSetArgs, ThemeMessageRule } from 'claude-code'
+import type { EngineInterface, Register, ThemeSetArgs, ThemeMessageRule } from 'claude-code'
 
 import { makeColors } from './make-colors.js'
 import { BLINK } from './scene'
@@ -6,7 +6,36 @@ import { BLINK } from './scene'
 // The still wallpaper is the same portrait with the blink animation taken out.
 // (The old traced ground was over the app's 100,000-character backdrop limit,
 // so the app refused the whole theme.)
-const STILL = BLINK.replace(/<style>[\s\S]*?<\/style>/, '')
+const STILL_PORTRAIT = BLINK.replace(/<style>[\s\S]*?<\/style>/, '')
+
+// Frost on the bottom bar alone. The app's own glass frosts every panel at
+// once, the conversation column included, so it is turned off below and the
+// wallpaper carries its own frost instead: the portrait once, sharp, and a
+// blurred, shadow-veiled copy of it masked to a strip along the foot of the
+// window, where the bar sits. The outer svg has no viewBox so its units are
+// the window's points, and the strip stays BAR tall on any screen.
+const BAR = 120
+
+function frostBar(portrait: string): string {
+  const inner = portrait.replace('<svg xmlns="http://www.w3.org/2000/svg" ', '<svg id="lh-pic" width="100%" height="100%" ')
+
+  return (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">' +
+    '<defs>' +
+    '<filter id="lh-frost" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="22"/></filter>' +
+    `<mask id="lh-bar"><rect width="100%" height="${BAR}" y="100%" transform="translate(0 -${BAR})" fill="#fff"/></mask>` +
+    '</defs>' +
+    inner +
+    '<g mask="url(#lh-bar)">' +
+    '<g filter="url(#lh-frost)"><use href="#lh-pic"/></g>' +
+    '<rect width="100%" height="100%" fill="#1d1411" fill-opacity="0.35"/>' +
+    '</g>' +
+    '</svg>'
+  )
+}
+
+const BLINK_SCENE = frostBar(BLINK)
+const STILL = frostBar(STILL_PORTRAIT)
 
 // The Last Horizon palette: near-black, bone white, dusty rose, faded teal.
 // The blacks are warmed to the portrait's own shadow browns, so the app's
@@ -47,11 +76,9 @@ const tile: ThemeMessageRule = {
   padding: 14,
 }
 
-// The app's own panels (the bar under the conversation, the top bar, the
-// sidebar) as liquid glass over the portrait: a heavy blur that melts the
-// picture behind them and a light veil of its shadow brown, so the wallpaper
-// flows through them instead of a solid black strip.
-const GLASS = { blur: 32, tint: '#1d1411', opacity: 0.3 }
+// The app's glass is off (no blur, no veil): the frost under the bottom bar is
+// drawn into the wallpaper itself (frostBar above), so the middle stays sharp.
+const GLASS = { blur: 0, opacity: 0 }
 
 const BASE: ThemeSetArgs = {
   colors: theme,
@@ -72,6 +99,16 @@ const LOOK: ThemeSetArgs = {
 
 const BLINKING: ThemeSetArgs = { ...LOOK, backdrop: { scene: 'blink', glass: GLASS } }
 
+
+
+async function putUp($: EngineInterface) {
+  try {
+    await $.theme.set(BLINKING)
+  } catch (error) {
+    $.ui.toast(`Last Horizon: background refused: ${String(error)}`)
+  }
+}
+
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     const unpainted = problems.find(line => line.startsWith("Desktop won't paint"))
@@ -84,13 +121,23 @@ export const register: Register = on => {
     // The blinking wallpaper is always on: every session start, reconnect, app
     // reload or resume puts it back. /still only lasts until the next one.
     await $.store.set('wallpaper', 'blink')
-    try {
-      await $.theme.set(BLINKING)
-    } catch (error) {
-      $.ui.toast(`Last Horizon: background refused: ${String(error)}`)
-    }
+    await putUp($)
 
     return next(e)
+  })
+
+  // In a cloud session the app connects after session.start, so a theme set
+  // there can reach no one. Put the blinking wallpaper up again each time the
+  // desktop or mobile app attaches, so nobody has to type /blink.
+  on('session.attach', async ($, e, next) => {
+    const result = await next(e)
+
+    if (e.surface === 'desktop' || e.surface === 'mobile') {
+      await $.store.set('wallpaper', 'blink')
+      await putUp($)
+    }
+
+    return result
   })
 
   on('command.run', { command: 'blink' }, async $ => {
@@ -132,7 +179,7 @@ export const register: Register = on => {
     const { Svg } = $.ui.resolve(e)
 
     if (e.props.scene !== 'still') {
-      return <Svg source={BLINK} alt="A painted close-up of a face looking up, eyes slowly opening and closing" isInteractive />
+      return <Svg source={BLINK_SCENE} alt="A painted close-up of a face looking up, eyes slowly opening and closing" isInteractive />
     }
 
     return <Svg source={STILL} alt="A painted close-up of a face looking up" isInteractive />
