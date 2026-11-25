@@ -1,8 +1,12 @@
 import type { Register, ThemeSetArgs, ThemeMessageRule } from 'claude-code'
 
 import { makeColors } from './make-colors.js'
-import { GROUND } from './ground'
 import { BLINK } from './scene'
+
+// The still wallpaper is the same portrait with the blink animation taken out.
+// (The old traced ground was over the app's 100,000-character backdrop limit,
+// so the app refused the whole theme.)
+const STILL = BLINK.replace(/<style>[\s\S]*?<\/style>/, '')
 
 // The Last Horizon palette: near-black, bone white, dusty rose, faded teal.
 const { theme, problems } = makeColors({
@@ -37,7 +41,7 @@ const tile: ThemeMessageRule = {
 const BASE: ThemeSetArgs = {
   colors: theme,
   overrideColorScheme: 'dark',
-  backdrop: GROUND,
+  backdrop: { scene: 'still', glass: false },
 }
 
 const LOOK: ThemeSetArgs = {
@@ -62,8 +66,11 @@ export const register: Register = on => {
     }
     await $.command.register({ name: 'blink', description: 'Last Horizon: the animated wallpaper, eyes opening and closing' })
     await $.command.register({ name: 'still', description: 'Last Horizon: the still wallpaper' })
+    // Every reconnect, app reload or resume runs session.start again, so restore
+    // the wallpaper the person last chose instead of always going back to still.
+    const isBlinking = (await $.store.get('wallpaper')) === 'blink'
     try {
-      await $.theme.set(LOOK)
+      await $.theme.set(isBlinking ? BLINKING : LOOK)
     } catch (error) {
       $.ui.toast(`Last Horizon: background refused: ${String(error)}`)
     }
@@ -72,12 +79,14 @@ export const register: Register = on => {
   })
 
   on('command.run', { command: 'blink' }, async $ => {
+    await $.store.set('wallpaper', 'blink')
     await $.theme.set(BLINKING)
 
     return { text: 'Last Horizon: blinking wallpaper on. If it does not appear, run /still.' }
   })
 
   on('command.run', { command: 'still' }, async $ => {
+    await $.store.set('wallpaper', 'still')
     await $.theme.set(LOOK)
 
     return { text: 'Last Horizon: still wallpaper on.' }
@@ -89,6 +98,10 @@ export const register: Register = on => {
     }
     const { Svg } = $.ui.resolve(e)
 
-    return <Svg source={BLINK} alt="A painted close-up of a face looking up, eyes slowly opening and closing" isInteractive />
+    if (e.props.scene === 'blink') {
+      return <Svg source={BLINK} alt="A painted close-up of a face looking up, eyes slowly opening and closing" isInteractive />
+    }
+
+    return <Svg source={STILL} alt="A painted close-up of a face looking up" isInteractive />
   })
 }
