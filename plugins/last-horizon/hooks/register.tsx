@@ -100,6 +100,25 @@ export const register: Register = on => {
     return { text: 'Last Horizon: still wallpaper on until this session reconnects; blinking comes back after that.' }
   })
 
+  // Last Horizon stays on. Another plugin that replaces or clears the theme
+  // (theme-examples does both for its "merged" fireworks, then leaves the
+  // app's plain black) is refused. Only this plugin's own calls go through.
+  on('theme.set', ($, e, next) => {
+    if (next.origin.plugin === 'last-horizon') {
+      return next(e)
+    }
+
+    return { deny: 'Last Horizon is always on, so it keeps the theme.' }
+  })
+
+  on('theme.clear', ($, e, next) => {
+    if (next.origin.plugin === 'last-horizon') {
+      return next(e)
+    }
+
+    return { deny: 'Last Horizon is always on, so it keeps the theme.' }
+  })
+
   on('ui.render', { component: 'Backdrop' }, ($, e, next) => {
     if (e.surface !== 'desktop' && e.surface !== 'mobile') {
       return next(e)
