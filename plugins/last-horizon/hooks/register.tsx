@@ -13,17 +13,33 @@ const STILL_PORTRAIT = BLINK.replace(/<style>[\s\S]*?<\/style>/, '')
 // wallpaper carries its own frost instead: the portrait once, sharp, and a
 // blurred, shadow-veiled copy of it masked to a strip along the foot of the
 // window, where the bar sits. The outer svg has no viewBox so its units are
-// the window's points, and the strip stays BAR tall on any screen.
+// the window's points, and the strip stays BAR tall on any screen. Above it
+// the frost fades in over FADE points on an eased gradient, so the sharp
+// portrait melts into the bar instead of stopping at a line.
 const BAR = 120
+const FADE = 110
+
+function fadeStops(): string {
+  const total = BAR + FADE
+  const stops = [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1].map(t => {
+    const eased = t * t * (3 - 2 * t)
+
+    return `<stop offset="${((t * FADE) / total).toFixed(3)}" stop-color="#fff" stop-opacity="${eased.toFixed(3)}"/>`
+  })
+
+  return stops.join('') + '<stop offset="1" stop-color="#fff"/>'
+}
 
 function frostBar(portrait: string): string {
   const inner = portrait.replace('<svg xmlns="http://www.w3.org/2000/svg" ', '<svg id="lh-pic" width="100%" height="100%" ')
+  const total = BAR + FADE
 
   return (
     '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">' +
     '<defs>' +
     '<filter id="lh-frost" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="22"/></filter>' +
-    `<mask id="lh-bar"><rect width="100%" height="${BAR}" y="100%" transform="translate(0 -${BAR})" fill="#fff"/></mask>` +
+    `<linearGradient id="lh-fade" x1="0" y1="0" x2="0" y2="1">${fadeStops()}</linearGradient>` +
+    `<mask id="lh-bar"><rect width="100%" height="${total}" y="100%" transform="translate(0 -${total})" fill="url(#lh-fade)"/></mask>` +
     '</defs>' +
     inner +
     '<g mask="url(#lh-bar)">' +
