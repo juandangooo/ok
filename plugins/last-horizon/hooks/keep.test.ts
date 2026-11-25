@@ -87,3 +87,22 @@ test('its own /still and /blink still change the wallpaper', async ($, on) => {
 
   expect(scenes).toEqual(['still', 'blink'])
 })
+
+test('the blinking wallpaper goes up again when the app attaches', async ($, on) => {
+  const scenes: string[] = []
+
+  on('store.set', () => ({ value: undefined }))
+  on('theme.set', (_, e) => {
+    const backdrop = e.backdrop
+
+    scenes.push(backdrop !== undefined && 'scene' in backdrop ? String(backdrop.scene) : 'none')
+
+    return DRAWN
+  })
+  on('session.attach', (_, e) => ({ clientId: e.clientId }))
+
+  await $.session.attach({ surface: 'desktop', clientId: 'desktop:default' })
+  await $.session.attach({ surface: 'terminal', clientId: 'terminal:default' })
+
+  expect(scenes).toEqual(['blink'])
+})
