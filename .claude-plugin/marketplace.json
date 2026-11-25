@@ -1,0 +1,5 @@
+{
+  "name": "juandangooo-themes",
+  "owner": { "name": "juandangooo" },
+  "plugins": [{ "name": "last-horizon", "source": "./plugins/last-horizon", "description": "Last Horizon look for Claude Code: dark palette, monospace tiles, and a portrait wallpaper whose eyes open and close." }]
+}
