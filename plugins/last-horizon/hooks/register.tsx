@@ -47,10 +47,15 @@ const tile: ThemeMessageRule = {
   padding: 14,
 }
 
+// The app's own panels (the bar under the conversation, the top bar, the
+// sidebar) as frosted glass over the portrait, tinted with its shadow brown,
+// so the wallpaper shows through them instead of a solid black strip.
+const GLASS = { blur: 18, tint: '#100b09', opacity: 0.45 }
+
 const BASE: ThemeSetArgs = {
   colors: theme,
   overrideColorScheme: 'dark',
-  backdrop: { scene: 'blink', glass: false },
+  backdrop: { scene: 'blink', glass: GLASS },
 }
 
 const LOOK: ThemeSetArgs = {
@@ -64,7 +69,7 @@ const LOOK: ThemeSetArgs = {
   },
 }
 
-const BLINKING: ThemeSetArgs = { ...LOOK, backdrop: { scene: 'blink', glass: false } }
+const BLINKING: ThemeSetArgs = { ...LOOK, backdrop: { scene: 'blink', glass: GLASS } }
 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
@@ -95,7 +100,7 @@ export const register: Register = on => {
   })
 
   on('command.run', { command: 'still' }, async $ => {
-    await $.theme.set({ ...LOOK, backdrop: { scene: 'still', glass: false } })
+    await $.theme.set({ ...LOOK, backdrop: { scene: 'still', glass: GLASS } })
 
     return { text: 'Last Horizon: still wallpaper on until this session reconnects; blinking comes back after that.' }
   })
