@@ -1,8 +1,12 @@
 import type { Register, ThemeSetArgs, ThemeMessageRule } from 'claude-code'
 
 import { makeColors } from './make-colors.js'
-import { GROUND } from './ground'
 import { BLINK } from './scene'
+
+// The still wallpaper is the same portrait with the blink animation taken out.
+// (The old traced ground was over the app's 100,000-character backdrop limit,
+// so the app refused the whole theme.)
+const STILL = BLINK.replace(/<style>[\s\S]*?<\/style>/, '')
 
 // The Last Horizon palette: near-black, bone white, dusty rose, faded teal.
 const { theme, problems } = makeColors({
@@ -37,7 +41,7 @@ const tile: ThemeMessageRule = {
 const BASE: ThemeSetArgs = {
   colors: theme,
   overrideColorScheme: 'dark',
-  backdrop: GROUND,
+  backdrop: { scene: 'still', glass: false },
 }
 
 const LOOK: ThemeSetArgs = {
@@ -94,6 +98,10 @@ export const register: Register = on => {
     }
     const { Svg } = $.ui.resolve(e)
 
-    return <Svg source={BLINK} alt="A painted close-up of a face looking up, eyes slowly opening and closing" isInteractive />
+    if (e.props.scene === 'blink') {
+      return <Svg source={BLINK} alt="A painted close-up of a face looking up, eyes slowly opening and closing" isInteractive />
+    }
+
+    return <Svg source={STILL} alt="A painted close-up of a face looking up" isInteractive />
   })
 }
