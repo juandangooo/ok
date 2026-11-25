@@ -62,8 +62,11 @@ export const register: Register = on => {
     }
     await $.command.register({ name: 'blink', description: 'Last Horizon: the animated wallpaper, eyes opening and closing' })
     await $.command.register({ name: 'still', description: 'Last Horizon: the still wallpaper' })
+    // Every reconnect, app reload or resume runs session.start again, so restore
+    // the wallpaper the person last chose instead of always going back to still.
+    const isBlinking = (await $.store.get('wallpaper')) === 'blink'
     try {
-      await $.theme.set(LOOK)
+      await $.theme.set(isBlinking ? BLINKING : LOOK)
     } catch (error) {
       $.ui.toast(`Last Horizon: background refused: ${String(error)}`)
     }
@@ -72,12 +75,14 @@ export const register: Register = on => {
   })
 
   on('command.run', { command: 'blink' }, async $ => {
+    await $.store.set('wallpaper', 'blink')
     await $.theme.set(BLINKING)
 
     return { text: 'Last Horizon: blinking wallpaper on. If it does not appear, run /still.' }
   })
 
   on('command.run', { command: 'still' }, async $ => {
+    await $.store.set('wallpaper', 'still')
     await $.theme.set(LOOK)
 
     return { text: 'Last Horizon: still wallpaper on.' }
