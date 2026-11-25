@@ -9,20 +9,29 @@ import { BLINK } from './scene'
 const STILL = BLINK.replace(/<style>[\s\S]*?<\/style>/, '')
 
 // The Last Horizon palette: near-black, bone white, dusty rose, faded teal.
+// The blacks are warmed to the portrait's own shadow browns, so the app's
+// message box and panels sit in the picture instead of on top of it.
 const { theme, problems } = makeColors({
   label: 'Last Horizon',
   only: 'dark',
-  roles: { accent: '#b59790', danger: '#c38b7b', success: '#87a9b0', warning: '#c9a16e', pro: '#a5a0b6' },
+  // fillShade 400 keeps button labels readable when hovered.
+  roles: {
+    accent: { seed: '#b59790', fillShade: 400 },
+    danger: { seed: '#c38b7b', fillShade: 400 },
+    success: { seed: '#87a9b0', fillShade: 400 },
+    warning: '#c9a16e',
+    pro: { seed: '#a5a0b6', fillShade: 400 },
+  },
   dark: {
     gray: {
       anchors: {
-        'surface-0': '#0c0b0c',
-        'surface-1': '#131012',
-        'surface-2': '#191517',
-        'surface-3': '#1e191b',
+        'surface-0': '#100b09',
+        'surface-1': '#140e0b',
+        'surface-2': '#1b1310',
+        'surface-3': '#211713',
         'text-primary': '#f4f1ef',
-        'text-secondary': '#cfd3cd',
-        'text-muted': '#a69c9a',
+        'text-secondary': '#d4d0c9',
+        'text-muted': '#aa9d98',
       },
     },
   },
@@ -30,9 +39,9 @@ const { theme, problems } = makeColors({
 
 // Panels like translucent terminal tiles over the dusk.
 const tile: ThemeMessageRule = {
-  backgroundColor: '#0c0b0cee',
+  backgroundColor: '#100b09ee',
   color: '#e2dddc',
-  borderColor: '#584e51',
+  borderColor: '#5a4842',
   borderWidth: 1,
   radius: 0,
   padding: 14,
@@ -51,7 +60,7 @@ const LOOK: ThemeSetArgs = {
     Heading: { fontFamily: ['mono'], fontWeight: 'bold', letterSpacing: 1, color: '#e9c9b8' },
     UserMessage: { ...tile, borderColor: '#b59790', color: '#f4f1ef' },
     AssistantMessage: tile,
-    ToolUse: { fontFamily: ['mono'], color: '#c38b7b', backgroundColor: '#0c0b0cdd', radius: 0, paddingX: 8 },
+    ToolUse: { fontFamily: ['mono'], color: '#c38b7b', backgroundColor: '#100b09dd', radius: 0, paddingX: 8 },
   },
 }
 
