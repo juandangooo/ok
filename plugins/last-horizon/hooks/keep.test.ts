@@ -106,3 +106,23 @@ test('the blinking wallpaper goes up again when the app attaches', async ($, on)
 
   expect(scenes).toEqual(['blink'])
 })
+
+test('the wallpaper draws the traced portrait, frosted at the foot, within the size limit', async $ => {
+  for (const scene of ['blink', 'still']) {
+    const ui = await $.ui.mount({
+      plugin: 'last-horizon',
+      component: 'Backdrop',
+      surface: 'desktop',
+      props: { scene, plugin: 'last-horizon', glass: false },
+    } as never)
+    const svg = (await ui.find({ type: 'Svg' })) as { props?: { source?: string } } | undefined
+    const source = svg?.props?.source ?? ''
+
+    expect(source.length).toBeGreaterThan(100000)
+    expect(source.length).toBeLessThan(131073)
+    expect(source).toContain('mask="url(#lh-bar)"')
+    expect(source.includes('class="lid0"')).toBe(true)
+    expect(source.includes('@keyframes blink0')).toBe(scene === 'blink')
+    await ui.unmount()
+  }
+})
