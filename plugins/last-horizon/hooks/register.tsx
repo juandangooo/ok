@@ -41,7 +41,7 @@ const tile: ThemeMessageRule = {
 const BASE: ThemeSetArgs = {
   colors: theme,
   overrideColorScheme: 'dark',
-  backdrop: { scene: 'still', glass: false },
+  backdrop: { scene: 'blink', glass: false },
 }
 
 const LOOK: ThemeSetArgs = {
@@ -66,11 +66,11 @@ export const register: Register = on => {
     }
     await $.command.register({ name: 'blink', description: 'Last Horizon: the animated wallpaper, eyes opening and closing' })
     await $.command.register({ name: 'still', description: 'Last Horizon: the still wallpaper' })
-    // Every reconnect, app reload or resume runs session.start again, so restore
-    // the wallpaper the person last chose instead of always going back to still.
-    const isBlinking = (await $.store.get('wallpaper')) === 'blink'
+    // The blinking wallpaper is always on: every session start, reconnect, app
+    // reload or resume puts it back. /still only lasts until the next one.
+    await $.store.set('wallpaper', 'blink')
     try {
-      await $.theme.set(isBlinking ? BLINKING : LOOK)
+      await $.theme.set(BLINKING)
     } catch (error) {
       $.ui.toast(`Last Horizon: background refused: ${String(error)}`)
     }
@@ -86,10 +86,9 @@ export const register: Register = on => {
   })
 
   on('command.run', { command: 'still' }, async $ => {
-    await $.store.set('wallpaper', 'still')
-    await $.theme.set(LOOK)
+    await $.theme.set({ ...LOOK, backdrop: { scene: 'still', glass: false } })
 
-    return { text: 'Last Horizon: still wallpaper on.' }
+    return { text: 'Last Horizon: still wallpaper on until this session reconnects; blinking comes back after that.' }
   })
 
   on('ui.render', { component: 'Backdrop' }, ($, e, next) => {
@@ -98,7 +97,7 @@ export const register: Register = on => {
     }
     const { Svg } = $.ui.resolve(e)
 
-    if (e.props.scene === 'blink') {
+    if (e.props.scene !== 'still') {
       return <Svg source={BLINK} alt="A painted close-up of a face looking up, eyes slowly opening and closing" isInteractive />
     }
 

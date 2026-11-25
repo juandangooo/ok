@@ -2,8 +2,8 @@
 
 A look for Claude Code in the desktop and mobile apps, built on the Last Horizon palette: near-black surfaces, bone-white monospace text, a dusty-rose accent, and square message tiles. Behind the conversation sits a portrait wallpaper, traced from the photo's own pixels into vector layers.
 
-- `/blink` switches to the animated wallpaper: the eyes blink and slowly close and open, using the photo's own lid skin and lashes.
-- `/still` switches back to the still wallpaper. Your choice is remembered across reconnects and new sessions.
+- The animated wallpaper is always on: the eyes blink and slowly close and open, using the photo's own lid skin and lashes. It comes back on every new session, reconnect and app reload.
+- `/still` pauses it to the still wallpaper until the session reconnects; `/blink` turns it back on right away.
 
 The terminal draws no wallpaper or theme colors; the look shows in the Claude desktop app and mobile app.
 
