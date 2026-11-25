@@ -48,9 +48,10 @@ const tile: ThemeMessageRule = {
 }
 
 // The app's own panels (the bar under the conversation, the top bar, the
-// sidebar) as frosted glass over the portrait, tinted with its shadow brown,
-// so the wallpaper shows through them instead of a solid black strip.
-const GLASS = { blur: 18, tint: '#100b09', opacity: 0.45 }
+// sidebar) as liquid glass over the portrait: a heavy blur that melts the
+// picture behind them and a light veil of its shadow brown, so the wallpaper
+// flows through them instead of a solid black strip.
+const GLASS = { blur: 32, tint: '#1d1411', opacity: 0.3 }
 
 const BASE: ThemeSetArgs = {
   colors: theme,
