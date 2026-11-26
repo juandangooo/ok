@@ -1,4 +1,4 @@
-import type { EngineInterface, Register, ThemeSetArgs, ThemeMessageRule } from 'claude-code'
+import type { EngineInterface, Register, ThemeResult, ThemeSetArgs, ThemeMessageRule } from 'claude-code'
 
 import { makeColors } from './make-colors.js'
 import { BLINK } from './scene'
@@ -52,6 +52,16 @@ function frostBar(portrait: string): string {
 
 const BLINK_SCENE = frostBar(BLINK)
 const STILL = frostBar(STILL_PORTRAIT)
+
+// The phone gets the portrait alone. The frosted wrapper above has no viewBox
+// (its units are the window's points), so it has no size or shape of its own:
+// the mobile app sizes an Svg from its markup, got a 300 by 150 box, and drew
+// a blurred strip or nothing. The portrait keeps its own viewBox and
+// preserveAspectRatio slice, so it fills the phone at any size. The phone's
+// glass has no blur to lose, and one copy of the picture with no full-screen
+// filter is lighter on its GPU.
+const PHONE_BLINK = BLINK
+const PHONE_STILL = STILL_PORTRAIT
 
 // The Last Horizon palette: near-black, bone white, dusty rose, faded teal.
 // The blacks are warmed to the portrait's own shadow browns, so the app's
@@ -117,6 +127,20 @@ const BLINKING: ThemeSetArgs = { ...LOOK, backdrop: { scene: 'blink', glass: GLA
 
 
 
+// Sets the look and says what the engine said, so a command never claims the
+// wallpaper is on when no app draws it.
+async function report($: EngineInterface, look: ThemeSetArgs, done: string): Promise<string> {
+  let result: ThemeResult
+
+  try {
+    result = await $.theme.set(look)
+  } catch (error) {
+    return `Last Horizon: background refused: ${String(error)}`
+  }
+
+  return result.isDrawn ? done : `Last Horizon: the wallpaper is set, but no app draws it yet: ${result.reason}`
+}
+
 async function putUp($: EngineInterface) {
   try {
     await $.theme.set(BLINKING)
@@ -158,15 +182,14 @@ export const register: Register = on => {
 
   on('command.run', { command: 'blink' }, async $ => {
     await $.store.set('wallpaper', 'blink')
-    await $.theme.set(BLINKING)
 
-    return { text: 'Last Horizon: blinking wallpaper on. If it does not appear, run /still.' }
+    return { text: await report($, BLINKING, 'Last Horizon: blinking wallpaper on. If it does not appear, run /still.') }
   })
 
   on('command.run', { command: 'still' }, async $ => {
-    await $.theme.set({ ...LOOK, backdrop: { scene: 'still', glass: GLASS } })
+    const still: ThemeSetArgs = { ...LOOK, backdrop: { scene: 'still', glass: GLASS } }
 
-    return { text: 'Last Horizon: still wallpaper on until this session reconnects; blinking comes back after that.' }
+    return { text: await report($, still, 'Last Horizon: still wallpaper on until this session reconnects; blinking comes back after that.') }
   })
 
   // Last Horizon stays on. Another plugin that replaces or clears the theme
@@ -193,11 +216,12 @@ export const register: Register = on => {
       return next(e)
     }
     const { Svg } = $.ui.resolve(e)
+    const phone = e.surface === 'mobile'
 
     if (e.props.scene !== 'still') {
-      return <Svg source={BLINK_SCENE} alt="A painted close-up of a face looking up, eyes slowly opening and closing" isInteractive />
+      return <Svg source={phone ? PHONE_BLINK : BLINK_SCENE} alt="A painted close-up of a face looking up, eyes slowly opening and closing" isInteractive />
     }
 
-    return <Svg source={STILL} alt="A painted close-up of a face looking up" isInteractive />
+    return <Svg source={phone ? PHONE_STILL : STILL} alt="A painted close-up of a face looking up" isInteractive />
   })
 }

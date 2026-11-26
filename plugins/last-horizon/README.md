@@ -7,7 +7,7 @@ A look for Claude Code in the desktop and mobile apps, built on the Last Horizon
 
 - Last Horizon keeps the theme: if another plugin tries to replace or clear it (for example theme-examples' automatic fireworks), it is refused.
 
-The terminal draws no wallpaper or theme colors; the look shows in the Claude desktop app and mobile app.
+The terminal draws no wallpaper or theme colors; the look shows in the Claude desktop app and mobile app. On the phone the portrait fills the screen on its own, without the desktop's frosted strip under the bottom bar.
 
 ## Install
 
