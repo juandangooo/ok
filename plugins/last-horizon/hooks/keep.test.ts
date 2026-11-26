@@ -126,3 +126,38 @@ test('the wallpaper draws the traced portrait, frosted at the foot, within the s
     await ui.unmount()
   }
 })
+
+// The frosted wrapper has no viewBox, so the phone (which sizes an Svg from its
+// own markup) drew it as a 300 by 150 strip. The phone gets the portrait alone.
+test('on the phone the wallpaper is the portrait alone, sized by its own viewBox', async $ => {
+  for (const scene of ['blink', 'still']) {
+    const ui = await $.ui.mount({
+      plugin: 'last-horizon',
+      component: 'Backdrop',
+      surface: 'mobile',
+      props: { scene, plugin: 'last-horizon', glass: false },
+    } as never)
+    const svg = (await ui.find({ type: 'Svg' })) as { props?: { source?: string } } | undefined
+    const source = svg?.props?.source ?? ''
+    const root = source.slice(0, source.indexOf('>') + 1)
+
+    expect(source.length).toBeGreaterThan(100000)
+    expect(source.length).toBeLessThan(131073)
+    expect(root).toContain('viewBox=')
+    expect(root).toContain('preserveAspectRatio="xMidYMid slice"')
+    expect(source).not.toContain('mask="url(#lh-bar)"')
+    expect(source.includes('@keyframes blink0')).toBe(scene === 'blink')
+    await ui.unmount()
+  }
+})
+
+test('/blink says so when no app draws the wallpaper', async ($, on) => {
+  on('command.run', () => ({ text: 'engine' }))
+  on('store.set', () => ({ value: undefined }))
+  on('theme.set', () => ({ value: { isDrawn: false, reason: 'no desktop or mobile app is attached' } }))
+
+  const ran = JSON.stringify(await $.command.run({ command: 'blink', args: '', ...TYPED }))
+
+  expect(ran).toContain('no app draws it yet: no desktop or mobile app is attached')
+  expect(ran).not.toContain('blinking wallpaper on')
+})
