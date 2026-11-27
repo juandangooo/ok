@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="512" height="512">
+  <defs>
+    <path id="mask" d="M -27 -30 Q 0 -38 27 -30 L 25 2 Q 22 32 0 35 Q -22 32 -25 2 Z"/>
+    <mask id="cut" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120">
+      <rect width="120" height="120" fill="#fff"/>
+      <use href="#mask" transform="translate(41 70) rotate(-12)" fill="#000" stroke="#000" stroke-width="15" stroke-linejoin="round"/>
+    </mask>
+  </defs>
+  <g transform="translate(60 60) scale(0.84) translate(-60 -60)"><g fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- tragedy mask (back) -->
+    <g mask="url(#cut)">
+      <g transform="translate(80 46) rotate(14)">
+        <use href="#mask"/>
+        <path d="M -17 -10 L -5 -14"/>
+        <path d="M 17 -10 L 5 -14"/>
+        <path d="M -15 -4 Q -10 -9 -5 -4"/>
+        <path d="M 5 -4 Q 10 -9 15 -4"/>
+        <path d="M -12 22 Q 0 8 12 22"/>
+      </g>
+    </g>
+    <!-- comedy mask (front) -->
+    <g transform="translate(41 70) rotate(-12)">
+      <use href="#mask"/>
+      <path d="M -16 -10 Q -10 -17 -4 -10"/>
+      <path d="M 4 -10 Q 10 -17 16 -10"/>
+      <path d="M -15 6 Q 0 26 15 6 Z"/>
+    </g>
+  </g></g>
+</svg>
